@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Your Cart | GfxPrints</title>
+<meta name="description" content="Review the personalized products in your GfxPrints cart before checkout.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"></noscript>
+<link rel="stylesheet" href="css/style.min.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a href="index.html" class="logo"><img src="assets/brand/logo-gfxprints.webp" alt="GfxPrints" class="logo-img" width="240" height="123"></a>
+    <nav class="main-nav" aria-label="Primary">
+      <a href="index.html">Home</a>
+      <a href="shop.html">Shop</a>
+      <a href="customize.html">Customization</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <div class="header-actions">
+      <button class="icon-btn hide-mobile" aria-label="Search" onclick="window.location.href='shop.html'">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <a class="icon-btn hide-mobile" href="contact.html" aria-label="Account">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+      </a>
+      <a class="icon-btn hide-mobile" href="shop.html" aria-label="Wishlist">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7.5-4.6-10-9.3C.4 8 2 4.5 5.6 4.1c2-.2 3.7.8 4.9 2.4C11.7 4.9 13.4 3.9 15.4 4.1 19 4.5 20.6 8 20 11.7 17.5 16.4 12 21 12 21z"/></svg>
+      </a>
+      <a class="icon-btn" href="cart.html" aria-label="Shopping bag">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2l1.5 4h9L18 2"/><rect x="4" y="6" width="16" height="15" rx="2"/><path d="M9 10a3 3 0 0 0 6 0"/></svg>
+        <span class="badge js-cart-count" style="display:none">0</span>
+      </a>
+      <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+  <nav id="mobile-nav" aria-label="Mobile">
+    <a href="index.html">Home</a>
+    <a href="shop.html">Shop</a>
+    <a href="customize.html">Customization</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <a href="cart.html">Cart</a>
+  </nav>
+</header>
+
+<main id="main">
+  <section class="page-hero">
+    <div class="container">
+      <div class="breadcrumb"><a href="index.html">Home</a> / Cart</div>
+      <h1>Your Cart</h1>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="cart-empty" id="cart-empty" style="display:none;">
+        <h2>Your cart is empty</h2>
+        <p style="color:var(--ink-soft);margin:12px 0 24px;">Looks like you haven't made anything yours yet.</p>
+        <a href="shop.html" class="btn btn-accent">Continue Shopping</a>
+      </div>
+
+      <div class="cart-layout" id="cart-layout">
+        <div>
+          <div id="cart-items"></div>
+          <div style="margin-top:24px;">
+            <a href="shop.html" class="btn btn-outline">Continue Shopping</a>
+          </div>
+        </div>
+        <div class="summary-card">
+          <h3 style="margin-bottom:20px;">Order Summary</h3>
+          <div class="summary-row"><span>Subtotal</span><span id="cart-subtotal">Rs. 0</span></div>
+          <div class="summary-row"><span>Shipping</span><span id="cart-shipping">-</span></div>
+          <div class="summary-row total"><span>Total</span><span id="cart-total">Rs. 0</span></div>
+          <a href="checkout.html" class="btn btn-accent btn-block" style="margin-top:20px;">Proceed to Checkout</a>
+          <p class="hint-sm" id="design-file-hint" style="margin-top:10px;display:none;">Tip: click "Download Design" on any custom item above, then attach that image when you send us your order on WhatsApp.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="logo"><img src="assets/brand/logo-gfxprints.webp" alt="GfxPrints" class="logo-img" width="240" height="123"></a>
+        <p>Make it yours. Personalized products, printed to order.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Shop</h4>
+        <ul>
+          <li><a href="shop.html?category=T-Shirts">T-Shirts</a></li>
+          <li><a href="shop.html?category=Mugs">Mugs</a></li>
+          <li><a href="shop.html?category=Photo%20Frames">Photo Frames</a></li>
+          <li><a href="shop.html?category=Hoodies">Hoodies</a></li>
+          <li><a href="shop.html?category=Tote%20Bags">Tote Bags</a></li>
+          <li><a href="shop.html?category=Gifts">Gifts</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Help</h4>
+        <ul>
+          <li><a href="contact.html">Contact Us</a></li>
+          <li><a href="about.html#faq">FAQ</a></li>
+          <li><a href="about.html#faq">Shipping</a></li>
+          <li><a href="about.html#faq">Returns</a></li>
+          <li><a href="contact.html">Track Order</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="about.html">Our Story</a></li>
+          <li><a href="customize.html">Customization</a></li>
+          <li><a href="about.html#faq">Privacy Policy</a></li>
+          <li><a href="about.html#faq">Terms &amp; Conditions</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 GfxPrints. All rights reserved.</span>
+      <div class="social-row">
+        <a href="#" aria-label="Instagram">Instagram</a>
+        <a href="#" aria-label="Facebook">Facebook</a>
+        <a href="#" aria-label="TikTok">TikTok</a>
+        <a href="#" aria-label="Pinterest">Pinterest</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="js/products.min.js" defer></script>
+<script src="js/main.min.js" defer></script>
+<script src="js/cart.min.js" defer></script>
+</body>
+</html>

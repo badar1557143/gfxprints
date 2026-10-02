@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Customize Your Product | GfxPrints</title>
+<meta name="description" content="Design your own personalized product at GfxPrints. Choose a product, add your text or photo, and preview it live before you order.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=Caveat:wght@600&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=Caveat:wght@600&display=swap"></noscript>
+<link rel="stylesheet" href="css/style.min.css">
+</head>
+<body class="app-page">
+<a class="skip-link" href="#main">Skip to content</a>
+<span id="breadcrumb-name" class="visually-hidden"></span>
+
+<div class="app-shell" id="app-shell">
+
+  <!-- ===== TOP BAR ===== -->
+  <header class="app-topbar">
+    <div class="app-topbar-left">
+      <a href="index.html" class="app-home-btn" aria-label="Back to GfxPrints home" title="Back to GfxPrints">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg>
+      </a>
+      <span class="app-divider" aria-hidden="true"></span>
+      <div class="app-title-block">
+        <span class="app-title-label">Design Studio</span>
+        <h1 class="app-title" id="cz-selected-name">Loading…</h1>
+      </div>
+    </div>
+
+    <div class="app-topbar-center">
+      <button type="button" class="app-icon-btn" id="tool-undo" title="Undo" aria-label="Undo" disabled>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>
+      </button>
+      <button type="button" class="app-icon-btn" id="tool-redo" title="Redo" aria-label="Redo" disabled>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg>
+      </button>
+      <span class="app-divider" aria-hidden="true"></span>
+      <button type="button" class="app-icon-btn danger" id="tool-reset" title="Clear design" aria-label="Clear design">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+      </button>
+    </div>
+
+    <div class="app-topbar-right">
+      <a class="app-icon-btn hide-mobile" href="cart.html" aria-label="Shopping bag" title="Cart">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2l1.5 4h9L18 2"/><rect x="4" y="6" width="16" height="15" rx="2"/><path d="M9 10a3 3 0 0 0 6 0"/></svg>
+        <span class="badge js-cart-count" style="display:none">0</span>
+      </a>
+      <div class="app-total hide-mobile">
+        <span class="app-total-label">Total</span>
+        <span class="app-total-value" id="cz-total">-</span>
+      </div>
+      <div class="download-menu-wrap">
+        <button id="download-design-btn" class="app-icon-btn hide-mobile" type="button" title="Download my design" aria-label="Download my design">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+        </button>
+      </div>
+      <button id="add-to-cart-btn" class="btn btn-outline btn-sm" type="button">Add to Cart</button>
+      <button id="buy-now-btn" class="btn btn-accent btn-sm" type="button">Buy Now</button>
+    </div>
+  </header>
+
+  <!-- ===== BODY: RAIL + DRAWER + CANVAS ===== -->
+  <div class="app-body">
+
+    <!-- LEFT ICON RAIL -->
+    <nav class="app-rail" aria-label="Design tools">
+      <button type="button" class="app-rail-btn" id="rail-product" data-opens="product">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4 4 7v3h3v10h10V10h3V7l-4-3h-2a2 2 0 0 1-4 0z"/></svg>
+        <span>Product</span>
+      </button>
+
+      <button type="button" class="app-rail-btn" id="tool-add-text">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h10M4 18h6"/></svg>
+        <span>Text</span>
+      </button>
+
+      <button type="button" class="app-rail-btn" id="rail-uploads" data-opens="uploads">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+        <span>Uploads</span>
+      </button>
+      <input type="file" id="tool-upload-image" accept="image/*" class="visually-hidden" multiple>
+
+      <button type="button" class="app-rail-btn" id="rail-layers" data-opens="edit">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 3 3 8 12 13 21 8 12 3"/><polyline points="3 12 12 17 21 12"/><polyline points="3 16 12 21 21 16"/></svg>
+        <span>Layers</span>
+        <span class="app-rail-badge" id="layer-count-badge-rail">0</span>
+      </button>
+
+      <!-- Extra tools: only shown in the bottom toolbar on phones and tablets -->
+      <button type="button" class="app-rail-btn rail-extra" id="rail-download" aria-label="Download my design">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+        <span>Download</span>
+      </button>
+      <button type="button" class="app-rail-btn rail-extra" id="rail-clear" aria-label="Clear design">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+        <span>Clear</span>
+      </button>
+      <a href="cart.html" class="app-rail-btn rail-extra" id="rail-cart" aria-label="Shopping bag">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2l1.5 4h9L18 2"/><rect x="4" y="6" width="16" height="15" rx="2"/><path d="M9 10a3 3 0 0 0 6 0"/></svg>
+        <span>Cart</span>
+        <span class="app-rail-badge js-cart-count" style="display:none">0</span>
+      </a>
+    </nav>
+
+    <!-- SLIDE-OUT DRAWER -->
+    <aside class="app-drawer" id="app-drawer">
+      <button type="button" class="app-drawer-close" id="drawer-close" aria-label="Close panel">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+
+      <!-- PRODUCT PANEL -->
+      <div class="app-drawer-panel" id="panel-product">
+        <h2 class="app-drawer-title">Choose a product</h2>
+        <div class="cz-picker-wrap">
+          <button type="button" class="cz-arrow cz-arrow-prev" id="cz-prev" aria-label="Show previous products" hidden>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+          </button>
+          <div class="cz-picker" id="cz-picker" role="group" aria-label="Choose a product to customize"></div>
+          <button type="button" class="cz-arrow cz-arrow-next" id="cz-next" aria-label="Show more products" hidden>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+          </button>
+        </div>
+
+        <div class="cz-card-mini">
+          <img id="cz-thumb" class="cz-thumb" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" alt="" width="56" height="56">
+          <div class="cz-product-info">
+            <div class="pd-cat" id="cz-cat"></div>
+            <h3 class="cz-name" id="cz-name"></h3>
+            <div class="cz-price-row">
+              <span class="cz-price" id="cz-price"></span>
+              <span class="cz-old" id="cz-old-price" style="display:none;"></span>
+            </div>
+            <a class="cz-details" id="cz-details-link" href="product.html">Product details</a>
+          </div>
+        </div>
+
+        <div class="option-block">
+          <h4 id="pd-color-label">Color</h4>
+          <div class="swatches" id="pd-colors"></div>
+        </div>
+        <div class="option-block">
+          <h4>Size</h4>
+          <div class="size-pills" id="pd-sizes"></div>
+        </div>
+        <div class="option-block" id="pd-orientation-block" style="display:none;">
+          <h4>Orientation</h4>
+          <div class="size-pills" id="pd-orientation"></div>
+        </div>
+        <div class="option-block" id="pd-packaging-block" style="display:none;">
+          <h4>Packaging</h4>
+          <div class="size-pills" id="pd-packaging"></div>
+        </div>
+        <div class="option-block">
+          <h4>Quantity</h4>
+          <div class="qty-row">
+            <button type="button" id="qty-minus" aria-label="Decrease quantity">−</button>
+            <input type="text" id="pd-qty" value="1" readonly aria-label="Quantity">
+            <button type="button" id="qty-plus" aria-label="Increase quantity">+</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- UPLOADS PANEL -->
+      <div class="app-drawer-panel" id="panel-uploads" hidden>
+        <h2 class="app-drawer-title">Uploads</h2>
+        <label class="btn btn-outline btn-block upload-trigger" for="tool-upload-image">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          Upload a file
+        </label>
+        <p class="hint-sm" style="margin:10px 0 12px;">Anything you upload is saved here so you can reuse it later without re-uploading.</p>
+        <p class="notice upload-warning" style="margin:0 0 18px;">
+          📌 Your uploads are saved only on <strong>this device/browser</strong>, not on our server. So:
+          <br>• Switch phones/browsers or clear your data, and they'll be gone.
+          <br>• We keep your last 40 uploads. Older ones get removed to make space for new ones.
+        </p>
+
+        <h3 class="upload-library-title">My Uploads</h3>
+        <p class="upload-library-empty" id="upload-library-empty">Nothing uploaded yet. Files you add will show up here.</p>
+        <div class="upload-library-grid" id="upload-library-grid"></div>
+      </div>
+
+      <!-- EDIT (PROPERTIES / LAYERS) PANEL -->
+      <div class="app-drawer-panel" id="panel-edit" hidden>
+        <div class="studio-tabs" role="tablist">
+          <button type="button" class="studio-tab active" data-tab="properties" role="tab" aria-selected="true">Properties</button>
+          <button type="button" class="studio-tab" data-tab="layers" role="tab" aria-selected="false">Layers <span class="tab-badge" id="layer-count-badge">0</span></button>
+        </div>
+
+        <div class="studio-tab-panel" id="tab-properties">
+          <p class="props-empty" id="props-empty">Select a layer on the canvas, or add text or an image to get started.</p>
+
+          <div id="props-text" class="props-group" style="display:none;">
+            <div class="form-row">
+              <label for="prop-text-content">Text</label>
+              <input type="text" id="prop-text-content" maxlength="40" placeholder="e.g. Muhammad">
+            </div>
+            <div class="form-row form-row-split">
+              <div>
+                <label for="prop-text-font">Font</label>
+                <select id="prop-text-font">
+                  <option value="'IBM Plex Sans', sans-serif">Plex Sans</option>
+                  <option value="'Archivo Expanded', sans-serif">Archivo Expanded</option>
+                  <option value="'Caveat', cursive">Handwritten</option>
+                  <option value="Georgia, serif">Classic Serif</option>
+                </select>
+              </div>
+              <div>
+                <label for="prop-text-color">Color</label>
+                <input type="color" id="prop-text-color" value="#15171b" class="color-input">
+              </div>
+            </div>
+            <div class="form-row">
+              <label for="prop-text-size">Size <span id="prop-text-size-val">32</span>px</label>
+              <input type="range" id="prop-text-size" min="10" max="120" value="32">
+            </div>
+            <div class="form-row form-row-split">
+              <div>
+                <label>Style</label>
+                <div class="btn-toggle-row">
+                  <button type="button" class="toggle-btn" id="prop-text-bold" title="Bold"><b>B</b></button>
+                  <button type="button" class="toggle-btn" id="prop-text-italic" title="Italic"><i>I</i></button>
+                </div>
+              </div>
+              <div>
+                <label>Align</label>
+                <div class="btn-toggle-row" id="prop-text-align">
+                  <button type="button" class="toggle-btn" data-align="left" title="Align left">L</button>
+                  <button type="button" class="toggle-btn" data-align="center" title="Align center">C</button>
+                  <button type="button" class="toggle-btn" data-align="right" title="Align right">R</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="props-image" class="props-group" style="display:none;">
+            <div class="form-row">
+              <label for="prop-image-opacity">Opacity <span id="prop-image-opacity-val">100</span>%</label>
+              <input type="range" id="prop-image-opacity" min="10" max="100" value="100">
+            </div>
+            <div class="form-row">
+              <button type="button" class="btn btn-outline btn-block" id="prop-remove-bg">Remove background</button>
+              <p class="hint-sm" id="prop-remove-bg-status" style="margin-top:8px;" aria-live="polite">Cuts out the subject and makes the background transparent. The first use downloads a small AI model, so give it a moment. Not happy with the result? Press Undo.</p>
+            </div>
+            <p class="hint-sm">Drag the round corner handles on the canvas to resize and the blue handle on top to rotate. Use the buttons under the layer to duplicate or delete it.</p>
+          </div>
+
+          <div class="studio-actions" id="props-shared-actions" style="display:none;">
+            <button type="button" class="btn btn-outline btn-sm" id="prop-duplicate">Duplicate</button>
+            <button type="button" class="btn btn-outline btn-sm" id="prop-delete">Delete</button>
+          </div>
+        </div>
+
+        <div class="studio-tab-panel" id="tab-layers" style="display:none;">
+          <ul class="layers-list" id="layers-list"></ul>
+          <p class="props-empty" id="layers-empty">No layers yet. Add text or an image.</p>
+        </div>
+
+        <p class="hint-sm app-drawer-footnote">This preview is a close guide. Our team confirms final print placement before production.</p>
+      </div>
+    </aside>
+
+    <!-- CANVAS AREA -->
+    <main class="app-canvas-area" id="main">
+      <div class="app-canvas-scroll">
+        <div class="studio-stage-outer" id="stage-zoom-wrap">
+          <div class="studio-stage" id="studio-stage">
+            <img class="stage-bg" id="preview-base" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" alt="Product preview">
+            <canvas id="design-canvas" width="420" height="560"></canvas>
+            <img class="frame-overlay" id="frame-overlay" alt="Wooden frame" hidden>
+            <div class="print-guide" aria-hidden="true"></div>
+          </div>
+        </div>
+      </div>
+      <p class="studio-hint" id="studio-hint-text">Dashed line marks the printable area. Drag a layer to move it; drag the round corner handles to resize, the blue handle on top to rotate, and use the buttons underneath to duplicate or delete.</p>
+
+      <div class="app-zoom-bar">
+        <button type="button" class="app-zoom-btn" id="zoom-out" aria-label="Zoom out">−</button>
+        <input type="range" id="zoom-slider" min="50" max="150" value="100" step="5" aria-label="Zoom level">
+        <span class="app-zoom-val" id="zoom-val">100%</span>
+        <button type="button" class="app-zoom-btn" id="zoom-in" aria-label="Zoom in">+</button>
+      </div>
+    </main>
+
+    <!-- PRINT SIDES PANEL -->
+    <aside class="app-sides-panel" id="sides-panel" hidden aria-label="Print sides">
+      <h2 class="sides-panel-title">Print Sides</h2>
+      <div class="sides-list" id="sides-list"></div>
+      <p class="sides-footnote">Price applies when you add design to a side.</p>
+    </aside>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js" defer></script>
+<script src="js/products.min.js" defer></script>
+<script src="js/main.min.js" defer></script>
+<script src="js/customize.min.js" defer></script>
+<script src="js/customize-ui.min.js" defer></script>
+</body>
+</html>

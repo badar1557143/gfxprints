@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>About Us | GfxPrints</title>
+<meta name="description" content="Learn about GfxPrints, a print-on-demand studio that turns your ideas, memories, and personality into products made just for you.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"></noscript>
+<link rel="stylesheet" href="css/style.min.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a href="index.html" class="logo"><img src="assets/brand/logo-gfxprints.webp" alt="GfxPrints" class="logo-img" width="240" height="123"></a>
+    <nav class="main-nav" aria-label="Primary">
+      <a href="index.html">Home</a>
+      <a href="shop.html">Shop</a>
+      <a href="customize.html">Customization</a>
+      <a href="about.html" class="active">About</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <div class="header-actions">
+      <a class="icon-btn" href="cart.html" aria-label="Shopping bag">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2l1.5 4h9L18 2"/><rect x="4" y="6" width="16" height="15" rx="2"/><path d="M9 10a3 3 0 0 0 6 0"/></svg>
+        <span class="badge js-cart-count" style="display:none">0</span>
+      </a>
+      <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+  <nav id="mobile-nav" aria-label="Mobile">
+    <a href="index.html">Home</a>
+    <a href="shop.html">Shop</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <a href="cart.html">Cart</a>
+  </nav>
+</header>
+
+<main id="main">
+  <section class="page-hero">
+    <div class="container">
+      <div class="breadcrumb"><a href="index.html">Home</a> / About</div>
+      <h1>Made for one person at a time.</h1>
+    </div>
+  </section>
+
+  <section class="section section-border">
+    <div class="container lifestyle">
+      <div class="lifestyle-copy">
+        <div class="section-tag">Our story</div>
+        <h2>We started with one simple idea.</h2>
+        <p>Most products are made for everyone and no one in particular. GfxPrints exists to flip that: every T-shirt, mug, and frame we print is made for one specific order, with one specific name, photo, or message on it. Nothing goes on a shelf until someone asks for it.</p>
+        <p style="margin-top:16px;">That's the whole model: a small print run, made to order, for the person who asked for it.</p>
+      </div>
+      <div class="lifestyle-imgs">
+        <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=700&q=80" alt="Print studio workbench" loading="lazy">
+        <img src="https://images.unsplash.com/photo-1581091012184-7e0cdfbb6797?auto=format&fit=crop&w=500&q=80" alt="Person reviewing a design on screen" loading="lazy">
+        <img src="https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=500&q=80" alt="Finished custom products ready to ship" loading="lazy">
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-border">
+    <div class="container">
+      <div class="section-header">
+        <h2>What We Stand For</h2>
+      </div>
+      <div class="value-grid">
+        <div class="why-card"><h3>Made to Order</h3><p>We don't stock finished goods - your order goes into production once you place it.</p></div>
+        <div class="why-card"><h3>Personalized</h3><p>Every product supports a name, photo, or short message, not a fixed template.</p></div>
+        <div class="why-card"><h3>Careful Craft</h3><p>Small batches mean more attention on each piece before it ships.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="faq">
+    <div class="container" style="max-width:760px;">
+      <div class="section-header" style="display:block;">
+        <h2>Frequently Asked Questions</h2>
+      </div>
+      <div class="accordion-item open">
+        <button class="accordion-head">How long does an order take? <span class="chev">+</span></button>
+        <div class="accordion-body" style="max-height:120px;">Most orders are produced within 2–4 business days, then shipped using the method you choose at checkout.</div>
+      </div>
+      <div class="accordion-item">
+        <button class="accordion-head">Can I return a personalized item? <span class="chev">+</span></button>
+        <div class="accordion-body">Because items are made specifically for you, we accept returns only if a product arrives damaged, defective, or different from what you ordered.</div>
+      </div>
+      <div class="accordion-item">
+        <button class="accordion-head">How do I track my order? <span class="chev">+</span></button>
+        <div class="accordion-body">Once your order ships, you'll receive tracking details by email. You can also reach out through our Contact page.</div>
+      </div>
+      <div class="accordion-item">
+        <button class="accordion-head">What's your privacy policy? <span class="chev">+</span></button>
+        <div class="accordion-body">We use the details you provide only to process and ship your order, and never sell your information to third parties.</div>
+      </div>
+    </div>
+    <script>
+      document.querySelectorAll('#faq .accordion-item').forEach(item => {
+        const head = item.querySelector('.accordion-head');
+        const body = item.querySelector('.accordion-body');
+        head.addEventListener('click', () => {
+          const open = item.classList.contains('open');
+          document.querySelectorAll('#faq .accordion-item').forEach(i => { i.classList.remove('open'); i.querySelector('.accordion-body').style.maxHeight = null; });
+          if (!open){ item.classList.add('open'); body.style.maxHeight = body.scrollHeight + 'px'; }
+        });
+      });
+    </script>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="logo"><img src="assets/brand/logo-gfxprints.webp" alt="GfxPrints" class="logo-img" width="240" height="123"></a>
+        <p>Make it yours. Personalized products, printed to order.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Shop</h4>
+        <ul>
+          <li><a href="shop.html?category=T-Shirts">T-Shirts</a></li>
+          <li><a href="shop.html?category=Mugs">Mugs</a></li>
+          <li><a href="shop.html?category=Gifts">Gifts</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Help</h4>
+        <ul>
+          <li><a href="contact.html">Contact Us</a></li>
+          <li><a href="about.html#faq">FAQ</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="about.html#faq">Privacy Policy</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 GfxPrints. All rights reserved.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/products.min.js" defer></script>
+<script src="js/main.min.js" defer></script>
+</body>
+</html>

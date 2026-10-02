@@ -3,13 +3,110 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>About Us | GfxPrints</title>
-<meta name="description" content="Learn about GfxPrints, a print-on-demand studio that turns your ideas, memories, and personality into products made just for you.">
+<title>About GfxPrints | Custom Printing &amp; Personalized Gifts</title>
+<meta name="description" content="Get to know GfxPrints. Create custom printed T-shirts, hoodies, mugs, tote bags and personalized gifts with your own designs, photos or messages.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"></noscript>
 <link rel="stylesheet" href="css/style.min.css">
+<style>
+/* About page: "press sheet" design. All rules scoped under .ab- so the shared stylesheet is untouched. */
+.ab-wrap{ max-width: var(--container); margin: 0 auto; padding: 0 var(--space-5); }
+.ab-btn-light{ background:#fff; color: var(--cobalt-dark); }
+.ab-btn-light:hover{ background: var(--paper-dark); }
+.ab-wrap a:focus-visible, .ab-cta a:focus-visible{ outline: 3px solid var(--stamp); outline-offset: 3px; }
+
+/* Hero */
+.ab-hero{ padding: var(--space-7) 0 var(--space-9); border-bottom: 1px solid var(--line); overflow: hidden; }
+.ab-hero-grid{ display:grid; grid-template-columns: minmax(0,1.05fr) minmax(0,1fr); gap: var(--space-8); align-items:center; }
+.ab-crumb{ font-size:.85rem; color: var(--grey); margin-bottom: var(--space-5); }
+.ab-crumb a:hover{ color: var(--cobalt); }
+.ab-hero h1{ font-size: clamp(2.3rem, 4.6vw, 4rem); line-height: 1.04; font-weight: 800; letter-spacing: -0.025em; max-width: 14ch; }
+.ab-hero p{ font-size: 1.1rem; color: var(--ink-soft); max-width: 52ch; margin: var(--space-5) 0 0; }
+.ab-hero p + p{ margin-top: var(--space-4); }
+.ab-hero .btn{ margin-top: var(--space-6); }
+
+/* The press sheet */
+.ab-sheet{ position: relative; background: var(--paper-raised); border: 1px solid var(--line-strong); padding: 56px 44px 40px; transform: rotate(-1.6deg); box-shadow: 0 1px 0 var(--line-strong), 0 22px 40px -28px rgba(21,23,27,.55); }
+.ab-bar{ position:absolute; top: 14px; left: 44px; display:flex; gap: 0; }
+.ab-bar i{ display:block; width: 22px; height: 14px; }
+.ab-bar i:nth-child(1){ background:#00AEEF; } .ab-bar i:nth-child(2){ background:#EC008C; }
+.ab-bar i:nth-child(3){ background:#FFF200; } .ab-bar i:nth-child(4){ background:#15171B; }
+.ab-bar i:nth-child(5){ background:#00AEEF; opacity:.45; } .ab-bar i:nth-child(6){ background:#EC008C; opacity:.45; }
+.ab-bar i:nth-child(7){ background:#FFF200; opacity:.6; } .ab-bar i:nth-child(8){ background:#15171B; opacity:.45; }
+.ab-reg{ position:absolute; top: 6px; right: 18px; width: 30px; height: 30px; color: var(--ink); }
+.ab-cm{ position:absolute; width: 16px; height: 16px; border-color: var(--ink); border-style: solid; border-width: 0; }
+.ab-cm.tl{ top: 20px; left: 20px; border-top-width:1.5px; border-left-width:1.5px; }
+.ab-cm.bl{ bottom: 12px; left: 20px; border-bottom-width:1.5px; border-left-width:1.5px; }
+.ab-cm.br{ bottom: 12px; right: 20px; border-bottom-width:1.5px; border-right-width:1.5px; }
+.ab-pair{ display:grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items:start; }
+.ab-pair figure{ margin:0; }
+.ab-pair figure:nth-child(2){ margin-top: 28px; }
+.ab-pair img{ width:100%; height:auto; aspect-ratio: 1/1; object-fit: cover; border: 1px solid var(--line); background: var(--paper-dark); }
+.ab-pair figcaption{ font-size:.82rem; color: var(--ink-soft); margin-top: 8px; }
+
+/* Shared section frame */
+.ab-sec{ padding: var(--space-9) 0; }
+.ab-sec h2{ font-size: clamp(1.6rem, 2.6vw, 2.3rem); line-height:1.12; letter-spacing:-0.02em; }
+.ab-sec p{ color: var(--ink-soft); font-size: 1.05rem; max-width: 56ch; margin: var(--space-4) 0 0; }
+.ab-sec .ab-head + p{ margin-top: var(--space-5); }
+
+/* Gifts */
+.ab-gifts{ background: var(--paper-raised); border-bottom: 1px solid var(--line); }
+.ab-gifts-grid{ display:grid; grid-template-columns: minmax(0,.9fr) minmax(0,1.1fr); gap: var(--space-8); align-items:center; }
+.ab-tiles{ display:grid; grid-template-columns: 1.15fr 1fr; grid-template-rows: auto auto; gap: 14px; }
+.ab-tile{ margin:0; display:flex; flex-direction:column; justify-content:space-between; padding: 14px 14px 12px; border-radius: var(--radius-m); min-height: 220px; }
+.ab-tile img{ width:100%; height:100%; max-height: 240px; object-fit: contain; }
+.ab-tile figcaption{ font-size:.85rem; font-weight:600; color: var(--ink); margin-top: 10px; }
+.ab-tile.mug{ background:#E1E6FA; grid-row: span 2; }
+.ab-tile.mug img{ max-height: 380px; }
+.ab-tile.frame{ background:#E9E6DD; }
+.ab-tile.tee{ background:#F5DDD6; }
+
+/* Brand */
+.ab-brand{ background: var(--ink); color: var(--paper); }
+.ab-brand h2{ color: var(--paper); }
+.ab-brand p{ color: #C9C7BF; }
+.ab-brand-grid{ display:grid; grid-template-columns: minmax(0,1.1fr) minmax(0,.9fr); gap: var(--space-8); align-items:center; }
+.ab-brand-imgs{ position:relative; padding-bottom: 40px; }
+.ab-brand-imgs .hood{ width: 78%; aspect-ratio:1/1; object-fit:cover; border-radius: var(--radius-m); }
+.ab-brand-imgs .tote{ position:absolute; right: 0; bottom: 0; width: 44%; aspect-ratio: 4/5; object-fit:cover; border-radius: var(--radius-m); border: 6px solid var(--ink); }
+
+/* Mission */
+.ab-mission{ border-bottom: 1px solid var(--line); }
+.ab-mission-grid{ display:grid; grid-template-columns: minmax(0,.55fr) minmax(0,1.45fr); gap: var(--space-7); }
+.ab-mission .big{ font-family: var(--font-display); font-weight:700; font-size: clamp(1.5rem, 3vw, 2.5rem); line-height:1.2; letter-spacing:-0.02em; color: var(--ink); max-width: 26ch; margin:0; padding-left: var(--space-5); border-left: 4px solid var(--cobalt); }
+
+/* FAQ spacing (uses the existing accordion styles) */
+.ab-faq{ border-bottom: 1px solid var(--line); }
+
+/* CTA */
+.ab-cta-wrap{ padding: var(--space-9) 0; }
+.ab-cta{ position:relative; background: var(--cobalt); color:#fff; padding: var(--space-8) var(--space-7); border-radius: var(--radius-s); display:flex; justify-content:space-between; align-items:center; gap: var(--space-6); flex-wrap:wrap; }
+.ab-cta h2{ color:#fff; font-size: clamp(1.7rem, 3vw, 2.6rem); line-height:1.1; letter-spacing:-0.02em; max-width: 16ch; }
+.ab-cta p{ color:#DDE1FA; max-width: 46ch; margin: var(--space-4) 0 0; font-size:1.05rem; }
+.ab-cta .ab-cm{ border-color: rgba(255,255,255,.7); }
+.ab-cta .ab-cm.tl{ top:14px; left:14px; } .ab-cta .ab-cm.bl{ bottom:14px; left:14px; } .ab-cta .ab-cm.br{ bottom:14px; right:14px; }
+.ab-cta .ab-cm.tr{ top:14px; right:14px; border-top-width:1.5px; border-right-width:1.5px; }
+
+@media (max-width: 900px){
+  .ab-hero{ padding: var(--space-6) 0 var(--space-8); }
+  .ab-hero-grid, .ab-gifts-grid, .ab-brand-grid, .ab-mission-grid{ grid-template-columns: minmax(0,1fr); gap: var(--space-7); }
+  .ab-sec{ padding: var(--space-8) 0; }
+  .ab-sheet{ transform:none; padding: 52px 24px 36px; }
+  .ab-bar{ left: 24px; }
+  .ab-cta{ padding: var(--space-7) var(--space-5); }
+  .ab-cta-wrap{ padding: var(--space-8) 0; }
+  .ab-tile{ min-height: 180px; }
+  .ab-tile.mug img{ max-height: 300px; }
+}
+@media (max-width: 520px){
+  .ab-tiles{ grid-template-columns: 1fr; }
+  .ab-tile.mug{ grid-row:auto; }
+  .ab-pair{ gap: 10px; }
+}
+</style>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -44,43 +141,63 @@
 </header>
 
 <main id="main">
-  <section class="page-hero">
-    <div class="container">
-      <div class="breadcrumb"><a href="index.html">Home</a> / About</div>
-      <h1>Made for one person at a time.</h1>
-    </div>
-  </section>
-
-  <section class="section section-border">
-    <div class="container lifestyle">
-      <div class="lifestyle-copy">
-        <div class="section-tag">Our story</div>
-        <h2>We started with one simple idea.</h2>
-        <p>Most products are made for everyone and no one in particular. GfxPrints exists to flip that: every T-shirt, mug, and frame we print is made for one specific order, with one specific name, photo, or message on it. Nothing goes on a shelf until someone asks for it.</p>
-        <p style="margin-top:16px;">That's the whole model: a small print run, made to order, for the person who asked for it.</p>
+  <section class="ab-hero">
+    <div class="ab-wrap ab-hero-grid">
+      <div>
+        <div class="ab-crumb"><a href="index.html">Home</a> / About GfxPrints</div>
+        <h1>Custom Printed Products, Made for You</h1>
+        <p>GfxPrints helps you turn your ideas into personalized products. From custom printed T-shirts and hoodies to mugs, tote bags, and framed prints, you can create something that reflects your style.</p>
+        <p>Add your own design, name, photo, or message to make everyday items personal. Whether you’re choosing a gift, creating clothing for yourself, or printing products for your business, we’re here to help bring your ideas to life.</p>
+        <a href="shop.html" class="btn btn-accent">Shop Custom Products</a>
       </div>
-      <div class="lifestyle-imgs">
-        <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=700&q=80" alt="Print studio workbench" loading="lazy">
-        <img src="https://images.unsplash.com/photo-1581091012184-7e0cdfbb6797?auto=format&fit=crop&w=500&q=80" alt="Person reviewing a design on screen" loading="lazy">
-        <img src="https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=500&q=80" alt="Finished custom products ready to ship" loading="lazy">
+      <div class="ab-sheet" aria-label="A print proof sheet showing a custom T-shirt and hoodie">
+        <span class="ab-cm tl"></span><span class="ab-cm bl"></span><span class="ab-cm br"></span>
+        <div class="ab-bar" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <svg class="ab-reg" viewBox="0 0 30 30" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="15" cy="15" r="8"/><path d="M15 1v28M1 15h28"/></svg>
+        <div class="ab-pair">
+          <figure><img src="assets/products/tee-main-light-blue.webp" alt="Light blue custom printed T-shirt" width="1000" height="1000"><figcaption>Custom T-shirts</figcaption></figure>
+          <figure><img src="assets/products/hoodie-main-beige.webp" alt="Beige custom printed hoodie" width="1000" height="1000"><figcaption>Custom hoodies</figcaption></figure>
+        </div>
       </div>
     </div>
   </section>
 
-  <section class="section section-border">
-    <div class="container">
-      <div class="section-header">
-        <h2>What We Stand For</h2>
+  <section class="ab-sec ab-gifts">
+    <div class="ab-wrap ab-gifts-grid">
+      <div>
+        <h2 class="ab-head">Personalized Gifts for Special Moments</h2>
+        <p>A personal touch can make a gift more meaningful. Create a photo mug, a custom T-shirt, or a framed print to celebrate a birthday, anniversary, or favourite memory.</p>
+        <p>Our goal is to help you create something the person receiving it will enjoy and remember.</p>
       </div>
-      <div class="value-grid">
-        <div class="why-card"><h3>Made to Order</h3><p>We don't stock finished goods - your order goes into production once you place it.</p></div>
-        <div class="why-card"><h3>Personalized</h3><p>Every product supports a name, photo, or short message, not a fixed template.</p></div>
-        <div class="why-card"><h3>Careful Craft</h3><p>Small batches mean more attention on each piece before it ships.</p></div>
+      <div class="ab-tiles">
+        <figure class="ab-tile mug"><img src="assets/products/mug-valentine.webp" alt="Photo mug with a couple and a Valentine's Day message" loading="lazy"><figcaption>Photo mug</figcaption></figure>
+        <figure class="ab-tile frame"><img src="assets/products/photo-frame-category.webp" alt="Framed botanical art print" loading="lazy"><figcaption>Framed print</figcaption></figure>
+        <figure class="ab-tile tee"><img src="assets/products/tee-black-loudvoices.webp" alt="Black T-shirt with a custom printed design" loading="lazy"><figcaption>Custom T-shirt</figcaption></figure>
       </div>
     </div>
   </section>
 
-  <section class="section" id="faq">
+  <section class="ab-sec ab-brand">
+    <div class="ab-wrap ab-brand-grid">
+      <div>
+        <h2 class="ab-head">Custom Printing for Your Brand</h2>
+        <p>Make your business, team, or event stand out with custom printed products. Add your logo or artwork to clothing and accessories to share your brand in a practical, creative way.</p>
+      </div>
+      <div class="ab-brand-imgs">
+        <img class="hood" src="assets/products/hoodie-main-beige.webp" alt="Beige hoodie ready for a logo or artwork" loading="lazy">
+        <img class="tote" src="assets/products/tote-lifestyle.webp" alt="Canvas tote bag with a custom printed design" loading="lazy">
+      </div>
+    </div>
+  </section>
+
+  <section class="ab-sec ab-mission">
+    <div class="ab-wrap ab-mission-grid">
+      <h2>Our Mission</h2>
+      <p class="big">We want to make custom printing simple. With clear product details and easy-to-understand customization options, GfxPrints helps you choose the right product for your idea.</p>
+    </div>
+  </section>
+
+  <section class="section ab-faq" id="faq">
     <div class="container" style="max-width:760px;">
       <div class="section-header" style="display:block;">
         <h2>Frequently Asked Questions</h2>
@@ -114,6 +231,19 @@
       });
     </script>
   </section>
+
+  <div class="ab-cta-wrap">
+    <div class="ab-wrap">
+      <div class="ab-cta">
+        <span class="ab-cm tl"></span><span class="ab-cm tr"></span><span class="ab-cm bl"></span><span class="ab-cm br"></span>
+        <div>
+          <h2>Bring Your Ideas to Life</h2>
+          <p>Have a design in mind? Explore our custom printed products and start creating something that’s yours.</p>
+        </div>
+        <a href="shop.html" class="btn ab-btn-light">Shop Custom Products</a>
+      </div>
+    </div>
+  </div>
 </main>
 
 <footer class="site-footer">

@@ -79,9 +79,9 @@ const PRODUCTS = [
     oldPrice: null,
     rating: 4.8,
     reviews: 214,
-    image: "assets/products/tee-your-design-here.webp",
+    image: "assets/products/tee-main-light-blue.webp",
     // First photo on the product page (before a color is picked); also the first gallery thumbnail
-    heroImage: "assets/products/tee-your-design-here.webp",
+    heroImage: "assets/products/tee-main-light-blue.webp",
     // One photo per color: the customize + product pages swap the preview when a color is picked.
     colorImages: {
       "White":    "assets/products/tee-plain-white.webp",
@@ -431,7 +431,9 @@ const PRODUCTS = [
     variantCosts: { "S|": 1250, "M|": 1250, "L|": 1250, "XL|": 1300, "XXL|": 1400 },
     rating: 4.8,
     reviews: 268,
-    image: "assets/products/hoodie-front-black.webp",
+    image: "assets/products/hoodie-main-beige.webp",
+    // First photo on the product page (before a color is picked)
+    heroImage: "assets/products/hoodie-main-beige.webp",
     colorImages: { "Black": "assets/products/hoodie-front-black.webp", "White": "assets/products/hoodie-front-white.webp", "Beige": "assets/products/hoodie-front-beige.webp", "Maroon": "assets/products/hoodie-front-maroon.webp", "Navy": "assets/products/hoodie-front-navy.webp", "Purple": "assets/products/hoodie-front-purple.webp", "Royal Blue": "assets/products/hoodie-front-royal-blue.webp", "Heather Grey": "assets/products/hoodie-front-heather-grey.webp", "Light Pink": "assets/products/hoodie-front-light-pink.webp", "Red": "assets/products/hoodie-front-red.webp", "Charcoal Grey": "assets/products/hoodie-front-charcoal-grey.webp" },
     sideColorImages: {
       front: { "Black": "assets/products/hoodie-front-black.webp", "White": "assets/products/hoodie-front-white.webp", "Beige": "assets/products/hoodie-front-beige.webp", "Maroon": "assets/products/hoodie-front-maroon.webp", "Navy": "assets/products/hoodie-front-navy.webp", "Purple": "assets/products/hoodie-front-purple.webp", "Royal Blue": "assets/products/hoodie-front-royal-blue.webp", "Heather Grey": "assets/products/hoodie-front-heather-grey.webp", "Light Pink": "assets/products/hoodie-front-light-pink.webp", "Red": "assets/products/hoodie-front-red.webp", "Charcoal Grey": "assets/products/hoodie-front-charcoal-grey.webp" },

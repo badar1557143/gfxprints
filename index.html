@@ -14,6 +14,70 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"></noscript>
 <link rel="stylesheet" href="css/style.min.css">
+<style>
+/* Home page: "Why people choose", "Your Idea. Your Style. Your Print." and "From Idea to Product". Scoped under .hm- */
+.hm-wrap{ max-width: var(--container); margin: 0 auto; padding: 0 var(--space-5); }
+.hm-wrap a:focus-visible{ outline: 3px solid var(--stamp); outline-offset: 3px; }
+.hm-sec{ padding: var(--space-9) 0; border-bottom: 1px solid var(--line); }
+
+/* 1. Why people choose: spec sheet */
+.hm-why-grid{ display:grid; grid-template-columns: minmax(0,.8fr) minmax(0,1.7fr); gap: var(--space-8); align-items:start; }
+.hm-why h2{ font-size: clamp(1.9rem, 3.2vw, 2.8rem); line-height:1.08; letter-spacing:-0.025em; font-weight:800; position: sticky; top: 110px; max-width: 12ch; }
+.hm-spec{ list-style:none; margin:0; padding:0; border-bottom: 1px solid var(--line-strong); }
+.hm-spec li{ display:grid; grid-template-columns: 52px minmax(0,.9fr) minmax(0,1.3fr); gap: var(--space-5); align-items:center; padding: 24px 0; border-top: 1px solid var(--line-strong); }
+.hm-ico{ width:52px; height:52px; border-radius: var(--radius-m); display:grid; place-items:center; background:#E1E6FA; color: var(--cobalt-dark); transition: background .2s ease, color .2s ease; }
+.hm-ico svg{ width:24px; height:24px; }
+.hm-spec li:hover .hm-ico{ background: var(--cobalt); color:#fff; }
+.hm-spec h3{ font-size: 1.15rem; letter-spacing:-0.01em; }
+.hm-spec p{ margin:0; color: var(--ink-soft); font-size: .98rem; max-width: 44ch; }
+
+/* 2. Approach: dark band with three portraits */
+.hm-approach{ background: var(--ink); color: var(--paper); padding: var(--space-9) 0; overflow:hidden; }
+.hm-approach-grid{ display:grid; grid-template-columns: minmax(0,.9fr) minmax(0,1.2fr); gap: var(--space-8); align-items:center; }
+.hm-approach h2{ color: var(--paper); font-size: clamp(2rem, 3.6vw, 3.2rem); line-height:1.05; font-weight:800; letter-spacing:-0.025em; }
+.hm-approach h2 span{ display:block; }
+.hm-approach p{ color:#C9C7BF; font-size:1.08rem; max-width: 40ch; margin: var(--space-5) 0 var(--space-6); }
+.hm-btn-light{ background: var(--paper); color: var(--ink); }
+.hm-btn-light:hover{ background:#fff; }
+.hm-trio{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 14px; padding-bottom: 48px; }
+.hm-trio figure{ position:relative; margin:0; }
+.hm-trio figure:nth-child(1){ margin-top: 0; }
+.hm-trio figure:nth-child(2){ margin-top: 48px; }
+.hm-trio figure:nth-child(3){ margin-top: 20px; }
+.hm-trio img{ width:100%; height:auto; aspect-ratio: 3/4; object-fit: cover; border-radius: var(--radius-m); display:block; }
+.hm-trio figcaption{ position:absolute; left:10px; bottom:10px; background: var(--paper); color: var(--ink); font-family: var(--font-display); font-weight:700; font-size:.8rem; padding: 6px 12px; border-radius: var(--radius-s); }
+
+/* 3. Process rail */
+.hm-flow h2{ font-size: clamp(1.9rem, 3.2vw, 2.8rem); letter-spacing:-0.025em; font-weight:800; line-height:1.08; margin-bottom: var(--space-8); }
+.hm-rail{ position:relative; list-style:none; margin:0; padding:0; display:grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-5); }
+.hm-rail li{ position:relative; }
+.hm-rail li:not(:last-child)::after{ content:""; position:absolute; top: 27px; left: 56px; width: calc(100% + var(--space-5) - 56px); border-top: 2px dashed var(--line-strong); }
+.hm-node{ position:relative; z-index:1; width:56px; height:56px; border-radius:50%; display:grid; place-items:center; background: var(--paper); border: 2px solid var(--ink); font-family: var(--font-display); font-weight:700; font-size:.95rem; }
+.hm-rail li:last-child .hm-node{ background: var(--cobalt); border-color: var(--cobalt); color:#fff; }
+.hm-step-body{ margin-top: var(--space-5); padding-right: var(--space-4); }
+.hm-step-body h3{ font-size: 1.2rem; letter-spacing:-0.01em; margin-bottom: 8px; }
+.hm-step-body p{ margin:0; color: var(--ink-soft); font-size:.98rem; max-width: 30ch; }
+
+@media (max-width: 900px){
+  .hm-sec, .hm-approach{ padding: var(--space-8) 0; }
+  .hm-why-grid, .hm-approach-grid{ grid-template-columns: minmax(0,1fr); gap: var(--space-6); }
+  .hm-why h2{ position: static; max-width: none; }
+  .hm-rail{ grid-template-columns: minmax(0,1fr); gap: var(--space-6); }
+  .hm-rail li:not(:last-child)::after{ top: 56px; left: 27px; width:0; height: calc(100% + var(--space-6) - 56px); border-top:0; border-left: 2px dashed var(--line-strong); }
+  .hm-rail li{ display:grid; grid-template-columns: 56px minmax(0,1fr); gap: var(--space-4); align-items:start; }
+  .hm-step-body{ margin-top: 4px; }
+  .hm-flow h2{ margin-bottom: var(--space-6); }
+}
+@media (max-width: 640px){
+  .hm-spec li{ grid-template-columns: 48px minmax(0,1fr); gap: 6px var(--space-4); padding: 20px 0; }
+  .hm-ico{ width:48px; height:48px; grid-row: span 2; }
+  .hm-spec p{ grid-column: 2; }
+  .hm-trio{ gap: 8px; }
+  .hm-trio figure:nth-child(2){ margin-top: 28px; }
+  .hm-trio figure:nth-child(3){ margin-top: 12px; }
+  .hm-trio figcaption{ left:6px; bottom:6px; font-size:.7rem; padding: 4px 8px; }
+}
+</style>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -131,51 +195,46 @@
   </section>
 
   <!-- WHY GfxPrints -->
-  <section class="section section-border">
-    <div class="container">
-      <div class="section-header">
-        <h2>Why People Choose GfxPrints</h2>
-      </div>
-      <div class="why-grid">
-        <div class="why-card"><h3>Made to Order</h3><p>Your product is created especially for your order, not pulled off a shelf.</p></div>
-        <div class="why-card"><h3>Personalized</h3><p>Add your name, photo, message, or design to almost anything we make.</p></div>
-        <div class="why-card"><h3>Quality Printing</h3><p>Designed to look great and last, wash after wash and day after day.</p></div>
-        <div class="why-card"><h3>Thoughtfully Made</h3><p>Every order is prepared with attention to detail, not rushed through.</p></div>
-        <div class="why-card"><h3>Easy Customization</h3><p>Create your product without complicated design tools or software.</p></div>
-        <div class="why-card"><h3>Customer Support</h3><p>We're here when you need us, before and after your order ships.</p></div>
-      </div>
+  <section class="hm-sec hm-why">
+    <div class="hm-wrap hm-why-grid">
+      <h2>Why People Choose GfxPrints</h2>
+      <ul class="hm-spec">
+        <li><span class="hm-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5v-9Z"/><path d="m3 7.5 9 4.5 9-4.5M12 12v9"/></svg></span><h3>Made to Order</h3><p>Your product is created especially for your order, not pulled off a shelf.</p></li>
+        <li><span class="hm-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/></svg></span><h3>Personalized</h3><p>Add your name, photo, message, or design to almost anything we make.</p></li>
+        <li><span class="hm-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s6 6.2 6 10.5a6 6 0 0 1-12 0C6 9.2 12 3 12 3Z"/></svg></span><h3>Quality Printing</h3><p>Designed to look great and last, wash after wash and day after day.</p></li>
+        <li><span class="hm-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5s-7.8-4.7-9.2-9.6C1.9 7.6 4 4.5 7.2 4.5c1.9 0 3.2 1 4.8 2.8 1.6-1.8 2.9-2.8 4.8-2.8 3.2 0 5.3 3.1 4.4 6.4-1.4 4.9-9.2 9.6-9.2 9.6Z"/></svg></span><h3>Thoughtfully Made</h3><p>Every order is prepared with attention to detail, not rushed through.</p></li>
+        <li><span class="hm-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></span><h3>Easy Customization</h3><p>Create your product without complicated design tools or software.</p></li>
+        <li><span class="hm-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4V5Z"/></svg></span><h3>Customer Support</h3><p>We’re here when you need us, before and after your order ships.</p></li>
+      </ul>
     </div>
   </section>
 
   <!-- LIFESTYLE -->
-  <section class="section section-border">
-    <div class="container lifestyle">
-      <div class="lifestyle-copy">
-        <div class="section-tag">Our approach</div>
-        <h2>Your Idea. Your Style. Your Print.</h2>
+  <section class="hm-approach">
+    <div class="hm-wrap hm-approach-grid">
+      <div>
+        <h2><span>Your Idea.</span> <span>Your Style.</span> <span>Your Print.</span></h2>
         <p>From everyday essentials to meaningful gifts, GfxPrints gives you the freedom to create something that feels uniquely yours.</p>
-        <a href="shop.html" class="btn btn-primary">Explore the Collection</a>
+        <a href="shop.html" class="btn hm-btn-light">Explore the Collection</a>
       </div>
-      <div class="lifestyle-imgs">
-        <img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=700&q=80" alt="Custom hoodie worn outdoors" loading="lazy">
-        <img src="assets/products/photo-frame-mockup.webp" alt="Wooden framed botanical art print on a shelf" loading="lazy">
-        <img src="https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=500&q=80" alt="Custom tote bag carried by a person" loading="lazy">
+      <div class="hm-trio">
+        <figure><img src="assets/products/tee-main-light-blue.webp" alt="Light blue T-shirt with a custom printed design" loading="lazy"><figcaption>Idea</figcaption></figure>
+        <figure><img src="assets/products/hoodie-main-beige.webp" alt="Beige hoodie with a custom printed design" loading="lazy"><figcaption>Style</figcaption></figure>
+        <figure><img src="assets/products/tote-lifestyle.webp" alt="Custom printed tote bag carried by a person" loading="lazy"><figcaption>Print</figcaption></figure>
       </div>
     </div>
   </section>
 
   <!-- HOW IT WORKS -->
-  <section class="section section-border">
-    <div class="container">
-      <div class="section-header">
-        <h2>From Idea to Product</h2>
-      </div>
-      <div class="steps-grid">
-        <div class="step-card reveal"><div class="step-num">01</div><h3>Choose your product</h3><p>Browse the catalog and pick what fits the moment.</p></div>
-        <div class="step-card reveal"><div class="step-num">02</div><h3>Make it personal</h3><p>Add a name, photo, or message using the customizer.</p></div>
-        <div class="step-card reveal"><div class="step-num">03</div><h3>We print it</h3><p>Your order goes into the current print run.</p></div>
-        <div class="step-card reveal"><div class="step-num">04</div><h3>You enjoy it</h3><p>It arrives at your door, made for you alone.</p></div>
-      </div>
+  <section class="hm-sec hm-flow">
+    <div class="hm-wrap">
+      <h2>From Idea to Product</h2>
+      <ol class="hm-rail">
+        <li><span class="hm-node">01</span><div class="hm-step-body"><h3>Choose your product</h3><p>Browse the catalog and pick what fits the moment.</p></div></li>
+        <li><span class="hm-node">02</span><div class="hm-step-body"><h3>Make it personal</h3><p>Add a name, photo, or message using the customizer.</p></div></li>
+        <li><span class="hm-node">03</span><div class="hm-step-body"><h3>We print it</h3><p>Your order goes into the current print run.</p></div></li>
+        <li><span class="hm-node">04</span><div class="hm-step-body"><h3>You enjoy it</h3><p>It arrives at your door, made for you alone.</p></div></li>
+      </ol>
     </div>
   </section>
 

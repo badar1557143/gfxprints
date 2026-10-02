@@ -10,6 +10,79 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"></noscript>
 <link rel="stylesheet" href="css/style.min.css">
+<style>
+/* Contact page: "job ticket" design. Scoped under .ct- so the shared stylesheet is untouched. */
+.ct-wrap{ max-width: var(--container); margin: 0 auto; padding: 0 var(--space-5); }
+.ct-wrap a:focus-visible, .ct-wrap button:focus-visible{ outline: 3px solid var(--stamp); outline-offset: 3px; }
+
+.ct-hero{ padding: var(--space-7) 0 var(--space-8); }
+.ct-crumb{ font-size:.85rem; color: var(--grey); margin-bottom: var(--space-5); }
+.ct-crumb a:hover{ color: var(--cobalt); }
+.ct-hero h1{ font-size: clamp(2.3rem, 4.6vw, 4rem); line-height:1.04; font-weight:800; letter-spacing:-0.025em; max-width: 16ch; }
+
+.ct-grid{ display:grid; grid-template-columns: minmax(0,.9fr) minmax(0,1.1fr); gap: var(--space-8); align-items:start; padding-bottom: var(--space-9); }
+
+/* Channels */
+.ct-channel{ display:flex; align-items:center; gap: var(--space-4); padding: 20px 22px; background: var(--paper-raised); border: 1.5px solid var(--line-strong); border-radius: var(--radius-m); transition: border-color .18s ease, background .18s ease; }
+.ct-channel + .ct-channel{ margin-top: var(--space-3); }
+a.ct-channel:hover{ border-color: var(--cobalt); background:#fff; }
+.ct-ico{ flex:0 0 48px; height:48px; border-radius:50%; display:grid; place-items:center; }
+.ct-ico svg{ width:24px; height:24px; }
+.ct-ico.wa{ background:#25D366; color:#fff; }
+.ct-ico.mail{ background:#E1E6FA; color: var(--cobalt-dark); }
+.ct-ico.pin{ background: var(--paper-dark); color: var(--ink); }
+.ct-label{ display:block; font-size:.85rem; font-weight:600; color: var(--grey); margin:0 0 2px; }
+.ct-channel p{ margin:0; font-family: var(--font-display); font-weight:700; font-size: clamp(1.05rem, 1.7vw, 1.3rem); letter-spacing:-0.01em; overflow-wrap:anywhere; }
+.ct-channel p.plain{ font-family: var(--font-body); font-weight:500; font-size:1rem; letter-spacing:0; color: var(--ink-soft); }
+
+/* Hours */
+.ct-hours{ margin-top: var(--space-6); padding-top: var(--space-5); border-top: 1px solid var(--line); }
+.ct-hours h2{ font-size:1.05rem; }
+.ct-hours .sub{ color: var(--ink-soft); margin: 6px 0 0; }
+.ct-week{ display:grid; grid-template-columns: repeat(7, 1fr); gap:6px; margin-top: var(--space-4); max-width: 420px; }
+.ct-week span{ display:block; text-align:center; padding: 9px 0; font-size:.85rem; font-weight:600; border-radius: var(--radius-s); background: var(--ink); color: var(--paper-raised); }
+.ct-week span.off{ background: transparent; color: var(--grey); border: 1.5px dashed var(--line-strong); }
+.ct-week span.today{ box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--cobalt); }
+.ct-status{ display:inline-flex; align-items:center; gap:8px; margin-top: var(--space-4); font-weight:600; font-size:.95rem; }
+.ct-status i{ width:10px; height:10px; border-radius:50%; background: var(--grey); display:inline-block; }
+.ct-status.open i{ background:#1FA45B; }
+
+/* Job ticket (form) */
+.ct-ticket{ position:relative; background: var(--paper-raised); border: 1px solid var(--line-strong); border-radius: var(--radius-s); box-shadow: 0 1px 0 var(--line-strong), 0 22px 40px -30px rgba(21,23,27,.5); }
+.ct-ticket-head{ position:relative; padding: 34px 36px 26px; border-bottom: 2px dashed var(--line-strong); }
+.ct-ticket-head::before, .ct-ticket-head::after{ content:""; position:absolute; bottom:-13px; width:24px; height:24px; border-radius:50%; background: var(--paper); border: 1px solid var(--line-strong); }
+.ct-ticket-head::before{ left:-13px; clip-path: inset(0 0 0 50%); }
+.ct-ticket-head::after{ right:-13px; clip-path: inset(0 50% 0 0); }
+.ct-ticket-head h2{ font-size: clamp(1.4rem, 2.2vw, 1.8rem); letter-spacing:-0.02em; }
+.ct-bar{ display:flex; margin-bottom: 18px; }
+.ct-bar i{ display:block; width:20px; height:12px; }
+.ct-bar i:nth-child(1){ background:#00AEEF; } .ct-bar i:nth-child(2){ background:#EC008C; }
+.ct-bar i:nth-child(3){ background:#FFF200; } .ct-bar i:nth-child(4){ background:#15171B; }
+.ct-cm{ position:absolute; width:14px; height:14px; border:0 solid var(--ink); }
+.ct-cm.tl{ top:10px; right:10px; border-top-width:1.5px; border-right-width:1.5px; }
+.ct-cm.br{ bottom:10px; right:10px; border-bottom-width:1.5px; border-right-width:1.5px; }
+.ct-cm.bl{ bottom:10px; left:10px; border-bottom-width:1.5px; border-left-width:1.5px; }
+#contact-form{ padding: 30px 36px 36px; }
+.ct-field{ margin-bottom: 18px; }
+.ct-field label{ display:block; font-size:.9rem; font-weight:600; margin-bottom:6px; }
+.ct-field input, .ct-field textarea{ width:100%; padding: 13px 14px; background:#fff; border: 1.5px solid var(--line-strong); border-radius: var(--radius-s); color: var(--ink); transition: border-color .15s ease, box-shadow .15s ease; }
+.ct-field textarea{ min-height: 150px; resize: vertical; }
+.ct-field input:hover, .ct-field textarea:hover{ border-color: var(--grey); }
+.ct-field input:focus, .ct-field textarea:focus{ outline:none; border-color: var(--cobalt); box-shadow: 0 0 0 3px rgba(36,56,224,.18); }
+.ct-row2{ display:grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+#contact-msg{ margin: 14px 0 0; font-size:.92rem; color: var(--cobalt-dark); min-height: 1.4em; }
+
+@media (max-width: 900px){
+  .ct-hero{ padding: var(--space-6) 0 var(--space-7); }
+  .ct-grid{ grid-template-columns: minmax(0,1fr); gap: var(--space-7); padding-bottom: var(--space-8); }
+  .ct-ticket-head{ padding: 28px 22px 22px; }
+  #contact-form{ padding: 24px 22px 30px; }
+}
+@media (max-width: 520px){
+  .ct-row2{ grid-template-columns: 1fr; gap:0; }
+  .ct-channel{ padding: 16px; }
+}
+</style>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -44,53 +117,87 @@
 </header>
 
 <main id="main">
-  <section class="page-hero">
-    <div class="container">
-      <div class="breadcrumb"><a href="index.html">Home</a> / Contact</div>
+  <section class="ct-hero">
+    <div class="ct-wrap">
+      <div class="ct-crumb"><a href="index.html">Home</a> / Contact</div>
       <h1>We're here when you need us.</h1>
     </div>
   </section>
 
-  <section class="section">
-    <div class="container contact-layout">
+  <section>
+    <div class="ct-wrap ct-grid">
       <div>
-        <div class="contact-info-item">
-          <div><h4>Email</h4><p>hello@gfxprints.example</p></div>
+        <a class="ct-channel" href="https://wa.me/923222920135" target="_blank" rel="noopener">
+          <span class="ct-ico wa" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2a9.9 9.9 0 0 0-8.43 15.1L2 22l5.05-1.32A9.9 9.9 0 1 0 12.04 2Zm0 18.1a8.2 8.2 0 0 1-4.18-1.14l-.3-.18-3 .78.8-2.92-.2-.31a8.2 8.2 0 1 1 6.88 3.77Zm4.5-6.14c-.25-.12-1.46-.72-1.69-.8-.23-.09-.39-.12-.56.12-.16.25-.64.8-.78.96-.14.17-.29.19-.54.06a6.7 6.7 0 0 1-3.32-2.9c-.25-.43.25-.4.72-1.34.08-.17.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.4-.41-.56-.42h-.47c-.17 0-.43.06-.66.31-.23.25-.87.85-.87 2.07s.89 2.4 1.01 2.57c.12.17 1.75 2.67 4.24 3.75 1.58.68 2.2.74 3 .62.49-.07 1.46-.6 1.67-1.17.2-.58.2-1.07.14-1.17-.06-.1-.23-.17-.48-.29Z"/></svg></span>
+          <div><span class="ct-label">WhatsApp</span><p>+92 322 2920135</p></div>
+        </a>
+        <a class="ct-channel" href="mailto:gfxprints.com@gmail.com">
+          <span class="ct-ico mail" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span>
+          <div><span class="ct-label">Email</span><p>gfxprints.com@gmail.com</p></div>
+        </a>
+        <div class="ct-channel">
+          <span class="ct-ico pin" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></svg></span>
+          <div><span class="ct-label">Studio</span><p class="plain">Islamabad, Pakistan. Orders ship nationwide.</p></div>
         </div>
-        <div class="contact-info-item">
-          <div><h4>Phone</h4><p>+92 300 0000000</p></div>
-        </div>
-        <div class="contact-info-item">
-          <div><h4>Studio</h4><p>Islamabad, Pakistan. Orders ship nationwide.</p></div>
-        </div>
-        <div class="contact-info-item">
-          <div><h4>Support Hours</h4><p>Monday–Saturday, 10am–7pm PKT</p></div>
+
+        <div class="ct-hours">
+          <h2>Support Hours</h2>
+          <p class="sub">Monday to Saturday, 10am to 7pm PKT</p>
+          <div class="ct-week" id="ct-week" aria-hidden="true">
+            <span data-d="1">Mon</span><span data-d="2">Tue</span><span data-d="3">Wed</span><span data-d="4">Thu</span><span data-d="5">Fri</span><span data-d="6">Sat</span><span data-d="0" class="off">Sun</span>
+          </div>
+          <div class="ct-status" id="ct-status" role="status"></div>
         </div>
       </div>
 
-      <form id="contact-form">
-        <div class="field" style="margin-bottom:16px;">
-          <label for="c-name">Full Name</label>
-          <input type="text" id="c-name" required>
+      <div class="ct-ticket">
+        <span class="ct-cm tl"></span><span class="ct-cm br"></span><span class="ct-cm bl"></span>
+        <div class="ct-ticket-head">
+          <div class="ct-bar" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <h2>Send us a message</h2>
         </div>
-        <div class="field" style="margin-bottom:16px;">
-          <label for="c-email">Email</label>
-          <input type="email" id="c-email" required>
-        </div>
-        <div class="field" style="margin-bottom:16px;">
-          <label for="c-subject">Subject</label>
-          <input type="text" id="c-subject" required>
-        </div>
-        <div class="field" style="margin-bottom:20px;">
-          <label for="c-message">Message</label>
-          <textarea id="c-message" required></textarea>
-        </div>
-        <button type="submit" class="btn btn-accent btn-block">Send Message</button>
-        <p id="contact-msg" style="margin-top:12px;font-size:0.88rem;color:var(--cobalt);" role="status"></p>
-      </form>
+        <form id="contact-form">
+          <div class="ct-row2">
+            <div class="ct-field">
+              <label for="c-name">Full Name</label>
+              <input type="text" id="c-name" autocomplete="name" required>
+            </div>
+            <div class="ct-field">
+              <label for="c-email">Email</label>
+              <input type="email" id="c-email" autocomplete="email" required>
+            </div>
+          </div>
+          <div class="ct-field">
+            <label for="c-subject">Subject</label>
+            <input type="text" id="c-subject" required>
+          </div>
+          <div class="ct-field">
+            <label for="c-message">Message</label>
+            <textarea id="c-message" required></textarea>
+          </div>
+          <button type="submit" class="btn btn-accent btn-block">Send Message</button>
+          <p id="contact-msg" role="status"></p>
+        </form>
+      </div>
     </div>
   </section>
 </main>
+<script>
+  // Shows whether support is open right now, in Pakistan time (Mon to Sat, 10am to 7pm).
+  (function(){
+    var statusEl = document.getElementById("ct-status");
+    var days = document.querySelectorAll("#ct-week span");
+    var parts = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Karachi", weekday: "short", hour: "numeric", minute: "numeric", hour12: false }).formatToParts(new Date());
+    var get = function(t){ return parts.filter(function(p){ return p.type === t; })[0].value; };
+    var map = { Sun:0, Mon:1, Tue:2, Wed:3, Thu:4, Fri:5, Sat:6 };
+    var day = map[get("weekday")], mins = (parseInt(get("hour"), 10) % 24) * 60 + parseInt(get("minute"), 10);
+    var open = day !== 0 && mins >= 600 && mins < 1140;
+    days.forEach(function(d){ if (parseInt(d.getAttribute("data-d"), 10) === day) d.classList.add("today"); });
+    statusEl.classList.toggle("open", open);
+    var next = (day === 0 || day === 6 && mins >= 1140) ? "Monday" : (mins < 600 ? "today" : "tomorrow");
+    statusEl.innerHTML = '<i></i>' + (open ? "Open now, until 7pm PKT" : "Closed now, opens " + next + " at 10am PKT");
+  })();
+</script>
 
 <footer class="site-footer">
   <div class="container">
@@ -103,12 +210,57 @@
 <script src="js/products.min.js" defer></script>
 <script src="js/main.min.js" defer></script>
 <script>
-  document.getElementById("contact-form").addEventListener("submit", function(e){
-    e.preventDefault();
-    // Front-end only: wire this up to an email service or backend endpoint.
-    document.getElementById("contact-msg").textContent = "Thanks, we'll get back to you soon. (This form is not yet connected to a backend.)";
-    this.reset();
-  });
+  // Sends the form to the shop Gmail through FormSubmit (free, no backend needed).
+  // First time only: the first message triggers an activation email from FormSubmit
+  // to the Gmail inbox. Click "Activate Form" in it once, then every message is delivered.
+  (function(){
+    var FORM_EMAIL = "gfxprints.com@gmail.com";
+    var form = document.getElementById("contact-form");
+    var msg = document.getElementById("contact-msg");
+    var btn = form.querySelector("button[type=submit]");
+
+    // Hidden spam trap (real visitors never see or fill it)
+    var trap = document.createElement("input");
+    trap.type = "text"; trap.name = "_honey"; trap.tabIndex = -1; trap.autocomplete = "off";
+    trap.style.cssText = "position:absolute;left:-9999px;opacity:0;height:0;width:0;";
+    trap.setAttribute("aria-hidden", "true");
+    form.appendChild(trap);
+
+    form.addEventListener("submit", function(e){
+      e.preventDefault();
+      var data = {
+        name: document.getElementById("c-name").value.trim(),
+        email: document.getElementById("c-email").value.trim(),
+        subject: document.getElementById("c-subject").value.trim(),
+        message: document.getElementById("c-message").value.trim(),
+        _subject: "GfxPrints contact: " + document.getElementById("c-subject").value.trim(),
+        _template: "table",
+        _captcha: "false",
+        _honey: trap.value
+      };
+      var originalLabel = btn.textContent;
+      btn.disabled = true; btn.textContent = "Sending...";
+      msg.textContent = "";
+
+      fetch("https://formsubmit.co/ajax/" + FORM_EMAIL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify(data)
+      })
+      .then(function(r){ return r.json().then(function(j){ return { ok: r.ok, body: j }; }); })
+      .then(function(res){
+        if (!res.ok || String(res.body.success) === "false") throw new Error("send failed");
+        msg.textContent = "Thanks, your message has been sent. We'll get back to you soon.";
+        form.reset();
+      })
+      .catch(function(){
+        var link = "mailto:" + FORM_EMAIL + "?subject=" + encodeURIComponent(data.subject) +
+          "&body=" + encodeURIComponent(data.message + "\n\nFrom: " + data.name + " (" + data.email + ")");
+        msg.innerHTML = 'Sorry, we could not send that right now. Please <a href="' + link + '" style="color:inherit;text-decoration:underline;">email us directly</a> or message us on WhatsApp.';
+      })
+      .then(function(){ btn.disabled = false; btn.textContent = originalLabel; });
+    });
+  })();
 </script>
 </body>
 </html>

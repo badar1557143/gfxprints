@@ -235,7 +235,7 @@ function selectProduct(p, opts){
 
   currentProduct = p;
   selectedColor = p.colors[0];
-  selectedSize = p.sizes[0];
+  selectedSize = firstOrderableSize(p, selectedColor) || p.sizes[0];
   selectedOrientation = p.orientations ? p.orientations[0] : null;
   const firstPackagings = getPackagingsFor(p, selectedSize);
   selectedPackaging = firstPackagings ? firstPackagings[0] : null;
@@ -276,13 +276,19 @@ function selectProduct(p, opts){
 
   // Colors
   const colorWrap = document.getElementById("pd-colors");
-  colorWrap.innerHTML = p.colors.map((c, i) => `
-    <button type="button" class="swatch ${i === 0 ? "selected" : ""}" style="background:${colorToHex(c)}" data-color="${c}" aria-label="${c}" title="${c}"></button>`).join("");
+  colorWrap.innerHTML = p.colors.map((c, i) => colorSwatchHTML(p, c, i === 0)).join("");
   colorWrap.querySelectorAll(".swatch").forEach(sw => {
     sw.addEventListener("click", () => {
-      colorWrap.querySelectorAll(".swatch").forEach(s => s.classList.remove("selected"));
+      colorWrap.querySelectorAll(".swatch").forEach(s => { s.classList.remove("selected"); s.setAttribute("aria-pressed", "false"); });
       sw.classList.add("selected");
+      sw.setAttribute("aria-pressed", "true");
       selectedColor = sw.dataset.color;
+      // Move to a size that exists in this colour (e.g. Black has no M or L yet)
+      if (!isSizeOrderable(p, selectedColor, selectedSize)){
+        selectedSize = firstOrderableSize(p, selectedColor) || selectedSize;
+      }
+      renderSizes();
+      renderPackaging();
       updateBasePriceLabel();
       updateTotal();
       updatePreviewImage();
@@ -295,20 +301,7 @@ function selectProduct(p, opts){
   if (colorLabel) colorLabel.textContent = p.colorLabel || "Color";
 
   // Sizes
-  const sizeWrap = document.getElementById("pd-sizes");
-  sizeWrap.innerHTML = p.sizes.map((s, i) => `
-    <button type="button" class="pill ${i === 0 ? "selected" : ""}" data-size="${s}">${s}</button>`).join("");
-  sizeWrap.querySelectorAll(".pill").forEach(pill => {
-    pill.addEventListener("click", () => {
-      sizeWrap.querySelectorAll(".pill").forEach(pl => pl.classList.remove("selected"));
-      pill.classList.add("selected");
-      selectedSize = pill.dataset.size;
-      renderPackaging(); // packaging choices can depend on the size
-      updateBasePriceLabel();
-      updateTotal();
-      applyFrameLayout(); // framed poster: frame follows the size
-    });
-  });
+  renderSizes();
 
   // Orientation (only products with orientations, e.g. the framed poster)
   const orientBlock = document.getElementById("pd-orientation-block");
@@ -698,6 +691,27 @@ function bindOptionControls(){
   });
 }
 
+// Size pills: sizes that are not available in the chosen colour are shown disabled.
+function renderSizes(){
+  const p = currentProduct;
+  const sizeWrap = document.getElementById("pd-sizes");
+  sizeWrap.innerHTML = p.sizes.map(s => sizePillHTML(p, s, s === selectedSize, selectedColor)).join("");
+  sizeWrap.querySelectorAll(".pill:not(.unavailable)").forEach(pill => {
+    pill.addEventListener("click", () => {
+      selectedSize = pill.dataset.size;
+      sizeWrap.querySelectorAll(".pill").forEach(pl => {
+        const on = pl.dataset.size === selectedSize;
+        pl.classList.toggle("selected", on);
+        if (!pl.classList.contains("unavailable")) pl.setAttribute("aria-pressed", String(on));
+      });
+      renderPackaging(); // packaging choices can depend on the size
+      updateBasePriceLabel();
+      updateTotal();
+      applyFrameLayout(); // framed poster: frame follows the size
+    });
+  });
+}
+
 function renderPackaging(){
   const p = currentProduct;
   const pkgBlock = document.getElementById("pd-packaging-block");
@@ -737,7 +751,16 @@ function computeUnitPrice(){
 
 function updateBasePriceLabel(){
   if (!currentProduct) return;
-  document.getElementById("cz-price").textContent = formatPrice(getVariantPrice(currentProduct, selectedColor, selectedPackaging, selectedSize));
+  const priceOk = hasValidVariantPrice(currentProduct, selectedColor, selectedPackaging, selectedSize);
+  document.getElementById("cz-price").textContent = priceOk
+    ? formatPrice(getVariantPrice(currentProduct, selectedColor, selectedPackaging, selectedSize))
+    : "Price coming soon";
+  // No checkout for a colour/size that is unavailable or has no valid retail price
+  const orderable = isVariantOrderable(currentProduct, selectedColor, selectedPackaging, selectedSize);
+  ["add-to-cart-btn", "buy-now-btn"].forEach(id => {
+    const b = document.getElementById(id);
+    if (b){ b.disabled = !orderable; b.setAttribute("aria-disabled", String(!orderable)); }
+  });
 }
 
 function updateTotal(){
@@ -797,6 +820,10 @@ function buildAllSideDesignFiles(sidesDesignMap, callback){
 
 function handleAddToCart(buyNow){
   const p = currentProduct;
+  if (!selectedColor || !selectedSize || !isVariantOrderable(p, selectedColor, selectedPackaging, selectedSize)){
+    showToast(selectedColor && selectedSize ? `Size ${selectedSize} is not available in ${selectedColor}` : "Please choose a colour and size");
+    return;
+  }
   const qty = Number(document.getElementById("pd-qty").value) || 1;
   const hasDesign = anySideHasContent();
   const sidesDesign = collectSidesDesign();

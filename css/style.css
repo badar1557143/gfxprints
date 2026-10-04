@@ -749,6 +749,17 @@ body.app-page .whatsapp-float{ bottom: calc(148px + env(safe-area-inset-bottom, 
   font-size:0.88rem; font-weight:600; background: var(--paper-raised);
 }
 .pill.selected{ border-color: var(--cobalt); background: var(--cobalt); color:#fff; }
+/* Named colour chips (visible colour name + clear selected state) and unavailable sizes */
+.swatch.swatch-chip{ width:auto; height:auto; min-height:44px; border-radius: var(--radius-s); display:inline-flex; align-items:center; gap:8px; padding:6px 12px 6px 8px; background: var(--paper-raised); font-size:0.88rem; font-weight:600; color: var(--ink); border:1.5px solid var(--line-strong); }
+.swatch.swatch-chip .swatch-dot{ width:22px; height:22px; border-radius:50%; border:1.5px solid var(--line-strong); flex:none; }
+.swatch.swatch-chip .swatch-check{ display:none; font-size:0.8rem; line-height:1; }
+.swatch.swatch-chip.selected{ outline:none; border-color: var(--cobalt); background: var(--cobalt); color:#fff; }
+.swatch.swatch-chip.selected .swatch-dot{ border-color:#fff; }
+.swatch.swatch-chip.selected .swatch-check{ display:inline; }
+.swatch.swatch-chip:focus-visible, .pill:focus-visible{ outline:2px solid var(--cobalt); outline-offset:2px; }
+.pill.unavailable{ opacity:0.45; cursor:not-allowed; text-decoration:line-through; background: transparent; }
+.pd-status{ margin-top:8px; font-size:0.88rem; color: var(--ink-soft); }
+.pd-actions .btn:disabled{ opacity:0.5; cursor:not-allowed; }
 .qty-row{ display:flex; align-items:center; border: 1.5px solid var(--line-strong); border-radius: var(--radius-s); width:fit-content; }
 .qty-row button{ background:none; border:none; width:40px; height:42px; font-size:1.1rem; }
 .qty-row input{ width:44px; text-align:center; border:none; background:none; font-weight:700; }

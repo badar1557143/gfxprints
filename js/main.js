@@ -279,7 +279,7 @@ function productCardHTML(p){
       <div class="pc-body">
         <span class="pc-cat">${p.category}</span>
         <h3 class="pc-name">${p.name}</h3>
-        <div class="pc-rating"><span class="stars">${starString(p.rating)}</span> ${p.rating} (${p.reviews})</div>
+        ${p.rating == null ? "" : `<div class="pc-rating"><span class="stars">${starString(p.rating)}</span> ${p.rating} (${p.reviews})</div>`}
         <p class="pc-desc">${p.description}</p>
         <div class="pc-footer">
           <span class="pc-price">${priceHTML}</span>
@@ -687,7 +687,7 @@ function renderShop(){
   switch (shopState.sort){
     case "price-asc": list.sort((a,b) => a.price - b.price); break;
     case "price-desc": list.sort((a,b) => b.price - a.price); break;
-    case "rating": list.sort((a,b) => b.rating - a.rating); break;
+    case "rating": list.sort((a,b) => (b.rating || 0) - (a.rating || 0)); break;
     default: break;
   }
 

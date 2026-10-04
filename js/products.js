@@ -7,78 +7,66 @@
 const PRODUCTS = [
   {
     id: 1,
-    name: "Classic Printed Cotton T-Shirt",
-    seoTitle: "Classic Printed Cotton T-Shirt | Customize Your Design Now",
+    name: "Custom Printed Classic Cotton T-Shirt",
+    seoTitle: "Custom Printed Classic Cotton T-Shirt | GfxPrints",
     seo: {
-      h1: "Classic Printed Cotton T-Shirt | Customize Your Design Now",
-      metaDescription: "Design your own custom printed cotton T-shirt with GfxPrints. Choose your color and size, then add your photo, logo, artwork, name, or text.",
-      breadcrumbName: "Custom Printed Cotton T-Shirt",
+      h1: "Custom Printed Classic Cotton T-Shirt",
+      metaTitle: "Custom Printed Classic Cotton T-Shirt | GfxPrints",
+      metaDescription: "Design your own classic cotton T-shirt with GfxPrints. Add text, artwork, or a logo to a soft, breathable 100% cotton tee in your favourite colour.",
+      breadcrumbName: "Custom Printed Classic Cotton T-Shirt",
+      targetKeyword: "Custom printed cotton T-shirt",
+      keywords: "custom printed cotton T-shirt, personalised cotton T-shirt, custom logo T-shirt, T-shirt printing Pakistan",
+      suggestedURL: "/custom-printed-classic-cotton-t-shirt/",
       ogImage: "assets/products/tee-plain-white.webp",
-      imageAltBase: "Custom printed cotton T-shirt",
+      imageAltBase: "Custom printed classic cotton T-shirt",
+      // Customer page shows no ratings/reviews and no site-wide delivery/returns copy for this product.
+      hideRatings: true,
+      hideShippingReturns: true,
       featuresHTML:
-        "<p style=\"margin:0 0 10px;\">Create a T-shirt that is made just for you. Upload your photo, artwork, logo, name, or text and create your own custom T-shirt with GfxPrints.</p>" +
-        "<p style=\"margin:0 0 10px;\">Made from 100% cotton, this T-shirt is soft, lightweight, and comfortable for everyday wear. Choose your favorite color and size, then add your design to the front, back, or both.</p>" +
+        "<p style=\"margin:0 0 10px;\">Turn your ideas into a T-shirt you’ll love wearing. Personalise your classic cotton T-shirt with your favourite artwork, a meaningful message, or your business logo.</p>" +
+        "<p style=\"margin:0 0 10px;\">Made from 100% cotton, this lightweight T-shirt feels soft and breathable. Its comfortable everyday fit makes it a versatile choice for casual outfits, personalised gifts, events, and business merchandise.</p>" +
         "<h4 style=\"margin:14px 0 6px;font-size:0.95rem;color:var(--ink);\">Product Features</h4>" +
         "<ul style=\"margin:0 0 10px;padding-left:18px;\">" +
-        "<li>100% cotton</li>" +
-        "<li>Soft and comfortable fabric</li>" +
-        "<li>Lightweight 150–160 GSM</li>" +
-        "<li>Pre-shrunk fabric</li>" +
-        "<li>Comfortable everyday fit</li>" +
-        "<li>Side-seamed construction</li>" +
-        "<li>Shoulder-to-shoulder taping</li>" +
-        "<li>Available in multiple colors</li>" +
-        "<li>Sizes S to XXL</li>" +
-        "<li>Blank product sourced from Pakistan</li>" +
+        "<li>Material: 100% cotton</li>" +
+        "<li>Fabric weight: 150–160 GSM</li>" +
+        "<li>Fit: Comfortable everyday fit</li>" +
+        "<li>Pre-shrunk fabric to help reduce shrinkage</li>" +
+        "<li>Side-seamed construction to help maintain its shape</li>" +
+        "<li>Shoulder-to-shoulder taping for added support</li>" +
+        "<li>Blank T-shirt sourced from Pakistan</li>" +
         "</ul>" +
-        "<h4 style=\"margin:14px 0 6px;font-size:0.95rem;color:var(--ink);\">Create Your Own T-Shirt</h4>" +
-        "<p style=\"margin:0 0 6px;\">Personalize your T-shirt in a few simple steps:</p>" +
-        "<ol style=\"margin:0 0 10px;padding-left:18px;\">" +
-        "<li>Choose your color and size.</li>" +
-        "<li>Upload your photo, logo, artwork, name, or text.</li>" +
-        "<li>Choose where you want your design printed.</li>" +
-        "<li>Check your design.</li>" +
-        "<li>Place your order.</li>" +
-        "</ol>" +
-        "<p style=\"margin:0 0 10px;\">Your custom T-shirt is then prepared especially for your order.</p>" +
-        "<h4 style=\"margin:14px 0 6px;font-size:0.95rem;color:var(--ink);\">Printing Prices</h4>" +
-        "<table style=\"width:100%;border-collapse:collapse;margin:0 0 6px;font-size:0.9rem;\">" +
-        "<tr><th style=\"text-align:left;padding:5px 8px 5px 0;border-bottom:1px solid var(--line);\">Printing Option</th><th style=\"text-align:left;padding:5px 0;border-bottom:1px solid var(--line);\">Price</th></tr>" +
-        "<tr><td style=\"padding:5px 8px 5px 0;border-bottom:1px solid var(--line);\">Front Print</td><td style=\"padding:5px 0;border-bottom:1px solid var(--line);\">Rs. 200</td></tr>" +
-        "<tr><td style=\"padding:5px 8px 5px 0;\">Back Print</td><td style=\"padding:5px 0;\">Rs. 200</td></tr>" +
-        "</table>" +
-        "<p style=\"margin:0 0 10px;\">You can choose the printing options you need when creating your T-shirt.</p>" +
-        "<h4 style=\"margin:14px 0 6px;font-size:0.95rem;color:var(--ink);\">Available Colors</h4>" +
-        "<p style=\"margin:0 0 10px;\">White, Black, Navy, Sky Blue, Mustard, Beige, and Brown.</p>" +
+        "<h4 style=\"margin:14px 0 6px;font-size:0.95rem;color:var(--ink);\">Printing</h4>" +
+        "<p style=\"margin:0 0 10px;\">Rs. 220 per side.</p>" +
         "<h4 style=\"margin:14px 0 6px;font-size:0.95rem;color:var(--ink);\">Made to Order</h4>" +
-        "<p style=\"margin:0 0 10px;\">Your T-shirt is made after you place your order. This helps reduce unnecessary overproduction because products are not made in large quantities before they are ordered. Since your product is prepared after ordering, it may take a little longer to process before shipping.</p>" +
-        "<h4 style=\"margin:14px 0 6px;font-size:0.95rem;color:var(--ink);\">Please Note</h4>" +
-        "<p style=\"margin:0 0 10px;\">The product is manufactured using leftover material. Because of this, small differences in appearance or quality may sometimes occur.</p>" +
-        "<h4 style=\"margin:14px 0 6px;font-size:0.95rem;color:var(--ink);\">Product Details</h4>" +
-        "<table style=\"width:100%;border-collapse:collapse;margin:0 0 10px;font-size:0.9rem;\">" +
-        "<tr><td style=\"padding:5px 8px 5px 0;border-bottom:1px solid var(--line);font-weight:600;\">Material</td><td style=\"padding:5px 0;border-bottom:1px solid var(--line);\">100% Cotton</td></tr>" +
-        "<tr><td style=\"padding:5px 8px 5px 0;border-bottom:1px solid var(--line);font-weight:600;\">Fabric Weight</td><td style=\"padding:5px 0;border-bottom:1px solid var(--line);\">150–160 GSM</td></tr>" +
-        "<tr><td style=\"padding:5px 8px 5px 0;border-bottom:1px solid var(--line);font-weight:600;\">Sizes</td><td style=\"padding:5px 0;border-bottom:1px solid var(--line);\">S–XXL</td></tr>" +
+        "<p style=\"margin:0 0 10px;\">Your custom T-shirt is made after you place your order. Please allow time for production before dispatch. Making each product on demand helps reduce overproduction.</p>" +
+        "<h4 style=\"margin:14px 0 6px;font-size:0.95rem;color:var(--ink);\">Material Notice</h4>" +
+        "<p style=\"margin:0 0 10px;\">These T-shirts are manufactured using leftover fabric materials. Slight variations in appearance and quality may occur between items.</p>" +
+        "<h4 style=\"margin:14px 0 6px;font-size:0.95rem;color:var(--ink);\">Additional Information</h4>" +
+        "<table style=\"width:100%;border-collapse:collapse;margin:0;font-size:0.9rem;\">" +
         "<tr><td style=\"padding:5px 8px 5px 0;border-bottom:1px solid var(--line);font-weight:600;\">Weight</td><td style=\"padding:5px 0;border-bottom:1px solid var(--line);\">0.3 kg</td></tr>" +
-        "<tr><td style=\"padding:5px 8px 5px 0;border-bottom:1px solid var(--line);font-weight:600;\">Dimensions</td><td style=\"padding:5px 0;border-bottom:1px solid var(--line);\">47 × 31 × 2 cm</td></tr>" +
-        "<tr><td style=\"padding:5px 8px 5px 0;border-bottom:1px solid var(--line);font-weight:600;\">Product Type</td><td style=\"padding:5px 0;border-bottom:1px solid var(--line);\">Custom Printed T-Shirt</td></tr>" +
-        "<tr><td style=\"padding:5px 8px 5px 0;font-weight:600;\">Made For</td><td style=\"padding:5px 0;\">Everyday Wear</td></tr>" +
-        "</table>" +
-        "<p style=\"margin:0;\"><strong>Design It. Wear It. Make It Yours.</strong><br>Create a custom cotton T-shirt with your own design, photo, logo, name, or artwork and make something that is uniquely yours.</p>",
-      materials: "100% cotton, 150–160 GSM, pre-shrunk fabric. Blank product sourced from Pakistan.",
+        "<tr><td style=\"padding:5px 8px 5px 0;font-weight:600;\">Dimensions</td><td style=\"padding:5px 0;\">47 × 31 × 2 cm</td></tr>" +
+        "</table>",
+      materials: "100% cotton, 150–160 GSM, pre-shrunk fabric. Blank T-shirt sourced from Pakistan.",
       faq: [
-        { q: "What material is this shirt made from?", a: "100% cotton, 150–160 GSM, pre-shrunk for a comfortable everyday fit." },
-        { q: "Can I print on both the front and back?", a: "Yes, front and back printing are each Rs. 200, added when you build your design in the Design Studio." },
-        { q: "What sizes are available?", a: "S, M, L, XL, and XXL. Check the Size Guide above for exact chest, length, shoulder, and sleeve measurements in inches." },
-        { q: "How long does production take?", a: "Because every shirt is made to order, production takes a little longer to process before it ships." },
-        { q: "Can I return a custom T-shirt?", a: "Since each shirt is personalized, returns are accepted only if it arrives damaged or incorrect." }
+        { q: "What material is this T-shirt made from?", a: "It is made from 100% cotton with a fabric weight of 150–160 GSM." },
+        { q: "Can I add my own design or logo?", a: "Yes. You can personalise your T-shirt with artwork, text, or a logo using the available customisation options." },
+        { q: "Which colours are available?", a: "Black, Navy, White, Mustard, Beige, Brown, and Sky Blue. Availability depends on your selected size." },
+        { q: "Is this T-shirt made to order?", a: "Yes. Your T-shirt is prepared after you place your order, so please allow time for production before dispatch." }
       ]
     },
     category: "T-Shirts",
-    price: 1499,
+    // variantCosts = POD price per size; profitPercent adds our 10% on top (computed into variantPrices),
+    // same rule as the hoodie, mug, tote and frame. S/M/L = 650, XL/XXL = 700 -> 715 / 770.
+    priceBy: "size",
+    profitPercent: 10,
+    variantCosts: { "S|": 650, "M|": 650, "L|": 650, "XL|": 700, "XXL|": 700 },
+    price: 715,
     oldPrice: null,
-    rating: 4.8,
-    reviews: 214,
+    // Per-colour sizes that cannot be ordered. Black M and L stay unavailable until the supplier confirms them.
+    unavailable: { "Black": ["M", "L"] },
+    namedSwatches: true,
+    rating: null,
+    reviews: 0,
     image: "assets/products/tee-main-light-blue.webp",
     // First photo on the product page (before a color is picked); also the first gallery thumbnail
     heroImage: "assets/products/tee-main-light-blue.webp",
@@ -92,8 +80,7 @@ const PRODUCTS = [
       "Beige":    "assets/products/tee-plain-beige.webp",
       "Brown":    "assets/products/tee-plain-brown.webp"
     },
-    // Dedicated Design Studio mockups (customize.html) - front/back per color, one
-    // pair per garment color so the Front/Back Print Sides show the right photo.
+    // Dedicated Design Studio mockups (customize.html) - front/back per color.
     frontColorImages: {
       "White":    "assets/products/tee-front-white.webp",
       "Black":    "assets/products/tee-front-black.webp",
@@ -123,18 +110,20 @@ const PRODUCTS = [
       "assets/products/tee-plain-beige.webp",
       "assets/products/tee-plain-brown.webp"
     ],
-    description: "Create a T-shirt with your own design. 100% cotton, printed to order with your photo, logo, name, or artwork.",
-    tags: ["shirt", "apparel", "custom", "cotton"],
+    description: "Create a T-shirt that reflects your style. Add your own design, text, or logo to a soft, breathable 100% cotton T-shirt with a comfortable everyday fit.",
+    tags: ["shirt", "t-shirt", "tee", "apparel", "custom", "cotton", "classic", "personalised"],
     colors: ["White", "Black", "Navy", "Sky Blue", "Mustard", "Beige", "Brown"],
     sizes: ["S", "M", "L", "XL", "XXL"],
-    // Print Sides - the Design Studio (customize.html) shows one card per side.
-    // "garment" sides print directly on the product photo; "flat" sides (no garment
-    // photo available yet) show a plain mock backdrop instead, keyed by flatTone.
-    // price is added to the order total only once the customer adds a design to that side.
+    // Print Sides - customer prices = supplier cost + 10% (front/back Rs. 220). A side is charged only once the
+    // customer adds a design to it. Do not charge for printing that turns out to be included in the base price.
+    // No right sleeve is offered. Inside tag, left sleeve and custom packaging stay in unofferedOptions below
+    // until the included print placement is confirmed (the Design Studio also has no mockup for them yet).
     sides: [
-      { id: "front", label: "Front", sublabel: "Front side design", price: 200, dims: '175" × 280"', view: "garment", printArea: "30% 27% 26% 27%" },
-      { id: "back", label: "Back", sublabel: "Back design", price: 200, dims: '185" × 282"', view: "garment", printArea: "25% 25% 21% 25%" }
+      { id: "front", label: "Front", sublabel: "Front side design", price: 220, dims: '175" × 280"', view: "garment", printArea: "30% 27% 26% 27%" },
+      { id: "back", label: "Back", sublabel: "Back design", price: 220, dims: '185" × 282"', view: "garment", printArea: "25% 25% 21% 25%" }
     ],
+    // Customer prices (10% markup) for options that are NOT offered yet. Not read by any page.
+    unofferedOptions: { insideTag: 110, leftSleeve: 82.5, customPackaging: 110 },
     customizable: true
   },
   {
@@ -735,6 +724,53 @@ function getVariantPrice(product, color, packaging, size){
 function getPackagingsFor(product, size){
   if (product && product.packagingsBySize && product.packagingsBySize[size]) return product.packagingsBySize[size];
   return (product && product.packagings) || null;
+}
+
+/* Availability + price validity per colour/size. Products can list sizes that cannot be ordered in a
+   given colour with  unavailable: { "Black": ["M", "L"] }.  A variant is orderable only when it is not
+   listed there AND it has a valid retail price (size-priced products need a number in variantPrices). */
+function isVariantAvailable(product, color, size){
+  const list = product && product.unavailable && product.unavailable[color];
+  return !(list && list.indexOf(size) !== -1);
+}
+function hasValidVariantPrice(product, color, packaging, size){
+  if (!product) return false;
+  if (product.variantPrices){
+    const key = (product.priceBy === "size" ? size : color) + "|" + (packaging == null ? "" : packaging);
+    const v = product.variantPrices[key];
+    return typeof v === "number" && isFinite(v) && v > 0;
+  }
+  return typeof product.price === "number" && isFinite(product.price) && product.price > 0;
+}
+function isVariantOrderable(product, color, packaging, size){
+  return isVariantAvailable(product, color, size) && hasValidVariantPrice(product, color, packaging, size);
+}
+/* Shared selector markup (product + customize pages). Products with namedSwatches show the colour
+   name next to the swatch (accessible, with a visible selected state); others keep the plain dot. */
+function colorSwatchHTML(product, color, isSelected){
+  const state = isSelected ? " selected" : "";
+  if (product && product.namedSwatches){
+    return `<button type="button" class="swatch swatch-chip${state}" data-color="${color}" aria-pressed="${isSelected}">` +
+      `<span class="swatch-dot" style="background:${colorToHex(color)}" aria-hidden="true"></span>` +
+      `<span class="swatch-name">${color}</span><span class="swatch-check" aria-hidden="true">✓</span></button>`;
+  }
+  return `<button type="button" class="swatch${state}" style="background:${colorToHex(color)}" data-color="${color}" aria-label="${color}" title="${color}"></button>`;
+}
+function sizePillHTML(product, size, isSelected, color){
+  const ok = isSizeOrderable(product, color, size);
+  if (ok) return `<button type="button" class="pill${isSelected ? " selected" : ""}" data-size="${size}" aria-pressed="${isSelected}">${size}</button>`;
+  return `<button type="button" class="pill unavailable" data-size="${size}" disabled aria-disabled="true" aria-label="${size}, not available in ${color}" title="Not available in ${color}">${size}</button>`;
+}
+/* A size is orderable in a colour if it is available there and at least one of its packagings
+   (or the plain product, when it has none) has a valid retail price. */
+function isSizeOrderable(product, color, size){
+  if (!isVariantAvailable(product, color, size)) return false;
+  const packs = getPackagingsFor(product, size);
+  if (!packs || !packs.length) return hasValidVariantPrice(product, color, null, size);
+  return packs.some(pk => hasValidVariantPrice(product, color, pk, size));
+}
+function firstOrderableSize(product, color){
+  return (product.sizes || []).find(s => isSizeOrderable(product, color, s)) || null;
 }
 
 /* Utility: swatch color for a color name (used by product + customize pages) */

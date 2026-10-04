@@ -176,6 +176,13 @@ Optional `printArea: "top right bottom left"` (percent insets, e.g.
 `"30% 27% 26% 27%"`) positions the dashed print guide on the preview. New
 swatch colors go in `colorToHex()` in `js/products.js`.
 
+### Optional per-product flags (used by the Classic Cotton T-Shirt)
+
+- `unavailable: { "Black": ["M", "L"] }` - sizes that cannot be ordered in a colour. They show disabled and cannot reach the cart.
+- `namedSwatches: true` - colour chips with the colour name visible and a clear selected state.
+- `seo.hideRatings`, `seo.hideShippingReturns`, `seo.hideSizeGuide` - hide those blocks (and rating data in the page's structured data) for a product.
+- A size with no valid retail price in `variantPrices` cannot be added to the cart.
+
 ## Minified files
 
 The pages load `css/style.min.css` and `js/*.min.js`. Edit the normal files (`css/style.css`, `js/*.js`), then run `sh tools/build.sh` (needs Node.js) and commit the `.min` files too. If you skip this step, your changes will not show on the site.

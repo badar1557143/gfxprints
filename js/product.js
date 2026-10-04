@@ -23,6 +23,8 @@ function initProductPage(){
   selectedOrientation = p.orientations ? p.orientations[0] : null;
   const firstPackagings = getPackagingsFor(p, selectedSize);
   selectedPackaging = firstPackagings ? firstPackagings[0] : null;
+  // Start on a size that can actually be ordered in the first colour
+  selectedSize = firstOrderableSize(p, selectedColor) || selectedSize;
 
   document.title = p.seoTitle || `${p.name} | GfxPrints`;
 
@@ -34,7 +36,13 @@ function initProductPage(){
   setMetaContent("og-title", p.seoTitle || `${p.name} | GfxPrints`);
   setMetaContent("og-description", metaDesc);
   setMetaContent("og-image", absoluteAssetURL(seo.ogImage || p.image));
-  setMetaTag("og:url", window.location.href);
+  setMetaTag("og:url", canonicalURL(p));
+  setMetaContent("og-image-alt", seo.imageAlt || (seo.imageAltBase ? `${seo.imageAltBase} in White` : p.name));
+  setMetaContent("tw-title", p.seoTitle || `${p.name} | GfxPrints`);
+  setMetaContent("tw-description", metaDesc);
+  setMetaContent("tw-image", absoluteAssetURL(seo.ogImage || p.image));
+  const canonical = document.getElementById("canonical-link");
+  if (canonical) canonical.setAttribute("href", canonicalURL(p));
   injectProductSchema(p, seo, metaDesc);
 
   // Breadcrumb - links to this product's category instead of the generic Shop page
@@ -72,8 +80,22 @@ function initProductPage(){
   // Text fields
   document.getElementById("pd-cat").textContent = p.category;
   document.getElementById("pd-title").textContent = seo.h1 || p.name;
-  document.getElementById("pd-rating-stars").textContent = starString(p.rating);
-  document.getElementById("pd-rating-text").textContent = `${p.rating} (${p.reviews} reviews)`;
+  if (seo.hideRatings || p.rating == null){
+    // No ratings or reviews are shown (or sent to search engines) for this product
+    const ratingRow = document.getElementById("pd-rating-stars").parentElement;
+    if (ratingRow) ratingRow.style.display = "none";
+  } else {
+    document.getElementById("pd-rating-stars").textContent = starString(p.rating);
+    document.getElementById("pd-rating-text").textContent = `${p.rating} (${p.reviews} reviews)`;
+  }
+  if (seo.hideSizeGuide){
+    const sizeItem = document.getElementById("size-guide-item");
+    if (sizeItem) sizeItem.style.display = "none";
+  }
+  if (seo.hideShippingReturns){
+    const shipItem = document.getElementById("shipping-returns-item");
+    if (shipItem) shipItem.style.display = "none";
+  }
   document.getElementById("pd-desc").textContent = p.description;
   updatePrice();
 
@@ -123,25 +145,13 @@ function initProductPage(){
   const colorLabel = document.getElementById("pd-color-label");
   if (colorLabel) colorLabel.textContent = p.colorLabel || "Color";
   const colorWrap = document.getElementById("pd-colors");
-  colorWrap.innerHTML = p.colors.map((c, i) => `
-    <button class="swatch ${i === 0 ? "selected" : ""}" style="background:${colorToHex(c)}" data-color="${c}" aria-label="${c}" title="${c}"></button>`).join("");
+  colorWrap.innerHTML = p.colors.map((c, i) => colorSwatchHTML(p, c, i === 0)).join("");
   colorWrap.querySelectorAll(".swatch").forEach(sw => {
     sw.addEventListener("click", () => selectColor(sw.dataset.color));
   });
 
-  // Sizes
-  const sizeWrap = document.getElementById("pd-sizes");
-  sizeWrap.innerHTML = p.sizes.map((s, i) => `
-    <button class="pill ${i === 0 ? "selected" : ""}" data-size="${s}">${s}</button>`).join("");
-  sizeWrap.querySelectorAll(".pill").forEach(pill => {
-    pill.addEventListener("click", () => {
-      sizeWrap.querySelectorAll(".pill").forEach(pl => pl.classList.remove("selected"));
-      pill.classList.add("selected");
-      selectedSize = pill.dataset.size;
-      renderPackaging(); // packaging choices can depend on the size
-      updatePrice();
-    });
-  });
+  // Sizes (sizes that are not available in the chosen colour are shown disabled)
+  renderSizes();
 
   // Orientation (only products with orientations, e.g. the framed poster)
   const orientBlock = document.getElementById("pd-orientation-block");
@@ -195,6 +205,24 @@ function initProductPage(){
   renderRelated(p);
 }
 
+function renderSizes(){
+  const p = currentProduct;
+  const sizeWrap = document.getElementById("pd-sizes");
+  sizeWrap.innerHTML = p.sizes.map(s => sizePillHTML(p, s, s === selectedSize, selectedColor)).join("");
+  sizeWrap.querySelectorAll(".pill:not(.unavailable)").forEach(pill => {
+    pill.addEventListener("click", () => {
+      selectedSize = pill.dataset.size;
+      sizeWrap.querySelectorAll(".pill").forEach(pl => {
+        const on = pl.dataset.size === selectedSize;
+        pl.classList.toggle("selected", on);
+        if (!pl.classList.contains("unavailable")) pl.setAttribute("aria-pressed", String(on));
+      });
+      renderPackaging(); // packaging choices can depend on the size
+      updatePrice();
+    });
+  });
+}
+
 function renderPackaging(){
   const p = currentProduct;
   const pkgBlock = document.getElementById("pd-packaging-block");
@@ -217,14 +245,40 @@ function renderPackaging(){
 
 function updatePrice(){
   const p = currentProduct;
-  document.getElementById("pd-price").textContent = formatPrice(getVariantPrice(p, selectedColor, selectedPackaging, selectedSize));
+  const orderable = isVariantOrderable(p, selectedColor, selectedPackaging, selectedSize);
+  const priceEl = document.getElementById("pd-price");
+  if (hasValidVariantPrice(p, selectedColor, selectedPackaging, selectedSize)){
+    priceEl.textContent = formatPrice(getVariantPrice(p, selectedColor, selectedPackaging, selectedSize));
+  } else {
+    priceEl.textContent = "Price coming soon";
+  }
+  const status = document.getElementById("pd-status");
+  if (status){
+    status.textContent = orderable ? "" : (isVariantAvailable(p, selectedColor, selectedSize)
+      ? "This option can't be ordered yet."
+      : `Size ${selectedSize} is not available in ${selectedColor}.`);
+    status.style.display = orderable ? "none" : "";
+  }
+  // No checkout for a colour/size that is unavailable or has no valid retail price
+  ["add-to-cart-btn", "buy-now-btn"].forEach(id => {
+    const b = document.getElementById(id);
+    if (b){ b.disabled = !orderable; b.setAttribute("aria-disabled", String(!orderable)); }
+  });
 }
 
 function selectColor(color){
   selectedColor = color;
+  // Keep the selected size if it exists in this colour, otherwise move to the first size that does
+  if (!isSizeOrderable(currentProduct, color, selectedSize)){
+    selectedSize = firstOrderableSize(currentProduct, color) || selectedSize;
+  }
+  renderPackaging();
+  renderSizes();
   updatePrice();
   document.querySelectorAll("#pd-colors .swatch").forEach(sw => {
-    sw.classList.toggle("selected", sw.dataset.color === color);
+    const on = sw.dataset.color === color;
+    sw.classList.toggle("selected", on);
+    sw.setAttribute("aria-pressed", String(on));
   });
   // Show that color's photo (products without per-color photos keep their current image)
   if (currentProduct.colorImages && currentProduct.colorImages[color]){
@@ -238,6 +292,11 @@ function selectColor(color){
 
 function handleAddToCart(buyNow){
   const p = currentProduct;
+  // Required selections + availability + valid retail price before anything reaches the cart
+  if (!selectedColor || !selectedSize || !isVariantOrderable(p, selectedColor, selectedPackaging, selectedSize)){
+    showToast(selectedColor && selectedSize ? `Size ${selectedSize} is not available in ${selectedColor}` : "Please choose a colour and size");
+    return;
+  }
   const qty = Number(document.getElementById("pd-qty").value) || 1;
   addToCart({
     id: p.id,
@@ -294,6 +353,11 @@ function absoluteAssetURL(relativePath){
   return new URL(relativePath, window.location.href).href;
 }
 
+// Canonical URL on the real domain/routing: this site serves every product at product.html?id=<id>.
+function canonicalURL(p){
+  return window.location.origin + window.location.pathname + "?id=" + encodeURIComponent(p.id);
+}
+
 // Build and inject (or update) the Product JSON-LD schema for the currently loaded product.
 function injectProductSchema(p, seo, metaDesc){
   const schema = {
@@ -303,21 +367,26 @@ function injectProductSchema(p, seo, metaDesc){
     "description": metaDesc,
     "image": [absoluteAssetURL(seo.ogImage || p.image)],
     "brand": { "@type": "Brand", "name": "GfxPrints" },
-    "category": p.category,
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": String(p.rating),
-      "reviewCount": String(p.reviews)
-    },
-    "offers": {
-      "@type": "Offer",
-      "url": window.location.href,
-      "priceCurrency": "PKR",
-      "price": String(p.price),
-      "availability": "https://schema.org/InStock",
-      "itemCondition": "https://schema.org/NewCondition"
-    }
+    "category": p.category
   };
+  // Ratings only for products that really have them
+  if (!seo.hideRatings && p.rating != null){
+    schema.aggregateRating = { "@type": "AggregateRating", "ratingValue": String(p.rating), "reviewCount": String(p.reviews) };
+  }
+  // Offer data only from real, valid retail prices and orderable variants
+  const orderable = [];
+  p.colors.forEach(c => p.sizes.forEach(s => {
+    if (!isVariantAvailable(p, c, s)) return;
+    (getPackagingsFor(p, s) || [null]).forEach(pk => {
+      if (hasValidVariantPrice(p, c, pk, s)) orderable.push(getVariantPrice(p, c, pk, s));
+    });
+  }));
+  if (orderable.length){
+    const lo = Math.min(...orderable), hi = Math.max(...orderable);
+    schema.offers = lo === hi
+      ? { "@type": "Offer", "url": canonicalURL(p), "priceCurrency": "PKR", "price": String(lo), "availability": "https://schema.org/InStock", "itemCondition": "https://schema.org/NewCondition" }
+      : { "@type": "AggregateOffer", "url": canonicalURL(p), "priceCurrency": "PKR", "lowPrice": String(lo), "highPrice": String(hi), "offerCount": String(orderable.length), "availability": "https://schema.org/InStock", "itemCondition": "https://schema.org/NewCondition" };
+  }
   let script = document.getElementById("product-schema");
   if (!script){
     script = document.createElement("script");

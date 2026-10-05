@@ -279,7 +279,7 @@ function productCardHTML(p){
     <article class="product-card reveal">
       <div class="pc-media">
         <a href="product.html?id=${p.id}" aria-label="View ${p.name}">
-          <img src="${p.image}" alt="${p.name}" loading="lazy" width="400" height="400">
+          <img src="${p.image}" alt="${p.name}" loading="lazy" decoding="async" width="400" height="400">
         </a>
         <button class="pc-wishlist ${isWishlisted ? "active" : ""}" data-id="${p.id}" aria-label="Add to wishlist" aria-pressed="${isWishlisted}">
           <svg viewBox="0 0 24 24" fill="${isWishlisted ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2"><path d="M12 21s-7.5-4.6-10-9.3C.4 8 2 4.5 5.6 4.1c2-.2 3.7.8 4.9 2.4C11.7 4.9 13.4 3.9 15.4 4.1 19 4.5 20.6 8 20 11.7 17.5 16.4 12 21 12 21z"/></svg>
@@ -362,7 +362,7 @@ function renderHomepage(){
     catCircles.innerHTML = CATEGORIES.map(c => `
       <a href="shop.html?category=${encodeURIComponent(c.name)}" class="cat-circle" role="listitem">
         <span class="cat-circle-img">
-          <img src="${c.image}" alt="" loading="lazy" width="140" height="140">
+          <img src="${c.image}" alt="" loading="lazy" decoding="async" width="140" height="140">
         </span>
         <span>${c.name}</span>
       </a>`).join("");
@@ -382,7 +382,7 @@ function renderHomepage(){
 
     trendRow.innerHTML = byCategory.map(c => `
       <a href="shop.html?category=${encodeURIComponent(c.name)}" class="trend-card reveal">
-        <div class="trend-media"><img src="${c.image}" alt="${c.name}" loading="lazy" width="400" height="400"></div>
+        <div class="trend-media"><img src="${c.image}" alt="${c.name}" loading="lazy" decoding="async" width="400" height="400"></div>
         <h3>${c.name}</h3>
         <p>${formatCount(c.searched)} people searched for this</p>
       </a>`).join("");
@@ -737,5 +737,8 @@ document.addEventListener("DOMContentLoaded", () => {
   initShopPage();
   initReveal();
   initWhatsAppFloat();
-  initVisitorCounter();
+  // The visit counter is a third-party request: wait until the page has finished loading and the
+  // browser is idle so it never competes with images or scripts.
+  const startCounter = () => (window.requestIdleCallback ? requestIdleCallback(initVisitorCounter, { timeout: 4000 }) : setTimeout(initVisitorCounter, 1500));
+  if (document.readyState === "complete") startCounter(); else window.addEventListener("load", startCounter, { once: true });
 });

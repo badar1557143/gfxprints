@@ -23,6 +23,16 @@ const WHATSAPP_NUMBER = "923222920135";
 const ORDER_ENDPOINT = "https://script.google.com/macros/s/AKfycbx3pOeyIc6qiTSrYaOMl6mZB2HCGzRg2Ej5kJA0C1Ui7r9QJMXUQ_Lpi6kQJqwfI5deIg/exec";
 const ORDER_TOKEN = "82fd6ca49f3b42769ae19b62d7f24b84";
 
+/* Easypaisa / JazzCash manual payment.
+   Put your real wallet account numbers and account names here. The customer sends the money
+   from their own wallet app, then types the Transaction ID (TID) at checkout. While BOTH
+   numbers are empty the option stays hidden on the checkout page. Leave one empty to show
+   only the other wallet. */
+const WALLET_ACCOUNTS = {
+  easypaisa: { number: "", name: "" },
+  jazzcash:  { number: "", name: "" }
+};
+
 function whatsappLink(message){
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 }

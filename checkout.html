@@ -111,6 +111,26 @@
               <input type="radio" name="payment" value="whatsapp">
               <span class="radio-copy"><strong>Pay on WhatsApp</strong><span class="radio-note">Bank transfer or mobile wallet. We'll share account details and confirm payment on WhatsApp</span></span>
             </label>
+            <label class="radio-card" id="wallet-option" hidden>
+              <input type="radio" name="payment" value="wallet">
+              <span class="radio-copy"><strong>Easypaisa / JazzCash</strong><span class="radio-note">Send the amount from your wallet app, then enter the Transaction ID</span></span>
+            </label>
+            <div class="wallet-panel" id="wallet-panel" hidden>
+              <p class="wallet-amount">Amount to send: <strong id="wallet-amount">Rs. 0</strong></p>
+              <div class="wallet-accounts" id="wallet-accounts"></div>
+              <div class="form-grid">
+                <div class="field"><label for="wallet-used">Wallet you paid from</label>
+                  <select id="wallet-used"></select>
+                </div>
+                <div class="field"><label for="wallet-tid">Transaction ID (TID)</label>
+                  <input type="text" id="wallet-tid" autocomplete="off" inputmode="numeric" placeholder="From your payment confirmation">
+                </div>
+                <div class="field full"><label for="wallet-sender">Your wallet number (optional)</label>
+                  <input type="tel" id="wallet-sender" placeholder="03XX XXXXXXX">
+                </div>
+              </div>
+              <p class="hint-sm wallet-hint">We check the payment in our account before we start printing. You can also send a screenshot of the payment on WhatsApp to speed things up.</p>
+            </div>
             <p class="notice">We don't take card payments on the site itself. Once you send your order, our team confirms the price and completes payment with you directly on WhatsApp.</p>
           </div>
 

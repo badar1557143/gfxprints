@@ -156,7 +156,71 @@ function checkoutContactInfo(){
 function checkoutPaymentLabel(){
   const paymentRadio = document.querySelector('input[name="payment"]:checked');
   const paymentLabel = { cod: "Cash on Delivery", whatsapp: "Pay on WhatsApp (bank transfer / mobile wallet)" };
+  if (paymentRadio && paymentRadio.value === "wallet"){
+    const val = id => { const el = document.getElementById(id); return el ? el.value.trim() : ""; };
+    const parts = [`${val("wallet-used") || "Wallet"} (TID: ${val("wallet-tid") || "not entered"})`];
+    if (val("wallet-sender")) parts.push(`paid from ${val("wallet-sender")}`);
+    return "Easypaisa / JazzCash: " + parts.join(", ");
+  }
   return paymentRadio ? paymentLabel[paymentRadio.value] : paymentLabel.cod;
+}
+
+/* ---------- Easypaisa / JazzCash option ----------
+   Shows the account numbers from WALLET_ACCOUNTS (main.js) and asks for the Transaction ID.
+   Hidden completely until at least one wallet number is filled in. */
+function walletConfig(){
+  const wallets = [["Easypaisa", WALLET_ACCOUNTS.easypaisa], ["JazzCash", WALLET_ACCOUNTS.jazzcash]];
+  return wallets.filter(w => w[1] && String(w[1].number || "").trim());
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+function initWalletOption(){
+  const option = document.getElementById("wallet-option");
+  const panel = document.getElementById("wallet-panel");
+  if (!option || !panel) return;
+  const wallets = walletConfig();
+  if (!wallets.length) return; // not set up yet: keep the option hidden
+
+  option.hidden = false;
+  document.getElementById("wallet-accounts").innerHTML = wallets.map(([label, acc], i) => `
+    <div class="wallet-account">
+      <div class="wallet-account-copy">
+        <strong>${label}</strong>
+        <span class="wallet-number" id="wallet-number-${i}">${escapeHtml(acc.number)}</span>
+        ${acc.name ? `<span class="radio-note">Account name: ${escapeHtml(acc.name)}</span>` : ""}
+      </div>
+      <button type="button" class="btn btn-outline wallet-copy" data-number="${escapeHtml(acc.number)}" aria-label="Copy ${label} number">Copy number</button>
+    </div>`).join("");
+  document.getElementById("wallet-used").innerHTML = wallets.map(([label]) => `<option>${label}</option>`).join("");
+
+  panel.querySelectorAll(".wallet-copy").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const num = btn.dataset.number;
+      try { await navigator.clipboard.writeText(num); btn.textContent = "Copied"; }
+      catch (err){ btn.textContent = "Select and copy"; }
+      setTimeout(() => { btn.textContent = "Copy number"; }, 1800);
+    });
+  });
+}
+
+// Show the wallet panel only while that payment method is selected, and only then require the TID.
+function syncWalletPanel(){
+  const panel = document.getElementById("wallet-panel");
+  if (!panel) return;
+  const selected = document.querySelector('input[name="payment"]:checked');
+  const on = !!selected && selected.value === "wallet";
+  panel.hidden = !on;
+  const tid = document.getElementById("wallet-tid");
+  if (tid) tid.required = on;
+  const amount = document.getElementById("wallet-amount");
+  if (amount){
+    const shippingMethod = document.querySelector('input[name="shipping"]:checked');
+    const shipping = shippingMethod && shippingMethod.value === "express" ? SHIPPING_EXPRESS : SHIPPING_STANDARD;
+    amount.textContent = formatPrice(cartSubtotal() + shipping);
+  }
 }
 
 // Builds the order message text from the cart + whatever contact/shipping
@@ -309,12 +373,15 @@ function initCheckoutPage(){
   if (!form) return;
 
   renderCheckoutSummary();
+  initWalletOption();
+  syncWalletPanel();
 
   document.querySelectorAll('input[name="shipping"]').forEach(radio => {
     radio.addEventListener("change", () => {
-      document.querySelectorAll(".radio-card").forEach(card => card.classList.remove("selected"));
+      document.querySelectorAll('input[name="shipping"]').forEach(r => r.closest(".radio-card").classList.remove("selected"));
       radio.closest(".radio-card").classList.add("selected");
       renderCheckoutSummary();
+      syncWalletPanel();
     });
   });
   document.querySelectorAll('input[name="payment"]').forEach(radio => {
@@ -322,6 +389,7 @@ function initCheckoutPage(){
       document.querySelectorAll(".payment-options .radio-card").forEach(card => card.classList.remove("selected"));
       radio.closest(".radio-card").classList.add("selected");
       renderCheckoutSummary();
+      syncWalletPanel();
     });
   });
 

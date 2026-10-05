@@ -157,11 +157,12 @@ function checkoutPaymentLabel(){
   const paymentRadio = document.querySelector('input[name="payment"]:checked');
   const paymentLabel = { cod: "Cash on Delivery", whatsapp: "Pay on WhatsApp (bank transfer / mobile wallet)" };
   if (paymentRadio && paymentRadio.value === "wallet"){
+    // Kept short: the order Sheet cuts the Payment column at 80 characters.
     const val = id => { const el = document.getElementById(id); return el ? el.value.trim() : ""; };
-    const parts = [`${val("wallet-used") || "Wallet"} (TID: ${val("wallet-tid") || "will send on WhatsApp"})`];
-    if (val("wallet-sender")) parts.push(`paid from ${val("wallet-sender")}`);
-    if (walletShot) parts.push("screenshot attached");
-    return "Easypaisa / JazzCash: " + parts.join(", ");
+    const tid = val("wallet-tid");
+    let label = `${val("wallet-used") || "Wallet"}${tid ? " TID " + tid.slice(0, 24) : ""}`;
+    if (walletShot) label += tid ? " +screenshot" : " screenshot only, no TID";
+    return label;
   }
   return paymentRadio ? paymentLabel[paymentRadio.value] : paymentLabel.cod;
 }
@@ -233,61 +234,105 @@ function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
+function copyText(text, btn, idleLabel){
+  const done = ok => {
+    btn.textContent = ok ? "Copied" : "Press and hold to copy";
+    setTimeout(() => { btn.textContent = idleLabel; }, 1800);
+  };
+  const fallback = () => {
+    const ta = document.createElement("textarea");
+    ta.value = text; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (err){}
+    document.body.removeChild(ta);
+    done(ok);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => done(true), fallback);
+  else fallback();
+}
+
 function initWalletOption(){
   const option = document.getElementById("wallet-option");
   const panel = document.getElementById("wallet-panel");
   if (!option || !panel) return;
   const wallets = walletConfig();
-
   option.hidden = false;
+
+  // Numbers not filled in yet (WALLET_ACCOUNTS in main.js): tell the customer the number comes on WhatsApp.
   if (!wallets.length){
-    // Numbers not filled in yet (WALLET_ACCOUNTS in main.js): still offer the option, and tell the
-    // customer the account number comes on WhatsApp. No Transaction ID is asked for in this mode.
-    document.getElementById("wallet-accounts").innerHTML = `<p class="wallet-pending">Place your order and we will send our Easypaisa / JazzCash account number to you on WhatsApp. Pay from your app, then send us the Transaction ID or a screenshot in the same chat.</p>`;
-    document.getElementById("wallet-used").innerHTML = "<option>Easypaisa</option><option>JazzCash</option>";
-    const tidField = document.getElementById("wallet-tid");
-    if (tidField){ tidField.closest(".field").hidden = true; }
-    const shotField = document.getElementById("wallet-shot-field");
-    if (shotField) shotField.hidden = true;
-    document.getElementById("wallet-panel").dataset.pending = "1";
+    panel.dataset.pending = "1";
+    document.getElementById("wallet-steps").hidden = true;
+    document.getElementById("wallet-pending").hidden = false;
     return;
   }
-  document.getElementById("wallet-accounts").innerHTML = wallets.map(([label, acc], i) => `
-    <div class="wallet-account">
-      <div class="wallet-account-copy">
-        <strong>${label}</strong>
-        <span class="wallet-number" id="wallet-number-${i}">${escapeHtml(acc.number)}</span>
-        ${acc.name ? `<span class="radio-note">Account name: ${escapeHtml(acc.name)}</span>` : ""}
-      </div>
-      <button type="button" class="btn btn-outline wallet-copy" data-number="${escapeHtml(acc.number)}" aria-label="Copy ${label} number">Copy number</button>
-    </div>`).join("");
-  document.getElementById("wallet-used").innerHTML = wallets.map(([label]) => `<option>${label}</option>`).join("");
 
-  panel.querySelectorAll(".wallet-copy").forEach(btn => {
-    btn.addEventListener("click", async () => {
-      const num = btn.dataset.number;
-      try { await navigator.clipboard.writeText(num); btn.textContent = "Copied"; }
-      catch (err){ btn.textContent = "Select and copy"; }
-      setTimeout(() => { btn.textContent = "Copy number"; }, 1800);
+  const used = document.getElementById("wallet-used");
+  const tabs = document.getElementById("wallet-tabs");
+  const accounts = document.getElementById("wallet-accounts");
+
+  function show(label){
+    used.value = label;
+    tabs.querySelectorAll(".wallet-tab").forEach(t => t.setAttribute("aria-checked", String(t.dataset.w === label)));
+    const entry = wallets.find(w => w[0] === label);
+    const acc = entry[1];
+    accounts.innerHTML = `
+      <div class="wallet-account">
+        <div class="wallet-account-copy">
+          <strong>${label}</strong>
+          <span class="wallet-number">${escapeHtml(acc.number)}</span>
+          ${acc.name ? `<span class="radio-note">Account name: ${escapeHtml(acc.name)}</span>` : ""}
+        </div>
+        <button type="button" class="btn btn-outline wallet-copy" data-number="${escapeHtml(acc.number)}">Copy number</button>
+      </div>`;
+  }
+
+  if (wallets.length > 1){
+    tabs.innerHTML = wallets.map(([label]) => `<button type="button" class="wallet-tab" role="radio" aria-checked="false" data-w="${label}">${label}</button>`).join("");
+    tabs.addEventListener("click", e => {
+      const t = e.target.closest(".wallet-tab");
+      if (t) show(t.dataset.w);
     });
+  } else {
+    document.getElementById("wallet-choose").hidden = true;
+  }
+  accounts.addEventListener("click", e => {
+    const b = e.target.closest(".wallet-copy");
+    if (b) copyText(b.dataset.number, b, "Copy number");
   });
+  const amtBtn = document.getElementById("wallet-copy-amount");
+  amtBtn.addEventListener("click", () => copyText(String(panel.dataset.amount || ""), amtBtn, "Copy amount"));
+  show(wallets[0][0]);
+
+  const tid = document.getElementById("wallet-tid");
+  if (tid) tid.addEventListener("input", () => tid.setCustomValidity(""));
 }
 
-// Show the wallet panel only while that payment method is selected, and only then require the TID.
+// Show the wallet panel only while that payment method is selected and keep the amount current.
 function syncWalletPanel(){
   const panel = document.getElementById("wallet-panel");
   if (!panel) return;
   const selected = document.querySelector('input[name="payment"]:checked');
-  const on = !!selected && selected.value === "wallet";
-  panel.hidden = !on;
-  const tid = document.getElementById("wallet-tid");
-  if (tid) tid.required = on && !panel.dataset.pending;
+  panel.hidden = !(selected && selected.value === "wallet");
+  const shippingMethod = document.querySelector('input[name="shipping"]:checked');
+  const shipping = shippingMethod && shippingMethod.value === "express" ? SHIPPING_EXPRESS : SHIPPING_STANDARD;
+  const total = cartSubtotal() + shipping;
+  panel.dataset.amount = String(total);
   const amount = document.getElementById("wallet-amount");
-  if (amount){
-    const shippingMethod = document.querySelector('input[name="shipping"]:checked');
-    const shipping = shippingMethod && shippingMethod.value === "express" ? SHIPPING_EXPRESS : SHIPPING_STANDARD;
-    amount.textContent = formatPrice(cartSubtotal() + shipping);
-  }
+  if (amount) amount.textContent = formatPrice(total);
+}
+
+// Wallet payments need a Transaction ID OR a screenshot (one is enough). Returns false and
+// shows a message on the TID field when neither is given.
+function walletProofOk(){
+  const selected = document.querySelector('input[name="payment"]:checked');
+  const panel = document.getElementById("wallet-panel");
+  if (!selected || selected.value !== "wallet" || !panel || panel.dataset.pending) return true;
+  const tid = document.getElementById("wallet-tid");
+  if (tid.value.trim() || walletShot){ tid.setCustomValidity(""); return true; }
+  tid.setCustomValidity("Enter the Transaction ID, or add a screenshot of the payment.");
+  tid.reportValidity();
+  return false;
 }
 
 // Builds the order message text from the cart + whatever contact/shipping
@@ -479,6 +524,7 @@ function initCheckoutPage(){
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (submitting) return;
+    if (!walletProofOk()) return;
     if (!form.checkValidity()){
       form.reportValidity();
       return;

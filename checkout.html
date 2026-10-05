@@ -116,28 +116,36 @@
               <span class="radio-copy"><strong>Easypaisa / JazzCash</strong><span class="radio-note">Send the amount from your wallet app, then enter the Transaction ID</span></span>
             </label>
             <div class="wallet-panel" id="wallet-panel" hidden>
-              <p class="wallet-amount">Amount to send: <strong id="wallet-amount">Rs. 0</strong></p>
-              <div class="wallet-accounts" id="wallet-accounts"></div>
-              <div class="form-grid">
-                <div class="field"><label for="wallet-used">Wallet you paid from</label>
-                  <select id="wallet-used"></select>
+              <p class="wallet-pending" id="wallet-pending" hidden>Place your order and we will send our Easypaisa / JazzCash account number to you on WhatsApp. Pay from your app, then send us the Transaction ID or a screenshot in the same chat.</p>
+              <div id="wallet-steps">
+                <div class="wallet-step" id="wallet-choose">
+                  <p class="wallet-step-title"><span class="wallet-n">1</span>Pick your wallet</p>
+                  <div class="wallet-tabs" id="wallet-tabs" role="radiogroup" aria-label="Wallet"></div>
                 </div>
-                <div class="field"><label for="wallet-tid">Transaction ID (TID)</label>
-                  <input type="text" id="wallet-tid" autocomplete="off" inputmode="numeric" placeholder="From your payment confirmation">
+                <div class="wallet-step">
+                  <p class="wallet-step-title"><span class="wallet-n">2</span><span>Send <strong id="wallet-amount">Rs. 0</strong> to this account</span></p>
+                  <div class="wallet-accounts" id="wallet-accounts"></div>
+                  <button type="button" class="btn btn-outline btn-sm wallet-copy-amount" id="wallet-copy-amount">Copy amount</button>
                 </div>
-                <div class="field full"><label for="wallet-sender">Your wallet number (optional)</label>
-                  <input type="tel" id="wallet-sender" placeholder="03XX XXXXXXX">
-                </div>
-                <div class="field full" id="wallet-shot-field"><label for="wallet-shot">Payment screenshot (optional, helps us confirm faster)</label>
-                  <input type="file" id="wallet-shot" accept="image/*">
-                  <div class="wallet-shot-preview" id="wallet-shot-preview" hidden>
-                    <img id="wallet-shot-img" alt="Your payment screenshot">
-                    <button type="button" class="btn btn-outline btn-sm" id="wallet-shot-remove">Remove</button>
+                <div class="wallet-step">
+                  <p class="wallet-step-title"><span class="wallet-n">3</span>Tell us you paid</p>
+                  <input type="hidden" id="wallet-used" value="">
+                  <div class="form-grid">
+                    <div class="field full"><label for="wallet-tid">Transaction ID (TID) from your payment message</label>
+                      <input type="text" id="wallet-tid" autocomplete="off" inputmode="numeric" placeholder="e.g. 12345678901">
+                    </div>
+                    <div class="field full" id="wallet-shot-field"><label for="wallet-shot">Or add a screenshot of the payment</label>
+                      <input type="file" id="wallet-shot" accept="image/*">
+                      <div class="wallet-shot-preview" id="wallet-shot-preview" hidden>
+                        <img id="wallet-shot-img" alt="Your payment screenshot">
+                        <button type="button" class="btn btn-outline btn-sm" id="wallet-shot-remove">Remove</button>
+                      </div>
+                      <p class="hint-sm" id="wallet-shot-msg" aria-live="polite"></p>
+                    </div>
                   </div>
-                  <p class="hint-sm" id="wallet-shot-msg" aria-live="polite"></p>
+                  <p class="hint-sm wallet-hint">The TID or the screenshot is enough, you do not need both. We check the payment in our account before we start printing.</p>
                 </div>
               </div>
-              <p class="hint-sm wallet-hint">We check the payment in our account before we start printing.</p>
             </div>
             <p class="notice">We don't take card payments on the site itself. Once you send your order, our team confirms the price and completes payment with you directly on WhatsApp.</p>
           </div>

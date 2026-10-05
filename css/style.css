@@ -942,7 +942,7 @@ body.app-page .whatsapp-float{ bottom: calc(148px + env(safe-area-inset-bottom, 
 .wallet-accounts{ display:grid; gap: var(--space-3); margin-bottom: var(--space-4); }
 .wallet-account{ display:flex; align-items:center; justify-content:space-between; gap: var(--space-3); padding: var(--space-3) var(--space-4); background: var(--paper-dark); border-radius: var(--radius-s); }
 .wallet-account-copy{ display:flex; flex-direction:column; gap:2px; min-width:0; }
-.wallet-number{ font-size:1.15rem; font-weight:600; letter-spacing:0.02em; word-break:break-all; }
+.wallet-number{ font-size:1.5rem; font-weight:600; letter-spacing:0.02em; word-break:break-all; }
 .wallet-copy{ flex-shrink:0; padding: 10px 14px; min-height:44px; }
 .wallet-pending{ margin:0; padding: var(--space-3) var(--space-4); background: var(--paper-dark); border-radius: var(--radius-s); font-size:0.9rem; }
 .field[hidden]{ display:none; }
@@ -950,6 +950,15 @@ body.app-page .whatsapp-float{ bottom: calc(148px + env(safe-area-inset-bottom, 
 .wallet-shot-preview{ display:flex; align-items:center; gap: var(--space-3); margin-top: var(--space-3); }
 .wallet-shot-preview[hidden]{ display:none; }
 .wallet-shot-preview img{ width:72px; height:72px; object-fit:cover; border-radius: var(--radius-s); border:1.5px solid var(--line-strong); }
+.wallet-step{ margin-bottom: var(--space-5); }
+.wallet-step[hidden]{ display:none; }
+.wallet-step-title{ display:flex; align-items:center; gap: 10px; margin:0 0 var(--space-3); font-weight:600; }
+.wallet-n{ width:26px; height:26px; border-radius:50%; background: var(--ink); color: var(--paper-raised); display:inline-grid; place-items:center; font-size:0.85rem; flex-shrink:0; }
+.wallet-tabs{ display:grid; grid-template-columns:1fr 1fr; gap: var(--space-2); }
+.wallet-tab{ min-height:48px; border:1.5px solid var(--line-strong); border-radius: var(--radius-s); background: var(--paper-raised); color: var(--ink); font: inherit; font-weight:600; cursor:pointer; }
+.wallet-tab[aria-checked="true"]{ background: var(--cobalt); border-color: var(--cobalt); color:#fff; }
+.wallet-copy-amount{ margin-top: var(--space-3); min-height:44px; }
+#wallet-steps[hidden], .wallet-pending[hidden]{ display:none; }
 .wallet-hint{ margin-top: var(--space-4); }
 @media (max-width:520px){ .wallet-account{ flex-direction:column; align-items:stretch; } }
 .notice{ background: var(--paper-dark); border-radius: var(--radius-s); padding: var(--space-4); font-size:0.85rem; color: var(--ink-soft); margin-top: var(--space-4); }

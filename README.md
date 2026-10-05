@@ -183,6 +183,30 @@ swatch colors go in `colorToHex()` in `js/products.js`.
 - `seo.hideRatings`, `seo.hideShippingReturns`, `seo.hideSizeGuide` - hide those blocks (and rating data in the page's structured data) for a product.
 - A size with no valid retail price in `variantPrices` cannot be added to the cart.
 
+## Clipart & Sticker Library
+
+`js/clipart.js` adds a **Clipart** tool to the Design Studio rail: ~40 original
+vector designs (stickers, love, nature, fun, shapes, icons) drawn as inline SVG,
+so no extra image files or network calls are needed. Customers can search,
+filter by category, add a die-cut **sticker outline** (white or black) and
+recolour the single-colour **Icons** set. Items are placed on the canvas like any
+uploaded image (move / resize / rotate / opacity / layers / undo all work) and
+are saved with the cart design as normal.
+
+To add designs, append an entry to the `ITEMS` array in `js/clipart.js`
+(`[id, name, category, search tags, mono (0/1), svg]`, 100x100 viewBox; use
+`currentColor` for parts that should follow the icon-colour picker). Then run
+`sh tools/build.sh` to refresh `js/clipart.min.js`.
+
+## Keyboard shortcuts & wheel zoom
+
+`js/shortcuts.js` (Design Studio only). Press `?` in the studio (or the `?` button by the zoom bar) for the list.
+Copy / Cut / Paste (Ctrl or Cmd + C/X/V, pasting an image from the system clipboard adds it as a layer), Duplicate (D),
+Select all (A), Undo (Z) / Redo (Shift+Z or Y), Delete, Esc to deselect, arrow keys nudge 1px (Shift = 10px),
+Ctrl + ] / [ reorders layers (add Shift for front / back). Mouse wheel over the canvas area zooms (25-300%),
+`+` / `-` / `0` zoom in, out and reset, and dragging the empty background pans when zoomed in.
+Shortcuts are ignored while typing in a field or editing text on the canvas.
+
 ## Minified files
 
 The pages load `css/style.min.css` and `js/*.min.js`. Edit the normal files (`css/style.css`, `js/*.js`), then run `sh tools/build.sh` (needs Node.js) and commit the `.min` files too. If you skip this step, your changes will not show on the site.

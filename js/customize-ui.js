@@ -45,6 +45,10 @@
     const railUploads = document.getElementById("rail-uploads");
     if (railUploads) railUploads.addEventListener("click", () => toggle("uploads"));
 
+    // Rail: Clipart & Stickers library panel
+    const railClipart = document.getElementById("rail-clipart");
+    if (railClipart) railClipart.addEventListener("click", () => toggle("clipart"));
+
     // Rail: Layers -> opens Edit panel on the Layers tab
     const railLayers = document.getElementById("rail-layers");
     if (railLayers){
@@ -137,7 +141,7 @@
     const stageWrap = document.getElementById("stage-zoom-wrap");
 
     function applyZoom(v){
-      v = Math.max(50, Math.min(150, Math.round(Number(v) / 5) * 5));
+      v = Math.max(25, Math.min(300, Math.round(Number(v) / 5) * 5));
       if (stageWrap) stageWrap.style.transform = `scale(${v / 100})`;
       if (zoomVal) zoomVal.textContent = v + "%";
       if (zoomSlider) zoomSlider.value = v;

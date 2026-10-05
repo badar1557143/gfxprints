@@ -944,6 +944,12 @@ body.app-page .whatsapp-float{ bottom: calc(148px + env(safe-area-inset-bottom, 
 .wallet-account-copy{ display:flex; flex-direction:column; gap:2px; min-width:0; }
 .wallet-number{ font-size:1.15rem; font-weight:600; letter-spacing:0.02em; word-break:break-all; }
 .wallet-copy{ flex-shrink:0; padding: 10px 14px; min-height:44px; }
+.wallet-pending{ margin:0; padding: var(--space-3) var(--space-4); background: var(--paper-dark); border-radius: var(--radius-s); font-size:0.9rem; }
+.field[hidden]{ display:none; }
+.field input[type="file"]{ padding: 10px; }
+.wallet-shot-preview{ display:flex; align-items:center; gap: var(--space-3); margin-top: var(--space-3); }
+.wallet-shot-preview[hidden]{ display:none; }
+.wallet-shot-preview img{ width:72px; height:72px; object-fit:cover; border-radius: var(--radius-s); border:1.5px solid var(--line-strong); }
 .wallet-hint{ margin-top: var(--space-4); }
 @media (max-width:520px){ .wallet-account{ flex-direction:column; align-items:stretch; } }
 .notice{ background: var(--paper-dark); border-radius: var(--radius-s); padding: var(--space-4); font-size:0.85rem; color: var(--ink-soft); margin-top: var(--space-4); }

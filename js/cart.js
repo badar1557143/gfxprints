@@ -158,8 +158,9 @@ function checkoutPaymentLabel(){
   const paymentLabel = { cod: "Cash on Delivery", whatsapp: "Pay on WhatsApp (bank transfer / mobile wallet)" };
   if (paymentRadio && paymentRadio.value === "wallet"){
     const val = id => { const el = document.getElementById(id); return el ? el.value.trim() : ""; };
-    const parts = [`${val("wallet-used") || "Wallet"} (TID: ${val("wallet-tid") || "not entered"})`];
+    const parts = [`${val("wallet-used") || "Wallet"} (TID: ${val("wallet-tid") || "will send on WhatsApp"})`];
     if (val("wallet-sender")) parts.push(`paid from ${val("wallet-sender")}`);
+    if (walletShot) parts.push("screenshot attached");
     return "Easypaisa / JazzCash: " + parts.join(", ");
   }
   return paymentRadio ? paymentLabel[paymentRadio.value] : paymentLabel.cod;
@@ -168,6 +169,61 @@ function checkoutPaymentLabel(){
 /* ---------- Easypaisa / JazzCash option ----------
    Shows the account numbers from WALLET_ACCOUNTS (main.js) and asks for the Transaction ID.
    Hidden completely until at least one wallet number is filled in. */
+let walletShot = null; // { dataUrl, mime } - downscaled JPEG of the customer's payment screenshot
+
+function currentWalletShot(){
+  const sel = document.querySelector('input[name="payment"]:checked');
+  return sel && sel.value === "wallet" ? walletShot : null;
+}
+
+// Shrinks a phone screenshot to max 1600px wide/tall JPEG so the order upload stays small.
+function readScreenshot(file){
+  return new Promise((resolve, reject) => {
+    if (!file || !/^image\//.test(file.type)) return reject(new Error("Please choose an image file."));
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const max = 1600;
+      const scale = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement("canvas");
+      c.width = Math.round(img.width * scale);
+      c.height = Math.round(img.height * scale);
+      const ctx = c.getContext("2d");
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, c.width, c.height);
+      ctx.drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      resolve({ dataUrl: c.toDataURL("image/jpeg", 0.82), mime: "image/jpeg" });
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("We could not read that image. Try another screenshot.")); };
+    img.src = url;
+  });
+}
+
+function initWalletScreenshot(){
+  const input = document.getElementById("wallet-shot");
+  if (!input) return;
+  const preview = document.getElementById("wallet-shot-preview");
+  const img = document.getElementById("wallet-shot-img");
+  const msg = document.getElementById("wallet-shot-msg");
+  const clear = () => { walletShot = null; input.value = ""; preview.hidden = true; img.removeAttribute("src"); };
+  input.addEventListener("change", async () => {
+    msg.textContent = "";
+    const file = input.files && input.files[0];
+    if (!file){ clear(); return; }
+    try {
+      walletShot = await readScreenshot(file);
+      img.src = walletShot.dataUrl;
+      preview.hidden = false;
+      msg.textContent = "Screenshot added.";
+    } catch (err){
+      clear();
+      msg.textContent = err.message;
+    }
+  });
+  document.getElementById("wallet-shot-remove").addEventListener("click", () => { clear(); msg.textContent = ""; });
+}
+
 function walletConfig(){
   const wallets = [["Easypaisa", WALLET_ACCOUNTS.easypaisa], ["JazzCash", WALLET_ACCOUNTS.jazzcash]];
   return wallets.filter(w => w[1] && String(w[1].number || "").trim());
@@ -182,9 +238,20 @@ function initWalletOption(){
   const panel = document.getElementById("wallet-panel");
   if (!option || !panel) return;
   const wallets = walletConfig();
-  if (!wallets.length) return; // not set up yet: keep the option hidden
 
   option.hidden = false;
+  if (!wallets.length){
+    // Numbers not filled in yet (WALLET_ACCOUNTS in main.js): still offer the option, and tell the
+    // customer the account number comes on WhatsApp. No Transaction ID is asked for in this mode.
+    document.getElementById("wallet-accounts").innerHTML = `<p class="wallet-pending">Place your order and we will send our Easypaisa / JazzCash account number to you on WhatsApp. Pay from your app, then send us the Transaction ID or a screenshot in the same chat.</p>`;
+    document.getElementById("wallet-used").innerHTML = "<option>Easypaisa</option><option>JazzCash</option>";
+    const tidField = document.getElementById("wallet-tid");
+    if (tidField){ tidField.closest(".field").hidden = true; }
+    const shotField = document.getElementById("wallet-shot-field");
+    if (shotField) shotField.hidden = true;
+    document.getElementById("wallet-panel").dataset.pending = "1";
+    return;
+  }
   document.getElementById("wallet-accounts").innerHTML = wallets.map(([label, acc], i) => `
     <div class="wallet-account">
       <div class="wallet-account-copy">
@@ -214,7 +281,7 @@ function syncWalletPanel(){
   const on = !!selected && selected.value === "wallet";
   panel.hidden = !on;
   const tid = document.getElementById("wallet-tid");
-  if (tid) tid.required = on;
+  if (tid) tid.required = on && !panel.dataset.pending;
   const amount = document.getElementById("wallet-amount");
   if (amount){
     const shippingMethod = document.querySelector('input[name="shipping"]:checked');
@@ -247,8 +314,9 @@ function buildOrderMessageText(cart, subtotal, shipping, shippingMethod, orderRe
     contact.address ? `Address: ${[contact.address, contact.city, contact.postal, contact.country].filter(Boolean).join(", ")}` : null,
     "",
     cloud && cloud.ok ? `Order saved online, ref ${orderRef}.` : null,
-    cloud && cloud.ok && hasDesigns && cloud.folderUrl ? `Design files: ${cloud.folderUrl}` : null,
-    !(cloud && cloud.ok) && hasDesigns ? `(My design file(s) are attached, ref ${orderRef}.)` : null
+    cloud && cloud.ok && (hasDesigns || currentWalletShot()) && cloud.folderUrl ? `${hasDesigns ? "Design files" : "Order files"}: ${cloud.folderUrl}` : null,
+    !(cloud && cloud.ok) && hasDesigns ? `(My design file(s) are attached, ref ${orderRef}.)` : null,
+    currentWalletShot() ? (cloud && cloud.ok ? "Payment screenshot saved online." : "(I will send my payment screenshot in this chat.)") : null
   ].filter(line => line !== null);
   return lines.join("\n");
 }
@@ -329,6 +397,11 @@ async function uploadOrderToCloud(cart, info){
     if (prev && files.length) files.push({ label: "Preview", name: `${slug(item.name)}-preview-${info.orderRef}.${/png/.test(prev.mime) ? "png" : "jpg"}`, mime: prev.mime, data: prev.data });
     return { name: item.name, qty: item.qty, price: item.price, color: item.color, size: item.size, orientation: item.orientation, packaging: item.packaging, files };
   });
+  const shot = currentWalletShot();
+  if (shot && items.length){
+    const p = splitDataUrl(shot.dataUrl);
+    if (p) items[0].files.push({ label: "Payment screenshot", name: `payment-screenshot-${info.orderRef}.jpg`, mime: p.mime, data: p.data });
+  }
   const size = () => items.reduce((n, it) => n + it.files.reduce((m, f) => m + f.data.length, 0), 0);
   if (size() > 24e6){ // too big: drop the mockup previews and keep only the print files
     items = items.map(it => Object.assign({}, it, { files: it.files.filter(f => f.label !== "Preview") }));
@@ -374,6 +447,7 @@ function initCheckoutPage(){
 
   renderCheckoutSummary();
   initWalletOption();
+  initWalletScreenshot();
   syncWalletPanel();
 
   document.querySelectorAll('input[name="shipping"]').forEach(radio => {

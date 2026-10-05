@@ -29,8 +29,8 @@ const ORDER_TOKEN = "82fd6ca49f3b42769ae19b62d7f24b84";
    numbers are empty the option stays hidden on the checkout page. Leave one empty to show
    only the other wallet. */
 const WALLET_ACCOUNTS = {
-  easypaisa: { number: "", name: "" },
-  jazzcash:  { number: "", name: "" }
+  easypaisa: { number: "03181557143", name: "MUHAMMAD BADAR UL ISLAM" },
+  jazzcash:  { number: "03222920135", name: "MUHAMMAD BADAR UL ISLAM" }
 };
 
 function whatsappLink(message){

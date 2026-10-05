@@ -128,8 +128,16 @@
                 <div class="field full"><label for="wallet-sender">Your wallet number (optional)</label>
                   <input type="tel" id="wallet-sender" placeholder="03XX XXXXXXX">
                 </div>
+                <div class="field full" id="wallet-shot-field"><label for="wallet-shot">Payment screenshot (optional, helps us confirm faster)</label>
+                  <input type="file" id="wallet-shot" accept="image/*">
+                  <div class="wallet-shot-preview" id="wallet-shot-preview" hidden>
+                    <img id="wallet-shot-img" alt="Your payment screenshot">
+                    <button type="button" class="btn btn-outline btn-sm" id="wallet-shot-remove">Remove</button>
+                  </div>
+                  <p class="hint-sm" id="wallet-shot-msg" aria-live="polite"></p>
+                </div>
               </div>
-              <p class="hint-sm wallet-hint">We check the payment in our account before we start printing. You can also send a screenshot of the payment on WhatsApp to speed things up.</p>
+              <p class="hint-sm wallet-hint">We check the payment in our account before we start printing.</p>
             </div>
             <p class="notice">We don't take card payments on the site itself. Once you send your order, our team confirms the price and completes payment with you directly on WhatsApp.</p>
           </div>

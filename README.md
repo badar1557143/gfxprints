@@ -198,14 +198,17 @@ To add designs, append an entry to the `ITEMS` array in `js/clipart.js`
 `currentColor` for parts that should follow the icon-colour picker). Then run
 `sh tools/build.sh` to refresh `js/clipart.min.js`.
 
-## Keyboard shortcuts & wheel zoom
+## Keyboard shortcuts, zoom & Hand tool
 
-`js/shortcuts.js` (Design Studio only). Press `?` in the studio (or the `?` button by the zoom bar) for the list.
-Copy / Cut / Paste (Ctrl or Cmd + C/X/V, pasting an image from the system clipboard adds it as a layer), Duplicate (D),
+`js/shortcuts.js` + `js/view.js` (Design Studio only). Press `?` in the studio for the full list.
+Copy / Cut / Paste (Ctrl or Cmd + C/X/V; pasting an image from the system clipboard adds it as a layer), Duplicate (D),
 Select all (A), Undo (Z) / Redo (Shift+Z or Y), Delete, Esc to deselect, arrow keys nudge 1px (Shift = 10px),
-Ctrl + ] / [ reorders layers (add Shift for front / back). Mouse wheel over the canvas area zooms (25-300%),
-`+` / `-` / `0` zoom in, out and reset, and dragging the empty background pans when zoomed in.
-Shortcuts are ignored while typing in a field or editing text on the canvas.
+Ctrl + ] / [ reorders layers (add Shift for front / back).
+
+**View bar** (bottom of the canvas): Hand tool, zoom out / slider / zoom in, a % menu with presets, and Fit.
+Ctrl/Cmd + mouse wheel (or trackpad pinch) zooms toward the cursor (25-300%). Plain wheel scrolls the canvas when it is
+bigger than the view. **Hand tool**: click it, press `H`, hold `Space`, or use the middle mouse button, then drag to move the
+canvas anywhere. `F` fits to screen, `0` resets, `+` / `-` step the zoom. Shortcuts are ignored while typing or editing text.
 
 ## Minified files
 

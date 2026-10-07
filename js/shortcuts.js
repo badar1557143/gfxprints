@@ -86,20 +86,10 @@
     c[fn](a); changed(); return true;
   }
 
-  /* ---------- zoom ---------- */
-  function zoomBy(d){
-    const s = $("zoom-slider"); if (!s) return;
-    const v = Math.max(+s.min, Math.min(+s.max, (+s.value || 100) + d));
-    s.value = v; s.dispatchEvent(new Event("input", { bubbles: true }));
-  }
-  function zoomTo(v){ const s = $("zoom-slider"); if (s){ s.value = v; s.dispatchEvent(new Event("input", { bubbles: true })); } }
-  // Transforms don't grow the scrollable area, so add matching margins when zoomed in
-  // (and the area becomes scrollable / pannable instead of clipping the top and left).
-  function syncZoomSpace(){
-    const w = $("stage-zoom-wrap"), s = $("zoom-slider"); if (!w || !s) return;
-    const k = (+s.value || 100) / 100;
-    w.style.margin = k > 1 ? `${w.offsetHeight * (k - 1) / 2}px ${w.offsetWidth * (k - 1) / 2}px` : "";
-  }
+  /* ---------- zoom (handled by view.js) ---------- */
+  const V = () => window.GfxView;
+  const zoomStep = (d) => { if (V()) V().stepZoom(d); };
+  const zoomReset = () => { if (V()) V().reset(); };
 
   /* ---------- keys ---------- */
   document.addEventListener("keydown", (e) => {
@@ -122,9 +112,9 @@
       else if (lk === "v") return;                       // handled by the paste event
       else if (e.code === "BracketRight") done = stack(e.shiftKey ? "bringToFront" : "bringForward");
       else if (e.code === "BracketLeft") done = stack(e.shiftKey ? "sendToBack" : "sendBackwards");
-      else if (lk === "+" || lk === "=") { zoomBy(10); done = true; }
-      else if (lk === "-" || lk === "_") { zoomBy(-10); done = true; }
-      else if (lk === "0") { zoomTo(100); done = true; }
+      else if (lk === "+" || lk === "=") { zoomStep(1); done = true; }
+      else if (lk === "-" || lk === "_") { zoomStep(-1); done = true; }
+      else if (lk === "0") { zoomReset(); done = true; }
     } else {
       if (inField(e, false)) return;
       const step = e.shiftKey ? 10 : 1;
@@ -134,9 +124,9 @@
       else if (k === "ArrowRight") done = nudge(step, 0);
       else if (k === "ArrowUp") done = nudge(0, -step);
       else if (k === "ArrowDown") done = nudge(0, step);
-      else if (k === "+" || k === "=") { zoomBy(10); done = true; }
-      else if (k === "-" || k === "_") { zoomBy(-10); done = true; }
-      else if (k === "0") { zoomTo(100); done = true; }
+      else if (k === "+" || k === "=") { zoomStep(1); done = true; }
+      else if (k === "-" || k === "_") { zoomStep(-1); done = true; }
+      else if (k === "0") { zoomReset(); done = true; }
       else if (k === "?" ) { toggleHelp(); done = true; }
     }
     if (done) e.preventDefault();
@@ -150,45 +140,11 @@
     if (paste()) e.preventDefault();
   });
 
-  /* ---------- wheel zoom + drag-to-pan ---------- */
-  function initArea(){
-    const area = $("main"); if (!area) return;
-    area.addEventListener("wheel", (e) => {
-      if (bgrOpen()) return;
-      e.preventDefault();
-      wheelAcc += e.deltaY;
-      const n = Math.trunc(Math.abs(wheelAcc) / 50);
-      if (!n) return;
-      zoomBy((wheelAcc < 0 ? 1 : -1) * Math.min(n, 4) * 5);
-      wheelAcc = 0;
-    }, { passive: false });
-
-    let pan = null;
-    area.addEventListener("pointerdown", (e) => {
-      if (e.button !== 0 && e.button !== 1) return;
-      if (e.target.closest("#studio-stage, .app-zoom-bar, button, input")) return;
-      if (area.scrollWidth <= area.clientWidth && area.scrollHeight <= area.clientHeight) return;
-      pan = { x: e.clientX, y: e.clientY, l: area.scrollLeft, t: area.scrollTop };
-      area.setPointerCapture(e.pointerId); area.classList.add("panning");
-    });
-    area.addEventListener("pointermove", (e) => {
-      if (!pan) return;
-      area.scrollLeft = pan.l - (e.clientX - pan.x);
-      area.scrollTop = pan.t - (e.clientY - pan.y);
-    });
-    const end = () => { pan = null; area.classList.remove("panning"); };
-    area.addEventListener("pointerup", end); area.addEventListener("pointercancel", end);
-
-    const zv = $("zoom-val");
-    if (zv) new MutationObserver(syncZoomSpace).observe(zv, { childList: true, characterData: true, subtree: true });
-    window.addEventListener("resize", syncZoomSpace);
-  }
-
   /* ---------- help dialog ---------- */
   const ROWS = [
     ["Edit", [["Copy", MOD + " C"], ["Cut", MOD + " X"], ["Paste (also images)", MOD + " V"], ["Duplicate", MOD + " D"], ["Delete", "Del"], ["Select all", MOD + " A"], ["Deselect", "Esc"]]],
     ["History & order", [["Undo", MOD + " Z"], ["Redo", MOD + " Shift Z"], ["Bring forward / back", MOD + " ] / ["], ["To front / back", MOD + " Shift ] / ["]]],
-    ["Move & view", [["Nudge 1px", "Arrows"], ["Nudge 10px", "Shift Arrows"], ["Zoom in / out", "+ / -  or scroll"], ["Reset zoom", "0"], ["Pan when zoomed", "Drag background"], ["This help", "?"]]]
+    ["Move & view", [["Nudge 1px", "Arrows"], ["Nudge 10px", "Shift Arrows"], ["Zoom in / out", MOD + " Scroll"], ["Zoom in / out (keys)", "+ / -"], ["Reset zoom", "0"], ["Fit to screen", "F"], ["Hand tool", "H"], ["Hand (hold)", "Space"], ["Scroll the canvas", "Scroll"], ["This help", "?"]]]
   ];
   function toggleHelp(){ const m = $("sc-modal"); if (m) m.hidden = !m.hidden; }
   function initHelp(){
@@ -196,20 +152,19 @@
     m.id = "sc-modal"; m.className = "sc-modal"; m.hidden = true;
     m.setAttribute("role", "dialog"); m.setAttribute("aria-label", "Keyboard shortcuts");
     m.innerHTML = `<div class="sc-card"><div class="sc-top"><strong>Keyboard shortcuts</strong><button type="button" class="sc-x" aria-label="Close">\u00d7</button></div>` +
-      ROWS.map((g) => `<h4>${g[0]}</h4><dl>` + g[1].map((r) => `<div><dt>${r[0]}</dt><dd>${r[1].split(" ").filter(Boolean).map((x) => /^(or|\/|scroll|Drag|background)$/.test(x) ? ` ${x} ` : `<kbd>${x}</kbd>`).join("")}</dd></div>`).join("") + `</dl>`).join("") + `</div>`;
+      ROWS.map((g) => `<h4>${g[0]}</h4><dl>` + g[1].map((r) => `<div><dt>${r[0]}</dt><dd>${r[1].split(" ").filter(Boolean).map((x) => /^\/$/.test(x) ? ` ${x} ` : `<kbd>${x}</kbd>`).join("")}</dd></div>`).join("") + `</dl>`).join("") + `</div>`;
     document.body.appendChild(m);
     m.addEventListener("click", (e) => { if (e.target === m || e.target.closest(".sc-x")) m.hidden = true; });
-    const bar = document.querySelector(".app-zoom-bar");
+    const bar = $("view-bar");
     if (bar){
       const b = document.createElement("button");
-      b.type = "button"; b.className = "app-zoom-btn sc-help"; b.title = "Keyboard shortcuts (?)"; b.setAttribute("aria-label", "Keyboard shortcuts");
+      b.type = "button"; b.className = "vb vb-icon sc-help"; b.title = "Keyboard shortcuts (?)"; b.setAttribute("aria-label", "Keyboard shortcuts");
       b.textContent = "?"; b.addEventListener("click", toggleHelp); bar.appendChild(b);
     }
   }
 
   function init(){
-    const s = $("zoom-slider"); if (s){ s.min = 25; s.max = 300; }
-    initArea(); initHelp();
+    initHelp();
   }
   if (document.readyState !== "loading") init(); else document.addEventListener("DOMContentLoaded", init);
 })();

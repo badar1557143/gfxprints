@@ -100,18 +100,34 @@
       });
     }
 
+    // Phones/tablets: tapping anywhere outside the Edit panel (and the bottom
+    // tool bar) closes it. A tap on the canvas "Edit" button is left alone.
+    const smallScreen = () => window.matchMedia("(max-width: 900px)").matches;
+    document.addEventListener("pointerdown", (e) => {
+      if (!smallScreen() || openName !== "edit") return;
+      if (e.target.closest("#app-drawer, .app-rail, .app-zoom-bar")) return;
+      const inStage = !!e.target.closest("#studio-stage");
+      setTimeout(() => {
+        if (openName !== "edit") return;
+        if (inStage && typeof designCanvas !== "undefined" && designCanvas){
+          const a = designCanvas.getActiveObject();
+          if (a && a.__corner === "edit") return;
+        }
+        closeDrawer();
+      }, 0);
+    }, true);
+
     const closeBtn = document.getElementById("drawer-close");
     if (closeBtn) closeBtn.addEventListener("click", closeDrawer);
 
-    // Selecting any layer directly on the canvas should also surface the
-    // Edit panel - customize.js toggles #props-empty's display, so watch it.
-    const propsEmpty = document.getElementById("props-empty");
-    if (propsEmpty){
-      const obs = new MutationObserver(() => {
-        if (propsEmpty.style.display === "none") showPanel("edit");
-      });
-      obs.observe(propsEmpty, { attributes: true, attributeFilter: ["style"] });
-    }
+    // The "Edit" button under a selected layer (drawn on the canvas by
+    // customize.js) fires "studio:edit-requested"; only then do we open the
+    // Edit/Properties panel.
+    document.addEventListener("studio:edit-requested", () => {
+      showPanel("edit");
+      const propsTab = document.querySelector('.studio-tab[data-tab="properties"]');
+      if (propsTab) propsTab.click();
+    });
 
     // Keep the rail's layer-count badge mirrored from the drawer's own badge.
     const railBadge = document.getElementById("layer-count-badge-rail");

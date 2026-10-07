@@ -944,6 +944,9 @@ function setupStudioControls(){
 
   const BLUE = "#2447F0", RED = "#E5484D", WHITE = "#ffffff";
   const touch = !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+  const small = () => window.matchMedia("(max-width: 900px)").matches;   // phones + tablets
+  const editW = () => Math.max(R * 6.4, 66);                              // Edit button width
+  const dupOff = () => small() ? (editW() / 2 + R + 11) : (R + 9);       // leave room for the Edit button
   const R = touch ? 11 : 8;                 // corner handle radius (screen px)
   const O = fabric.Object.prototype;
 
@@ -952,6 +955,17 @@ function setupStudioControls(){
     return baseToObject.call(this, ["gfxShape", "gfxId", "gfxVector", "lockMovementX", "lockMovementY", "lockScalingX", "lockScalingY", "lockRotation", "hasControls"].concat(extra || []));
   };
   O.transparentCorners = false;
+  // Phones/tablets: tapping a selected text layer must NOT drop into on-canvas typing
+  // (cursor + hidden handles). Text is edited from the Edit button -> Properties panel.
+  if (fabric.IText && !fabric.IText.__gfxNoTapEdit){
+    fabric.IText.__gfxNoTapEdit = true;
+    const baseMouseUp = fabric.IText.prototype.mouseUpHandler;
+    fabric.IText.prototype.mouseUpHandler = function(opt){
+      if (small()){ this.__lastSelected = false; this.selected = true; this.__isMousedown = false; return; }
+      return baseMouseUp.call(this, opt);
+    };
+  }
+  O.lockScalingFlip = true;   // dragging a handle past the opposite edge must not mirror the layer
   O.cornerStyle = "circle";
   O.cornerColor = WHITE;
   O.cornerStrokeColor = BLUE;
@@ -1061,31 +1075,111 @@ function setupStudioControls(){
   }
 
   function clickButton(id){
-    return function(){ const b = document.getElementById(id); if (b) b.click(); return true; };
+    // One tap = one action: ignore a repeat within 600 ms (touch + emulated mouse events)
+    return function(){
+      const now = Date.now();
+      if (clickButton.last && now - clickButton.last < 600) return true;
+      clickButton.last = now;
+      const b = document.getElementById(id); if (b) b.click();
+      return true;
+    };
   }
+  // "Edit" button under the selected layer: blue gradient pill, white outline,
+  // soft shadow, pencil icon + label. Opens the Edit / Properties panel.
+  function renderEditPill(ctx, left, top, style, obj){
+    place(ctx, left, top, obj, false);
+    const w = editW(), h = R * 2 + 10, r = h / 2;
+    shadow(ctx);
+    roundRect(ctx, -w / 2, -h / 2, w, h, r);
+    const g = ctx.createLinearGradient(0, -h / 2, 0, h / 2);
+    g.addColorStop(0, "#4a68ff"); g.addColorStop(1, "#1f3ad6");
+    ctx.fillStyle = g; ctx.fill();
+    ctx.shadowColor = "transparent";
+    ctx.lineWidth = 2.2; ctx.strokeStyle = WHITE; ctx.stroke();
+    // glossy top highlight
+    ctx.save();
+    roundRect(ctx, -w / 2 + 3, -h / 2 + 3, w - 6, h / 2 - 3, r - 3);
+    ctx.fillStyle = "rgba(255,255,255,0.14)"; ctx.fill();
+    ctx.restore();
+    // pencil icon
+    ctx.save();
+    ctx.translate(-w / 2 + r + 1, 0);
+    ctx.rotate(Math.PI / 4);
+    ctx.fillStyle = WHITE;
+    roundRect(ctx, -2.8, -7.5, 5.6, 10.5, 1.2); ctx.fill();               // body
+    ctx.fillStyle = "rgba(31,58,214,0.45)";
+    ctx.fillRect(-2.8, -5.2, 5.6, 1.2);                                    // ferrule line
+    ctx.fillStyle = WHITE;
+    ctx.beginPath(); ctx.moveTo(-2.8, 3.6); ctx.lineTo(2.8, 3.6); ctx.lineTo(0, 8.4); ctx.closePath(); ctx.fill(); // tip
+    ctx.restore();
+    // label
+    ctx.fillStyle = WHITE;
+    ctx.font = "700 " + (touch ? 14 : 12.5) + "px 'IBM Plex Sans', sans-serif";
+    ctx.textAlign = "left"; ctx.textBaseline = "middle";
+    ctx.fillText("Edit", -w / 2 + r + 15, 0.5);
+    ctx.restore();
+  }
+  C.edit = new fabric.Control({
+    x: 0, y: 0.5, offsetX: 0, offsetY: 0, cursorStyle: "pointer",
+    mouseUpHandler: function(){ document.dispatchEvent(new CustomEvent("studio:edit-requested")); return true; },
+    render: renderEditPill
+  });
+  C.edit.getVisibility = () => small();   // Edit button only on phones/tablets
   C.dup = new fabric.Control({
-    x: 0, y: 0.5, offsetX: -(R + 9), offsetY: 0, cursorStyle: "copy",
+    x: 0, y: 0.5, offsetX: -dupOff(), offsetY: 0, cursorStyle: "copy",
     mouseUpHandler: clickButton("prop-duplicate"), render: actionRenderer("dup")
   });
   C.del = new fabric.Control({
-    x: 0, y: 0.5, offsetX: (R + 9), offsetY: 0, cursorStyle: "pointer",
+    x: 0, y: 0.5, offsetX: dupOff(), offsetY: 0, cursorStyle: "pointer",
     mouseUpHandler: clickButton("prop-delete"), render: actionRenderer("del")
   });
 
   // Keeps handle size, hit area and the offsets in step with how big the canvas looks on screen
   studioApplyHandleScale = function(){
     const k = studioHandleScale();
-    if (Math.abs(k - studioHandleK) < 0.02 && O.cornerSize) return;
-    studioHandleK = k;
+    if (Math.abs(k - studioHandleK) < 0.02 && O.cornerSize && small() === studioHandleSmall) return;
+    studioHandleK = k;  studioHandleSmall = small();
     O.cornerSize = (R * 2 + 4) * k;
     O.touchCornerSize = (touch ? 46 : 30) * k;
     O.padding = 5 * k;
     O.borderScaleFactor = 2 * Math.max(1, k * 0.9);
     C.mtr.offsetY = -(touch ? 52 : 44) * k;
-    C.dup.offsetX = -(R + 9) * k;  C.del.offsetX = (R + 9) * k;
-    C.dup.offsetY = C.del.offsetY = (R * 2 + 18) * k;
+    C.dup.offsetX = -dupOff() * k;  C.del.offsetX = dupOff() * k;
+    C.dup.offsetY = C.del.offsetY = C.edit.offsetY = (R * 2 + 18) * k;
+    C.edit.sizeX = C.edit.touchSizeX = editW() * k;
+    C.edit.sizeY = C.edit.touchSizeY = (R * 2 + 16) * k * (touch ? 1.3 : 1);
+    [C.dup, C.del, C.mtr].forEach(c => {
+      c.sizeX = c.sizeY = (R * 2 + 6) * k;
+      c.touchSizeX = c.touchSizeY = (touch ? 40 : 30) * k;
+    });
     const a = designCanvas && designCanvas.getActiveObject();
     if (a) a.setCoords();
+  };
+
+  // Side handles (top/bottom/left/right pills) are hidden on very small layers,
+  // otherwise they sit on top of the layer's centre and block dragging it.
+  const MIN_SIDE = 96;
+  const sideVisible = (horizontalSize) => function(obj){
+    const k = studioHandleK || 1;
+    return (horizontalSize === "w" ? obj.getScaledWidth() : obj.getScaledHeight()) / k >= MIN_SIDE;
+  };
+  C.mt.getVisibility = C.mb.getVisibility = sideVisible("h");
+  C.ml.getVisibility = C.mr.getVisibility = sideVisible("w");
+
+  // The corner/side hit areas shrink with the layer, so the middle of a small
+  // layer can always be grabbed and dragged.
+  studioAdaptHit = function(){
+    const a = designCanvas && designCanvas.getActiveObject();
+    if (!a) return;
+    const k = studioHandleK || 1;
+    const inner = Math.min(a.getScaledWidth(), a.getScaledHeight()) / k;      // on-screen px
+    const cap = Math.max(10, inner * 0.28);
+    const cs = Math.min(R * 2 + 4, cap) * k;
+    const ts = Math.min(touch ? 46 : 30, cap) * k;
+    if (Math.abs(a.cornerSize - cs) > 0.01 || Math.abs(a.touchCornerSize - ts) > 0.01){
+      a.cornerSize = cs;  a.touchCornerSize = ts;
+      a.setCoords();
+    }
   };
 
   // White halo under the blue outline, so the selection box shows on black and white garments alike
@@ -1100,10 +1194,12 @@ function setupStudioControls(){
   };
 }
 let studioApplyHandleScale = function(){};
+let studioAdaptHit = function(){};
+let studioHandleSmall = null;
 
 // Live angle read-out while rotating, and handle scaling that follows zoom / window size
 function bindStudioHandles(){
-  designCanvas.on("before:render", () => studioApplyHandleScale());
+  designCanvas.on("before:render", () => { studioApplyHandleScale(); studioAdaptHit(); });
   designCanvas.on("after:render", () => {
     const t = designCanvas._currentTransform;
     if (!t || t.action !== "rotate" || !t.target) return;
@@ -1145,6 +1241,13 @@ function initDesignStudio(product){
   designCanvas.on("selection:created", onDesignSelectionChange);
   designCanvas.on("selection:updated", onDesignSelectionChange);
   designCanvas.on("selection:cleared", onDesignSelectionCleared);
+  // Desktop: clicking an already-selected layer re-opens the Edit panel too.
+  designCanvas.on("mouse:up", (opt) => {
+    if (opt && opt.target && !window.matchMedia("(max-width: 900px)").matches &&
+        designCanvas.getActiveObject() === opt.target && !opt.transform){
+      document.dispatchEvent(new CustomEvent("studio:edit-requested"));
+    }
+  });
   designCanvas.on("object:modified", commitDesignHistory);
   designCanvas.on("text:editing:exited", commitDesignHistory);
 
@@ -1432,6 +1535,11 @@ function onDesignSelectionChange(){
   selectedObject = designCanvas.getActiveObject();
   updatePropsPanel(selectedObject);
   refreshLayersList();
+  // Desktop: open the Edit panel as soon as a layer is selected.
+  // Phones/tablets use the Edit button on the layer instead.
+  if (selectedObject && !window.matchMedia("(max-width: 900px)").matches){
+    document.dispatchEvent(new CustomEvent("studio:edit-requested"));
+  }
 }
 
 function onDesignSelectionCleared(){

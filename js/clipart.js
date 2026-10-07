@@ -71,7 +71,7 @@
   // Full-size SVG string for the canvas, with optional die-cut sticker outline.
   function build(item){
     const inner = item.mono ? item.svg.replace(/currentColor/g, state.color) : item.svg;
-    const ns = 'xmlns="http://www.w3.org/2000/svg" width="400" height="400"';
+    const ns = 'xmlns="http://www.w3.org/2000/svg" width="2000" height="2000"';
     if (!state.outline) return `<svg ${ns} viewBox="0 0 100 100">${inner}</svg>`;
     return `<svg ${ns} viewBox="-10 -10 120 120"><filter id="o" filterUnits="userSpaceOnUse" x="-10" y="-10" width="120" height="120"><feMorphology in="SourceAlpha" operator="dilate" radius="4" result="d"/><feGaussianBlur in="d" stdDeviation="1" result="s"/><feFlood flood-color="${state.outline}"/><feComposite in2="s" operator="in" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><g filter="url(#o)">${inner}</g></svg>`;
   }
@@ -107,7 +107,7 @@
       const b = e.target.closest(".clip-item"); if (!b) return;
       const item = ITEMS.find(i => i.id === b.dataset.id);
       if (!item || typeof placeImageOnCanvas !== "function") return;
-      placeImageOnCanvas("data:image/svg+xml;charset=utf-8," + encodeURIComponent(build(item)));
+      placeImageOnCanvas("data:image/svg+xml;charset=utf-8," + encodeURIComponent(build(item)), { vector: true });
     });
     render();
   }

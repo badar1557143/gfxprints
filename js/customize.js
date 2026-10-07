@@ -949,7 +949,7 @@ function setupStudioControls(){
 
   const baseToObject = O.toObject;
   O.toObject = function(extra){
-    return baseToObject.call(this, ["gfxShape", "gfxId", "lockMovementX", "lockMovementY", "lockScalingX", "lockScalingY", "lockRotation", "hasControls"].concat(extra || []));
+    return baseToObject.call(this, ["gfxShape", "gfxId", "gfxVector", "lockMovementX", "lockMovementY", "lockScalingX", "lockScalingY", "lockRotation", "hasControls"].concat(extra || []));
   };
   O.transparentCorners = false;
   O.cornerStyle = "circle";
@@ -1225,7 +1225,7 @@ function addTextLayer(){
 
 // Places an image (from a data URL) onto the active canvas - shared by a fresh
 // upload and by re-using something from the saved Upload Library.
-function placeImageOnCanvas(dataUrl){
+function placeImageOnCanvas(dataUrl, opts){
   if (!designCanvas){
     showToast("Design Studio isn't ready yet");
     return;
@@ -1242,6 +1242,8 @@ function placeImageOnCanvas(dataUrl){
       scaleX: scale,
       scaleY: scale
     });
+    // Clipart and stickers are vector artwork: they redraw sharp at any size and in the print file.
+    if (opts && opts.vector) img.gfxVector = true;
     designCanvas.add(img);
     designCanvas.setActiveObject(img);
     designCanvas.requestRenderAll();
@@ -1693,6 +1695,11 @@ function imgFit(obj, cover){
 function updateImageQuality(obj){
   const el = document.getElementById("pp-quality");
   if (!el || !obj || obj.type !== "image") return;
+  if (obj.gfxVector){
+    el.className = "pp-quality q-good";
+    el.textContent = "Vector artwork. Stays sharp at any size and prints at full quality.";
+    return;
+  }
   const inches = (IMG_PRINT_WIDTH_IN[currentProduct && currentProduct.category] || 10);
   const shownIn = obj.getScaledWidth() / designCanvas.getWidth() * inches;
   const dpi = Math.round(obj.width / Math.max(0.1, shownIn));

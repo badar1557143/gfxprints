@@ -2458,3 +2458,6 @@ body.bgr-open{ overflow:hidden; }
   .vb-pct{ min-width:52px; } .vb-sep{ display:none; }
   .vb-menu{ bottom:auto; top:calc(100% + 8px); left:auto; right:0; transform:none; }
 }
+
+/* touch gestures: the view area handles pan/pinch itself */
+.app-canvas-area{ overflow:hidden; touch-action:none; overscroll-behavior:none; }

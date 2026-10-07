@@ -3,6 +3,7 @@
    - Ctrl/Cmd + mouse wheel (or trackpad pinch) zooms toward the cursor
    - Plain wheel scrolls the canvas when it is larger than the view
    - Hand tool (H, or hold Space, or middle mouse) drags the canvas anywhere
+   - Touch: one finger on the background pans; two fingers pinch-zoom + move
    - Toolbar: Hand | - slider + | 100% menu | Fit
    Public API: window.GfxView { stepZoom(dir), zoomTo(k), reset(), fit(), toggleHand(), setHand(on) }
    ========================================================= */
@@ -115,23 +116,64 @@
       }
     }, { passive: false });
 
-    // drag to pan: Hand tool / held Space with the left button, or the middle button any time
-    let pan = null;
+    // Drag to pan. Mouse: Hand tool / held Space (left button) or the middle button any time.
+    // Touch: one finger on the empty background (or anywhere with the Hand tool) pans;
+    // two fingers anywhere pinch-zoom and move the canvas at the same time.
+    let pan = null, pinch = null;
+    const touches = new Map();
+    const fingers = () => [...touches.values()];
+    const startPinch = () => {
+      const [p, q] = fingers();
+      const r = wrap.getBoundingClientRect();
+      const mx = (p.x + q.x) / 2, my = (p.y + q.y) / 2;
+      const ctrX = r.left + r.width / 2, ctrY = r.top + r.height / 2;
+      pinch = { d: Math.hypot(p.x - q.x, p.y - q.y) || 1, k: st.k, ux: (mx - ctrX) / st.k, uy: (my - ctrY) / st.k, bx: ctrX - st.x, by: ctrY - st.y };
+      pan = null; area.classList.add("panning");
+      // a layer drag that began with the first finger must not continue
+      if (typeof designCanvas !== "undefined" && designCanvas){ designCanvas._currentTransform = null; designCanvas.requestRenderAll(); }
+    };
+    // block the canvas library from seeing multi-finger touches (capture phase on the view area)
+    const blockMulti = (e) => { if (e.touches.length >= 2){ e.stopPropagation(); if (e.cancelable) e.preventDefault(); } };
+    area.addEventListener("touchstart", blockMulti, { capture: true, passive: false });
+    area.addEventListener("touchmove", blockMulti, { capture: true, passive: false });
+
     area.addEventListener("mousedown", (e) => { if (e.button === 1) e.preventDefault(); });
     area.addEventListener("pointerdown", (e) => {
       if (e.target.closest(".vbar") || bgrOpen()) return;
-      const hand = (st.hand || st.space) && e.button === 0;
-      if (!hand && e.button !== 1) return;
+      if (e.pointerType === "touch"){
+        touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        if (touches.size === 2){ startPinch(); return; }
+        if (touches.size > 2) return;
+        const onBackground = !e.target.closest("#studio-stage");
+        if (!(st.hand || st.space || onBackground)) return;     // finger on the design = edit layers
+      } else {
+        const hand = (st.hand || st.space) && e.button === 0;
+        if (!hand && e.button !== 1) return;
+      }
       e.preventDefault();
       pan = { sx: e.clientX, sy: e.clientY, x: st.x, y: st.y };
-      area.setPointerCapture(e.pointerId); area.classList.add("panning");
+      try { area.setPointerCapture(e.pointerId); } catch (_) {}
+      area.classList.add("panning");
     });
     area.addEventListener("pointermove", (e) => {
-      if (!pan) return;
+      if (e.pointerType === "touch" && touches.has(e.pointerId)) touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pinch && touches.size >= 2){
+        const [p, q] = fingers();
+        const k = clamp(pinch.k * (Math.hypot(p.x - q.x, p.y - q.y) / pinch.d), MIN, MAX);
+        const mx = (p.x + q.x) / 2, my = (p.y + q.y) / 2;
+        st.k = k; st.x = mx - pinch.ux * k - pinch.bx; st.y = my - pinch.uy * k - pinch.by;
+        clampPan(true); apply(); return;
+      }
+      if (!pan || pinch) return;
       st.x = pan.x + e.clientX - pan.sx; st.y = pan.y + e.clientY - pan.sy;
       clampPan(true); apply();
     });
-    const end = () => { pan = null; area.classList.remove("panning"); };
+    const end = (e) => {
+      touches.delete(e.pointerId);
+      if (touches.size < 2) pinch = null;
+      if (!touches.size){ pan = null; area.classList.remove("panning"); }
+      else if (!pinch) { pan = null; }
+    };
     area.addEventListener("pointerup", end); area.addEventListener("pointercancel", end);
 
     // hold Space = temporary Hand tool, H = toggle Hand tool

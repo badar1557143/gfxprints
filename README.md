@@ -208,7 +208,8 @@ Ctrl + ] / [ reorders layers (add Shift for front / back).
 **View bar** (bottom of the canvas): Hand tool, zoom out / slider / zoom in, a % menu with presets, and Fit.
 Ctrl/Cmd + mouse wheel (or trackpad pinch) zooms toward the cursor (25-300%). Plain wheel scrolls the canvas when it is
 bigger than the view. **Hand tool**: click it, press `H`, hold `Space`, or use the middle mouse button, then drag to move the
-canvas anywhere. `F` fits to screen, `0` resets, `+` / `-` step the zoom. Shortcuts are ignored while typing or editing text.
+canvas anywhere. `F` fits to screen, `0` resets, `+` / `-` step the zoom. **Touch:** one finger on the empty background (or anywhere with the Hand tool on) moves the canvas; two fingers pinch to zoom and move it at once. A finger on the design itself still edits layers.
+Shortcuts are ignored while typing or editing text.
 
 ## Minified files
 

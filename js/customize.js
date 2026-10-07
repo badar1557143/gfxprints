@@ -170,11 +170,10 @@ function renderProductPicker(choices){
   if (!wrap) return;
   wrap.innerHTML = choices.map(p => `
     <button type="button" class="cz-chip" data-id="${p.id}" aria-pressed="false">
-      <img src="${p.image}" alt="" width="56" height="56" loading="lazy">
-      <span class="cz-chip-text">
-        <span class="cz-chip-name">${p.name}</span>
-        <span class="cz-chip-price">${formatPrice(p.price)}</span>
-      </span>
+      <span class="cz-chip-img"><img src="${p.image}" alt="" width="120" height="120" loading="lazy"></span>
+      <span class="cz-chip-name">${p.name}</span>
+      <span class="cz-chip-price">${formatPrice(p.price)}</span>
+      <span class="cz-chip-tick" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
     </button>`).join("");
 
   wrap.querySelectorAll(".cz-chip").forEach(chip => {
@@ -220,6 +219,15 @@ function highlightPickerChip(id, instant){
     const left = selectedChip.offsetLeft - (wrap.clientWidth - selectedChip.offsetWidth) / 2;
     wrap.scrollTo({ left: Math.max(0, left), behavior: instant ? "auto" : "smooth" });
   }
+}
+
+
+/* Shows the chosen colour and size next to their headings in the product panel */
+function syncOptionValues(){
+  const c = document.getElementById("pd-color-val");
+  const z = document.getElementById("pd-size-val");
+  if (c) c.textContent = selectedColor || "";
+  if (z) z.textContent = selectedSize || "";
 }
 
 /* ---------- Selected product: options, preview, price ---------- */
@@ -325,6 +333,7 @@ function selectProduct(p, opts){
 
   setupSidesForProduct(p, carryJson);
   highlightPickerChip(p.id, initial);
+  syncOptionValues();
 
   // Keep the address bar in sync so the page can be refreshed / shared with this product selected.
   try {
@@ -767,6 +776,7 @@ function updateTotal(){
   if (!currentProduct) return;
   const qty = Number(document.getElementById("pd-qty").value) || 1;
   document.getElementById("cz-total").textContent = formatPrice(computeUnitPrice() * qty);
+  syncOptionValues();
 }
 
 // True once at least one side (or the single implicit side, for products without

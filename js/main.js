@@ -37,6 +37,38 @@ function whatsappLink(message){
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 }
 
+
+/* ---------- Search and share tags ----------
+   Adds the canonical link and share-preview tags that a page does not already declare, built from
+   the live address so they stay correct on any domain (GitHub Pages, custom domain). product.js
+   later replaces them with product-specific values. */
+function initSeoTags(){
+  const head = document.head;
+  const abs = (u) => { try { return new URL(u, window.location.href).href; } catch (e) { return u; } };
+  const pageUrl = window.location.origin + window.location.pathname + (window.location.pathname.endsWith("product.html") ? window.location.search : "");
+  let canon = document.querySelector('link[rel="canonical"]');
+  if (!canon){ canon = document.createElement("link"); canon.rel = "canonical"; head.appendChild(canon); }
+  if (!/^https?:/.test(canon.getAttribute("href") || "")) canon.setAttribute("href", pageUrl);
+  const ensure = (attr, key, value) => {
+    let m = head.querySelector(`meta[${attr}="${key}"]`);
+    if (!m){ m = document.createElement("meta"); m.setAttribute(attr, key); m.setAttribute("content", /image$/.test(key) ? abs(value) : value); head.appendChild(m); }
+    else if (key === "og:image" || key === "twitter:image"){ m.setAttribute("content", abs(m.getAttribute("content"))); }
+  };
+  const title = document.title;
+  const descEl = head.querySelector('meta[name="description"]');
+  const desc = descEl ? descEl.getAttribute("content") : "";
+  ensure("property", "og:site_name", "GfxPrints");
+  ensure("property", "og:type", "website");
+  ensure("property", "og:title", title);
+  if (desc) ensure("property", "og:description", desc);
+  ensure("property", "og:url", pageUrl);
+  ensure("property", "og:image", "assets/brand/icon-512.png");
+  ensure("name", "twitter:card", "summary_large_image");
+  ensure("name", "twitter:title", title);
+  if (desc) ensure("name", "twitter:description", desc);
+  ensure("name", "twitter:image", "assets/brand/icon-512.png");
+}
+
 // Floating chat bubble, added to every page that loads main.js.
 function initWhatsAppFloat(){
   if (document.getElementById("whatsapp-float")) return;
@@ -737,6 +769,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initShopPage();
   initReveal();
   initWhatsAppFloat();
+  initSeoTags();
   // The visit counter is a third-party request: wait until the page has finished loading and the
   // browser is idle so it never competes with images or scripts.
   const startCounter = () => (window.requestIdleCallback ? requestIdleCallback(initVisitorCounter, { timeout: 4000 }) : setTimeout(initVisitorCounter, 1500));

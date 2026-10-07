@@ -214,3 +214,11 @@ Shortcuts are ignored while typing or editing text.
 ## Minified files
 
 The pages load `css/style.min.css` and `js/*.min.js`. Edit the normal files (`css/style.css`, `js/*.js`), then run `sh tools/build.sh` (needs Node.js) and commit the `.min` files too. If you skip this step, your changes will not show on the site.
+
+## Publishing (GitHub Pages)
+
+1. Upload the contents of this folder to the repository root and enable Pages (branch `main`, folder `/ (root)`).
+2. `404.html` and `robots.txt` are picked up automatically. `favicon.ico` and the icons in `assets/brand/` are linked from every page.
+3. Canonical links and share-preview tags are built from the live address by `initSeoTags()` in `js/main.js`, so they stay correct on `github.io` or on a custom domain.
+4. After editing `css/style.css` or any `js/*.js` file, run `sh tools/build.sh` and upload the rebuilt `.min` files too.
+5. Optional once the final address is known: add a `sitemap.xml` with absolute URLs and a `Sitemap:` line in `robots.txt`.

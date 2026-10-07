@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Customize Your Product | GfxPrints</title>
 <meta name="description" content="Design your own personalized product at GfxPrints. Choose a product, add your text or photo, and preview it live before you order.">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png">
+<link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
+<meta name="theme-color" content="#2438E0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=Caveat:wght@600&display=swap" media="print" onload="this.media='all'">
@@ -113,14 +117,18 @@
     </nav>
 
     <!-- SLIDE-OUT DRAWER -->
-    <aside class="app-drawer" id="app-drawer">
+    <aside class="app-drawer" id="app-drawer" aria-label="Design tools panel">
       <button type="button" class="app-drawer-close" id="drawer-close" aria-label="Close panel">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
       </button>
 
       <!-- PRODUCT PANEL -->
       <div class="app-drawer-panel" id="panel-product">
-        <h2 class="app-drawer-title">Choose a product</h2>
+        <header class="pp-head">
+          <h2 class="app-drawer-title">Choose a product</h2>
+          <p class="pp-sub">Pick what you want to print on, then set it up below.</p>
+        </header>
+
         <div class="cz-picker-wrap">
           <button type="button" class="cz-arrow cz-arrow-prev" id="cz-prev" aria-label="Show previous products" hidden>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
@@ -132,7 +140,7 @@
         </div>
 
         <div class="cz-card-mini">
-          <img id="cz-thumb" class="cz-thumb" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" alt="" width="56" height="56">
+          <img id="cz-thumb" class="cz-thumb" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" alt="" width="64" height="64">
           <div class="cz-product-info">
             <div class="pd-cat" id="cz-cat"></div>
             <h3 class="cz-name" id="cz-name"></h3>
@@ -140,34 +148,47 @@
               <span class="cz-price" id="cz-price"></span>
               <span class="cz-old" id="cz-old-price" style="display:none;"></span>
             </div>
-            <a class="cz-details" id="cz-details-link" href="product.html">Product details</a>
           </div>
+          <a class="cz-details" id="cz-details-link" href="product.html" aria-label="View product details">
+            <span>Details</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>
+          </a>
         </div>
 
-        <div class="option-block">
-          <h4 id="pd-color-label">Color</h4>
-          <div class="swatches" id="pd-colors"></div>
-        </div>
-        <div class="option-block">
-          <h4>Size</h4>
-          <div class="size-pills" id="pd-sizes"></div>
-        </div>
-        <div class="option-block" id="pd-orientation-block" style="display:none;">
-          <h4>Orientation</h4>
-          <div class="size-pills" id="pd-orientation"></div>
-        </div>
-        <div class="option-block" id="pd-packaging-block" style="display:none;">
-          <h4>Packaging</h4>
-          <div class="size-pills" id="pd-packaging"></div>
-        </div>
-        <div class="option-block">
-          <h4>Quantity</h4>
-          <div class="qty-row">
-            <button type="button" id="qty-minus" aria-label="Decrease quantity">−</button>
-            <input type="text" id="pd-qty" value="1" readonly aria-label="Quantity">
-            <button type="button" id="qty-plus" aria-label="Increase quantity">+</button>
+        <section class="option-block">
+          <div class="opt-head">
+            <h4 id="pd-color-label">Color</h4>
+            <span class="opt-val" id="pd-color-val"></span>
           </div>
-        </div>
+          <div class="swatches" id="pd-colors"></div>
+        </section>
+        <section class="option-block">
+          <div class="opt-head">
+            <h4>Size</h4>
+            <span class="opt-val" id="pd-size-val"></span>
+          </div>
+          <div class="size-pills" id="pd-sizes"></div>
+        </section>
+        <section class="option-block" id="pd-orientation-block" style="display:none;">
+          <div class="opt-head"><h4>Orientation</h4></div>
+          <div class="size-pills" id="pd-orientation"></div>
+        </section>
+        <section class="option-block" id="pd-packaging-block" style="display:none;">
+          <div class="opt-head"><h4>Packaging</h4></div>
+          <div class="size-pills" id="pd-packaging"></div>
+        </section>
+        <section class="option-block opt-qty">
+          <div class="opt-head"><h4>Quantity</h4></div>
+          <div class="qty-row">
+            <button type="button" id="qty-minus" aria-label="Decrease quantity">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg>
+            </button>
+            <input type="text" id="pd-qty" value="1" readonly aria-label="Quantity">
+            <button type="button" id="qty-plus" aria-label="Increase quantity">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            </button>
+          </div>
+        </section>
       </div>
 
       <!-- UPLOADS PANEL -->

@@ -37,38 +37,6 @@ function whatsappLink(message){
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 }
 
-
-/* ---------- Search and share tags ----------
-   Adds the canonical link and share-preview tags that a page does not already declare, built from
-   the live address so they stay correct on any domain (GitHub Pages, custom domain). product.js
-   later replaces them with product-specific values. */
-function initSeoTags(){
-  const head = document.head;
-  const abs = (u) => { try { return new URL(u, window.location.href).href; } catch (e) { return u; } };
-  const pageUrl = window.location.origin + window.location.pathname + (window.location.pathname.endsWith("product.html") ? window.location.search : "");
-  let canon = document.querySelector('link[rel="canonical"]');
-  if (!canon){ canon = document.createElement("link"); canon.rel = "canonical"; head.appendChild(canon); }
-  if (!/^https?:/.test(canon.getAttribute("href") || "")) canon.setAttribute("href", pageUrl);
-  const ensure = (attr, key, value) => {
-    let m = head.querySelector(`meta[${attr}="${key}"]`);
-    if (!m){ m = document.createElement("meta"); m.setAttribute(attr, key); m.setAttribute("content", /image$/.test(key) ? abs(value) : value); head.appendChild(m); }
-    else if (key === "og:image" || key === "twitter:image"){ m.setAttribute("content", abs(m.getAttribute("content"))); }
-  };
-  const title = document.title;
-  const descEl = head.querySelector('meta[name="description"]');
-  const desc = descEl ? descEl.getAttribute("content") : "";
-  ensure("property", "og:site_name", "GfxPrints");
-  ensure("property", "og:type", "website");
-  ensure("property", "og:title", title);
-  if (desc) ensure("property", "og:description", desc);
-  ensure("property", "og:url", pageUrl);
-  ensure("property", "og:image", "assets/brand/icon-512.png");
-  ensure("name", "twitter:card", "summary_large_image");
-  ensure("name", "twitter:title", title);
-  if (desc) ensure("name", "twitter:description", desc);
-  ensure("name", "twitter:image", "assets/brand/icon-512.png");
-}
-
 // Floating chat bubble, added to every page that loads main.js.
 function initWhatsAppFloat(){
   if (document.getElementById("whatsapp-float")) return;
@@ -311,7 +279,7 @@ function productCardHTML(p){
     <article class="product-card reveal">
       <div class="pc-media">
         <a href="product.html?id=${p.id}" aria-label="View ${p.name}">
-          <img src="${p.image}" alt="${p.name}" loading="lazy" decoding="async" width="400" height="400">
+          <img src="${p.image}" alt="${p.name}" loading="lazy" width="400" height="400">
         </a>
         <button class="pc-wishlist ${isWishlisted ? "active" : ""}" data-id="${p.id}" aria-label="Add to wishlist" aria-pressed="${isWishlisted}">
           <svg viewBox="0 0 24 24" fill="${isWishlisted ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2"><path d="M12 21s-7.5-4.6-10-9.3C.4 8 2 4.5 5.6 4.1c2-.2 3.7.8 4.9 2.4C11.7 4.9 13.4 3.9 15.4 4.1 19 4.5 20.6 8 20 11.7 17.5 16.4 12 21 12 21z"/></svg>
@@ -394,7 +362,7 @@ function renderHomepage(){
     catCircles.innerHTML = CATEGORIES.map(c => `
       <a href="shop.html?category=${encodeURIComponent(c.name)}" class="cat-circle" role="listitem">
         <span class="cat-circle-img">
-          <img src="${c.image}" alt="" loading="lazy" decoding="async" width="140" height="140">
+          <img src="${c.image}" alt="" loading="lazy" width="140" height="140">
         </span>
         <span>${c.name}</span>
       </a>`).join("");
@@ -414,7 +382,7 @@ function renderHomepage(){
 
     trendRow.innerHTML = byCategory.map(c => `
       <a href="shop.html?category=${encodeURIComponent(c.name)}" class="trend-card reveal">
-        <div class="trend-media"><img src="${c.image}" alt="${c.name}" loading="lazy" decoding="async" width="400" height="400"></div>
+        <div class="trend-media"><img src="${c.image}" alt="${c.name}" loading="lazy" width="400" height="400"></div>
         <h3>${c.name}</h3>
         <p>${formatCount(c.searched)} people searched for this</p>
       </a>`).join("");
@@ -769,9 +737,5 @@ document.addEventListener("DOMContentLoaded", () => {
   initShopPage();
   initReveal();
   initWhatsAppFloat();
-  initSeoTags();
-  // The visit counter is a third-party request: wait until the page has finished loading and the
-  // browser is idle so it never competes with images or scripts.
-  const startCounter = () => (window.requestIdleCallback ? requestIdleCallback(initVisitorCounter, { timeout: 4000 }) : setTimeout(initVisitorCounter, 1500));
-  if (document.readyState === "complete") startCounter(); else window.addEventListener("load", startCounter, { once: true });
+  initVisitorCounter();
 });

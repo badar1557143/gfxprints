@@ -170,10 +170,11 @@ function renderProductPicker(choices){
   if (!wrap) return;
   wrap.innerHTML = choices.map(p => `
     <button type="button" class="cz-chip" data-id="${p.id}" aria-pressed="false">
-      <span class="cz-chip-img"><img src="${p.image}" alt="" width="120" height="120" loading="lazy"></span>
-      <span class="cz-chip-name">${p.name}</span>
-      <span class="cz-chip-price">${formatPrice(p.price)}</span>
-      <span class="cz-chip-tick" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+      <img src="${p.image}" alt="" width="56" height="56" loading="lazy">
+      <span class="cz-chip-text">
+        <span class="cz-chip-name">${p.name}</span>
+        <span class="cz-chip-price">${formatPrice(p.price)}</span>
+      </span>
     </button>`).join("");
 
   wrap.querySelectorAll(".cz-chip").forEach(chip => {
@@ -219,15 +220,6 @@ function highlightPickerChip(id, instant){
     const left = selectedChip.offsetLeft - (wrap.clientWidth - selectedChip.offsetWidth) / 2;
     wrap.scrollTo({ left: Math.max(0, left), behavior: instant ? "auto" : "smooth" });
   }
-}
-
-
-/* Shows the chosen colour and size next to their headings in the product panel */
-function syncOptionValues(){
-  const c = document.getElementById("pd-color-val");
-  const z = document.getElementById("pd-size-val");
-  if (c) c.textContent = selectedColor || "";
-  if (z) z.textContent = selectedSize || "";
 }
 
 /* ---------- Selected product: options, preview, price ---------- */
@@ -333,7 +325,6 @@ function selectProduct(p, opts){
 
   setupSidesForProduct(p, carryJson);
   highlightPickerChip(p.id, initial);
-  syncOptionValues();
 
   // Keep the address bar in sync so the page can be refreshed / shared with this product selected.
   try {
@@ -776,7 +767,6 @@ function updateTotal(){
   if (!currentProduct) return;
   const qty = Number(document.getElementById("pd-qty").value) || 1;
   document.getElementById("cz-total").textContent = formatPrice(computeUnitPrice() * qty);
-  syncOptionValues();
 }
 
 // True once at least one side (or the single implicit side, for products without
@@ -944,28 +934,10 @@ function setupStudioControls(){
 
   const BLUE = "#2447F0", RED = "#E5484D", WHITE = "#ffffff";
   const touch = !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
-  const small = () => window.matchMedia("(max-width: 900px)").matches;   // phones + tablets
-  const editW = () => Math.max(R * 6.4, 66);                              // Edit button width
-  const dupOff = () => small() ? (editW() / 2 + R + 11) : (R + 9);       // leave room for the Edit button
   const R = touch ? 11 : 8;                 // corner handle radius (screen px)
   const O = fabric.Object.prototype;
 
-  const baseToObject = O.toObject;
-  O.toObject = function(extra){
-    return baseToObject.call(this, ["gfxShape", "gfxId", "gfxVector", "lockMovementX", "lockMovementY", "lockScalingX", "lockScalingY", "lockRotation", "hasControls"].concat(extra || []));
-  };
   O.transparentCorners = false;
-  // Phones/tablets: tapping a selected text layer must NOT drop into on-canvas typing
-  // (cursor + hidden handles). Text is edited from the Edit button -> Properties panel.
-  if (fabric.IText && !fabric.IText.__gfxNoTapEdit){
-    fabric.IText.__gfxNoTapEdit = true;
-    const baseMouseUp = fabric.IText.prototype.mouseUpHandler;
-    fabric.IText.prototype.mouseUpHandler = function(opt){
-      if (small()){ this.__lastSelected = false; this.selected = true; this.__isMousedown = false; return; }
-      return baseMouseUp.call(this, opt);
-    };
-  }
-  O.lockScalingFlip = true;   // dragging a handle past the opposite edge must not mirror the layer
   O.cornerStyle = "circle";
   O.cornerColor = WHITE;
   O.cornerStrokeColor = BLUE;
@@ -1075,111 +1047,31 @@ function setupStudioControls(){
   }
 
   function clickButton(id){
-    // One tap = one action: ignore a repeat within 600 ms (touch + emulated mouse events)
-    return function(){
-      const now = Date.now();
-      if (clickButton.last && now - clickButton.last < 600) return true;
-      clickButton.last = now;
-      const b = document.getElementById(id); if (b) b.click();
-      return true;
-    };
+    return function(){ const b = document.getElementById(id); if (b) b.click(); return true; };
   }
-  // "Edit" button under the selected layer: blue gradient pill, white outline,
-  // soft shadow, pencil icon + label. Opens the Edit / Properties panel.
-  function renderEditPill(ctx, left, top, style, obj){
-    place(ctx, left, top, obj, false);
-    const w = editW(), h = R * 2 + 10, r = h / 2;
-    shadow(ctx);
-    roundRect(ctx, -w / 2, -h / 2, w, h, r);
-    const g = ctx.createLinearGradient(0, -h / 2, 0, h / 2);
-    g.addColorStop(0, "#4a68ff"); g.addColorStop(1, "#1f3ad6");
-    ctx.fillStyle = g; ctx.fill();
-    ctx.shadowColor = "transparent";
-    ctx.lineWidth = 2.2; ctx.strokeStyle = WHITE; ctx.stroke();
-    // glossy top highlight
-    ctx.save();
-    roundRect(ctx, -w / 2 + 3, -h / 2 + 3, w - 6, h / 2 - 3, r - 3);
-    ctx.fillStyle = "rgba(255,255,255,0.14)"; ctx.fill();
-    ctx.restore();
-    // pencil icon
-    ctx.save();
-    ctx.translate(-w / 2 + r + 1, 0);
-    ctx.rotate(Math.PI / 4);
-    ctx.fillStyle = WHITE;
-    roundRect(ctx, -2.8, -7.5, 5.6, 10.5, 1.2); ctx.fill();               // body
-    ctx.fillStyle = "rgba(31,58,214,0.45)";
-    ctx.fillRect(-2.8, -5.2, 5.6, 1.2);                                    // ferrule line
-    ctx.fillStyle = WHITE;
-    ctx.beginPath(); ctx.moveTo(-2.8, 3.6); ctx.lineTo(2.8, 3.6); ctx.lineTo(0, 8.4); ctx.closePath(); ctx.fill(); // tip
-    ctx.restore();
-    // label
-    ctx.fillStyle = WHITE;
-    ctx.font = "700 " + (touch ? 14 : 12.5) + "px 'IBM Plex Sans', sans-serif";
-    ctx.textAlign = "left"; ctx.textBaseline = "middle";
-    ctx.fillText("Edit", -w / 2 + r + 15, 0.5);
-    ctx.restore();
-  }
-  C.edit = new fabric.Control({
-    x: 0, y: 0.5, offsetX: 0, offsetY: 0, cursorStyle: "pointer",
-    mouseUpHandler: function(){ document.dispatchEvent(new CustomEvent("studio:edit-requested")); return true; },
-    render: renderEditPill
-  });
-  C.edit.getVisibility = () => small();   // Edit button only on phones/tablets
   C.dup = new fabric.Control({
-    x: 0, y: 0.5, offsetX: -dupOff(), offsetY: 0, cursorStyle: "copy",
+    x: 0, y: 0.5, offsetX: -(R + 9), offsetY: 0, cursorStyle: "copy",
     mouseUpHandler: clickButton("prop-duplicate"), render: actionRenderer("dup")
   });
   C.del = new fabric.Control({
-    x: 0, y: 0.5, offsetX: dupOff(), offsetY: 0, cursorStyle: "pointer",
+    x: 0, y: 0.5, offsetX: (R + 9), offsetY: 0, cursorStyle: "pointer",
     mouseUpHandler: clickButton("prop-delete"), render: actionRenderer("del")
   });
 
   // Keeps handle size, hit area and the offsets in step with how big the canvas looks on screen
   studioApplyHandleScale = function(){
     const k = studioHandleScale();
-    if (Math.abs(k - studioHandleK) < 0.02 && O.cornerSize && small() === studioHandleSmall) return;
-    studioHandleK = k;  studioHandleSmall = small();
+    if (Math.abs(k - studioHandleK) < 0.02 && O.cornerSize) return;
+    studioHandleK = k;
     O.cornerSize = (R * 2 + 4) * k;
     O.touchCornerSize = (touch ? 46 : 30) * k;
     O.padding = 5 * k;
     O.borderScaleFactor = 2 * Math.max(1, k * 0.9);
     C.mtr.offsetY = -(touch ? 52 : 44) * k;
-    C.dup.offsetX = -dupOff() * k;  C.del.offsetX = dupOff() * k;
-    C.dup.offsetY = C.del.offsetY = C.edit.offsetY = (R * 2 + 18) * k;
-    C.edit.sizeX = C.edit.touchSizeX = editW() * k;
-    C.edit.sizeY = C.edit.touchSizeY = (R * 2 + 16) * k * (touch ? 1.3 : 1);
-    [C.dup, C.del, C.mtr].forEach(c => {
-      c.sizeX = c.sizeY = (R * 2 + 6) * k;
-      c.touchSizeX = c.touchSizeY = (touch ? 40 : 30) * k;
-    });
+    C.dup.offsetX = -(R + 9) * k;  C.del.offsetX = (R + 9) * k;
+    C.dup.offsetY = C.del.offsetY = (R * 2 + 18) * k;
     const a = designCanvas && designCanvas.getActiveObject();
     if (a) a.setCoords();
-  };
-
-  // Side handles (top/bottom/left/right pills) are hidden on very small layers,
-  // otherwise they sit on top of the layer's centre and block dragging it.
-  const MIN_SIDE = 96;
-  const sideVisible = (horizontalSize) => function(obj){
-    const k = studioHandleK || 1;
-    return (horizontalSize === "w" ? obj.getScaledWidth() : obj.getScaledHeight()) / k >= MIN_SIDE;
-  };
-  C.mt.getVisibility = C.mb.getVisibility = sideVisible("h");
-  C.ml.getVisibility = C.mr.getVisibility = sideVisible("w");
-
-  // The corner/side hit areas shrink with the layer, so the middle of a small
-  // layer can always be grabbed and dragged.
-  studioAdaptHit = function(){
-    const a = designCanvas && designCanvas.getActiveObject();
-    if (!a) return;
-    const k = studioHandleK || 1;
-    const inner = Math.min(a.getScaledWidth(), a.getScaledHeight()) / k;      // on-screen px
-    const cap = Math.max(10, inner * 0.28);
-    const cs = Math.min(R * 2 + 4, cap) * k;
-    const ts = Math.min(touch ? 46 : 30, cap) * k;
-    if (Math.abs(a.cornerSize - cs) > 0.01 || Math.abs(a.touchCornerSize - ts) > 0.01){
-      a.cornerSize = cs;  a.touchCornerSize = ts;
-      a.setCoords();
-    }
   };
 
   // White halo under the blue outline, so the selection box shows on black and white garments alike
@@ -1194,12 +1086,10 @@ function setupStudioControls(){
   };
 }
 let studioApplyHandleScale = function(){};
-let studioAdaptHit = function(){};
-let studioHandleSmall = null;
 
 // Live angle read-out while rotating, and handle scaling that follows zoom / window size
 function bindStudioHandles(){
-  designCanvas.on("before:render", () => { studioApplyHandleScale(); studioAdaptHit(); });
+  designCanvas.on("before:render", () => studioApplyHandleScale());
   designCanvas.on("after:render", () => {
     const t = designCanvas._currentTransform;
     if (!t || t.action !== "rotate" || !t.target) return;
@@ -1241,13 +1131,6 @@ function initDesignStudio(product){
   designCanvas.on("selection:created", onDesignSelectionChange);
   designCanvas.on("selection:updated", onDesignSelectionChange);
   designCanvas.on("selection:cleared", onDesignSelectionCleared);
-  // Desktop: clicking an already-selected layer re-opens the Edit panel too.
-  designCanvas.on("mouse:up", (opt) => {
-    if (opt && opt.target && !window.matchMedia("(max-width: 900px)").matches &&
-        designCanvas.getActiveObject() === opt.target && !opt.transform){
-      document.dispatchEvent(new CustomEvent("studio:edit-requested"));
-    }
-  });
   designCanvas.on("object:modified", commitDesignHistory);
   designCanvas.on("text:editing:exited", commitDesignHistory);
 
@@ -1264,8 +1147,6 @@ function initDesignStudio(product){
 function bindStudioToolbar(product){
   const addTextBtn = document.getElementById("tool-add-text");
   if (addTextBtn) addTextBtn.addEventListener("click", addTextLayer);
-
-  initUploadPanel();
 
   const uploadInput = document.getElementById("tool-upload-image");
   if (uploadInput){
@@ -1328,7 +1209,7 @@ function addTextLayer(){
 
 // Places an image (from a data URL) onto the active canvas - shared by a fresh
 // upload and by re-using something from the saved Upload Library.
-function placeImageOnCanvas(dataUrl, opts){
+function placeImageOnCanvas(dataUrl){
   if (!designCanvas){
     showToast("Design Studio isn't ready yet");
     return;
@@ -1345,13 +1226,177 @@ function placeImageOnCanvas(dataUrl, opts){
       scaleX: scale,
       scaleY: scale
     });
-    // Clipart and stickers are vector artwork: they redraw sharp at any size and in the print file.
-    if (opts && opts.vector) img.gfxVector = true;
     designCanvas.add(img);
     designCanvas.setActiveObject(img);
     designCanvas.requestRenderAll();
     refreshLayersList();
     commitDesignHistory();
+  });
+}
+
+/* ---------- Background remover ----------
+   Runs fully in the customer's browser (no server). Tries an AI cut-out model first
+   (@imgly/background-removal, loaded on demand from a CDN, cached after first use).
+   If that can't load (offline, blocked, old phone), it falls back to a simple
+   "erase the solid background connected to the edges" method. */
+const BGREMOVE_LIB = new URL("assets/vendor/imgly/background-removal.mjs", document.baseURI).href; // self-hosted copy of @imgly/background-removal 1.5.8 + onnxruntime-web
+let bgRemoveLibPromise = null;
+let bgRemoveBusy = false;
+
+function loadBgRemoveLib(){
+  if (!bgRemoveLibPromise){
+    bgRemoveLibPromise = import(BGREMOVE_LIB).catch((e) => { bgRemoveLibPromise = null; throw e; });
+  }
+  return bgRemoveLibPromise;
+}
+
+function blobToDataUrl(blob){
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = () => reject(new Error("read failed"));
+    r.readAsDataURL(blob);
+  });
+}
+
+function loadImageEl(src){
+  return new Promise((resolve, reject) => {
+    const im = new Image();
+    im.onload = () => resolve(im);
+    im.onerror = () => reject(new Error("image load failed"));
+    im.src = src;
+  });
+}
+
+// Fallback: flood-fill from the border, erasing pixels close to the background color.
+async function removeBgByColor(src){
+  const im = await loadImageEl(src);
+  const maxSide = 2000;
+  const k = Math.min(1, maxSide / Math.max(im.naturalWidth, im.naturalHeight));
+  const w = Math.max(1, Math.round(im.naturalWidth * k));
+  const h = Math.max(1, Math.round(im.naturalHeight * k));
+  const c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  const ctx = c.getContext("2d", { willReadFrequently: true });
+  ctx.drawImage(im, 0, 0, w, h);
+  const imgData = ctx.getImageData(0, 0, w, h);
+  const d = imgData.data;
+
+  // Background color = average of the four corner areas.
+  const pts = [[0,0],[w-1,0],[0,h-1],[w-1,h-1]];
+  let r = 0, g = 0, b = 0, n = 0;
+  pts.forEach(([x, y]) => {
+    for (let dy = 0; dy < 3; dy++) for (let dx = 0; dx < 3; dx++){
+      const px = Math.min(w-1, Math.max(0, x + (x ? -dx : dx)));
+      const py = Math.min(h-1, Math.max(0, y + (y ? -dy : dy)));
+      const i = (py * w + px) * 4;
+      r += d[i]; g += d[i+1]; b += d[i+2]; n++;
+    }
+  });
+  r /= n; g /= n; b /= n;
+  const tol = 48; // how different a pixel may be and still count as background
+  const near = (i) => d[i+3] < 10 || Math.hypot(d[i]-r, d[i+1]-g, d[i+2]-b) <= tol;
+
+  const seen = new Uint8Array(w * h);
+  const stack = [];
+  const push = (x, y) => {
+    const p = y * w + x;
+    if (!seen[p] && near(p * 4)){ seen[p] = 1; stack.push(p); }
+  };
+  for (let x = 0; x < w; x++){ push(x, 0); push(x, h-1); }
+  for (let y = 0; y < h; y++){ push(0, y); push(w-1, y); }
+  while (stack.length){
+    const p = stack.pop();
+    const x = p % w, y = (p / w) | 0;
+    if (x > 0) push(x-1, y);
+    if (x < w-1) push(x+1, y);
+    if (y > 0) push(x, y-1);
+    if (y < h-1) push(x, y+1);
+  }
+  let erased = 0;
+  for (let p = 0; p < seen.length; p++) if (seen[p]){ d[p*4+3] = 0; erased++; }
+  if (erased < w * h * 0.02) throw new Error("no solid background found");
+
+  // Soften the cut edge by one pixel so it doesn't look jagged.
+  const a0 = new Uint8ClampedArray(w * h);
+  for (let p = 0; p < a0.length; p++) a0[p] = d[p*4+3];
+  for (let y = 1; y < h-1; y++) for (let x = 1; x < w-1; x++){
+    const p = y * w + x;
+    if (a0[p] && (!a0[p-1] || !a0[p+1] || !a0[p-w] || !a0[p+w])) d[p*4+3] = 128;
+  }
+  ctx.putImageData(imgData, 0, 0);
+  return c.toDataURL("image/png");
+}
+
+async function removeBgByAI(src, onProgress){
+  const lib = await loadBgRemoveLib();
+  const remove = lib.removeBackground || (lib.default && lib.default.removeBackground) || lib.default;
+  if (typeof remove !== "function") throw new Error("library not usable");
+  const blob = await remove(src, {
+    output: { format: "image/png" },
+    progress: (key, current, total) => {
+      if (total && onProgress) onProgress(Math.min(99, Math.round(current / total * 100)));
+    }
+  });
+  return blobToDataUrl(blob);
+}
+
+async function removeBackgroundOfSelected(){
+  const obj = selectedObject;
+  const btn = document.getElementById("prop-remove-bg");
+  const status = document.getElementById("prop-remove-bg-status");
+  if (bgRemoveBusy) return;
+  if (!obj || obj.type !== "image"){
+    showToast("Select an image first");
+    return;
+  }
+  const src = obj.getSrc ? obj.getSrc() : (obj._element && obj._element.src);
+  if (!src){ showToast("Couldn't read this image"); return; }
+
+  bgRemoveBusy = true;
+  const label = btn ? btn.textContent : "";
+  const setBusy = (text) => { if (btn){ btn.disabled = true; btn.textContent = text; } };
+  setBusy("Removing background…");
+  if (status) status.textContent = "Working on it. The first time can take up to a minute while the model downloads.";
+
+  let result = null, usedFallback = false, aiError = null;
+  try {
+    result = await removeBgByAI(src, (pct) => setBusy("Removing background… " + pct + "%"));
+  } catch (e){
+    aiError = e;
+    console.warn("AI background removal unavailable, using simple method", e);
+    try {
+      setBusy("Removing background…");
+      result = await removeBgByColor(src);
+      usedFallback = true;
+    } catch (e2){
+      console.warn("Simple background removal failed", e2);
+    }
+  }
+
+  bgRemoveBusy = false;
+  if (btn){ btn.disabled = false; btn.textContent = label; }
+
+  if (!result){
+    if (status) status.textContent = "Couldn't remove the background (" + (aiError && aiError.message ? aiError.message : "unknown error") + "). Check your internet connection and try again, or use a photo with a plain background.";
+    showToast("Background removal failed");
+    return;
+  }
+
+  // Swap the picture but keep the same on-canvas size and position.
+  const shownW = obj.getScaledWidth(), shownH = obj.getScaledHeight();
+  if (!designCanvas.getObjects().includes(obj)){ return; } // layer was deleted meanwhile
+  obj.setSrc(result, () => {
+    obj.set({ scaleX: shownW / obj.width, scaleY: shownH / obj.height });
+    obj.setCoords();
+    designCanvas.setActiveObject(obj);
+    designCanvas.requestRenderAll();
+    refreshLayersList();
+    commitDesignHistory();
+    if (status) status.textContent = usedFallback
+      ? "Done. This photo's plain background was erased. For a busy background, try again with a connection so the AI model can load. Press Undo to go back."
+      : "Done. Background removed. Press Undo to go back.";
+    showToast("Background removed");
   });
 }
 
@@ -1372,19 +1417,12 @@ function addImageLayer(file){
 const STORAGE_UPLOAD_LIBRARY = "gfxprints_upload_library";
 const UPLOAD_LIBRARY_MAX = 40;
 
-// In-memory copy so uploads always show for this session, even if the browser
-// refuses to persist them (storage full / private mode).
-let memoryLibrary = null;
-
 function getUploadLibrary(){
-  if (memoryLibrary) return memoryLibrary;
   try {
-    const parsed = JSON.parse(localStorage.getItem(STORAGE_UPLOAD_LIBRARY) || "[]");
-    memoryLibrary = Array.isArray(parsed) ? parsed : [];
+    return JSON.parse(localStorage.getItem(STORAGE_UPLOAD_LIBRARY) || "[]");
   } catch (e){
-    memoryLibrary = [];
+    return [];
   }
-  return memoryLibrary;
 }
 
 function saveUploadLibrary(library){
@@ -1396,59 +1434,27 @@ function saveUploadLibrary(library){
   }
 }
 
-// Phone photos are several MB as data URLs and overflow the ~5 MB localStorage
-// limit, so the saved copy is shrunk first. The full-size image is still the
-// one placed on the canvas.
-function shrinkForLibrary(dataUrl, maxDim = 1200){
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () => {
-      try {
-        const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
-        const w = Math.max(1, Math.round(img.width * scale));
-        const h = Math.max(1, Math.round(img.height * scale));
-        const c = document.createElement("canvas");
-        c.width = w; c.height = h;
-        c.getContext("2d").drawImage(img, 0, 0, w, h);
-        // WebP keeps transparency and is small; browsers without it fall back to PNG.
-        let out = c.toDataURL("image/webp", 0.82);
-        if (out.indexOf("data:image/webp") !== 0) out = c.toDataURL("image/png");
-        resolve(out.length < dataUrl.length ? out : dataUrl);
-      } catch (e){ resolve(dataUrl); }
-    };
-    img.onerror = () => resolve(dataUrl);
-    img.src = dataUrl;
-  });
-}
-
 function addToUploadLibrary(dataUrl, name){
-  shrinkForLibrary(dataUrl).then((small) => {
-    let library = getUploadLibrary().slice();
-    if (library.some(item => item.dataUrl === small)) return; // already saved
-    library.unshift({
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      dataUrl: small,
-      name: name || "Upload"
-    });
-    if (library.length > UPLOAD_LIBRARY_MAX) library = library.slice(0, UPLOAD_LIBRARY_MAX);
-    memoryLibrary = library; // always visible this session
-    // If storage is full, drop the oldest entries until it fits.
-    let persisted = saveUploadLibrary(library);
-    let droppedForSpace = false;
-    while (!persisted && library.length > 1){
-      library.pop();
-      droppedForSpace = true;
-      persisted = saveUploadLibrary(library);
-    }
-    if (droppedForSpace) showToast("Storage full. Removed your oldest upload to make space");
-    else if (!persisted) showToast("This photo is shown for now but couldn't be saved for later");
-    renderUploadLibrary();
+  let library = getUploadLibrary();
+  if (library.some(item => item.dataUrl === dataUrl)) return; // already saved
+  library.unshift({
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    dataUrl,
+    name: name || "Upload"
   });
+  if (library.length > UPLOAD_LIBRARY_MAX) library = library.slice(0, UPLOAD_LIBRARY_MAX);
+  // If storage is full, drop the oldest entries until it fits.
+  let droppedForSpace = false;
+  while (library.length && !saveUploadLibrary(library)){
+    library.pop();
+    droppedForSpace = true;
+  }
+  if (droppedForSpace) showToast("Storage full. Removed your oldest upload to make space");
+  renderUploadLibrary();
 }
 
 function removeFromUploadLibrary(id){
-  memoryLibrary = getUploadLibrary().filter(item => item.id !== id);
-  saveUploadLibrary(memoryLibrary);
+  saveUploadLibrary(getUploadLibrary().filter(item => item.id !== id));
   renderUploadLibrary();
 }
 
@@ -1456,36 +1462,23 @@ function escAttr(s){
   return String(s || "").replace(/"/g, "&quot;");
 }
 
-function upText(str){
-  return String(str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
 function renderUploadLibrary(){
   const grid = document.getElementById("upload-library-grid");
   const empty = document.getElementById("upload-library-empty");
-  const count = document.getElementById("upload-library-count");
-  const clear = document.getElementById("upload-library-clear");
   if (!grid) return;
   const library = getUploadLibrary();
-  if (empty) empty.style.display = library.length ? "none" : "flex";
-  if (count) count.textContent = library.length ? `${library.length} of ${UPLOAD_LIBRARY_MAX}` : "";
-  if (clear) clear.hidden = !library.length;
+  if (empty) empty.style.display = library.length ? "none" : "block";
 
   grid.innerHTML = library.map(item => `
     <div class="upload-lib-item" data-id="${item.id}" title="${escAttr(item.name)}">
-      <button type="button" class="upload-lib-add" aria-label="Add ${escAttr(item.name)} to your design">
-        <img src="${item.dataUrl}" alt="" loading="lazy" decoding="async">
-        <span class="up-cap">${upText(String(item.name).replace(/\.[^.]+$/, ""))}</span>
-      </button>
-      <button type="button" class="upload-lib-remove" data-id="${item.id}" aria-label="Delete ${escAttr(item.name)} from your uploads">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
-      </button>
+      <img src="${item.dataUrl}" alt="${escAttr(item.name)}">
+      <button type="button" class="upload-lib-remove" data-id="${item.id}" aria-label="Remove ${escAttr(item.name)} from library">×</button>
     </div>
   `).join("");
 
-  grid.querySelectorAll(".upload-lib-add").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const id = btn.closest(".upload-lib-item").dataset.id;
+  grid.querySelectorAll(".upload-lib-item img").forEach(img => {
+    img.addEventListener("click", () => {
+      const id = img.closest(".upload-lib-item").dataset.id;
       const item = getUploadLibrary().find(i => i.id === id);
       if (item) placeImageOnCanvas(item.dataUrl);
     });
@@ -1498,48 +1491,12 @@ function renderUploadLibrary(){
   });
 }
 
-// Drag-and-drop onto the drop area, and a two-tap "Clear all".
-function initUploadPanel(){
-  const dz = document.getElementById("upload-dropzone");
-  const input = document.getElementById("tool-upload-image");
-  if (dz){
-    ["dragenter", "dragover"].forEach(ev => dz.addEventListener(ev, (e) => { e.preventDefault(); dz.classList.add("dragging"); }));
-    ["dragleave", "drop"].forEach(ev => dz.addEventListener(ev, () => dz.classList.remove("dragging")));
-    dz.addEventListener("drop", (e) => {
-      e.preventDefault();
-      if (input && input.disabled) return;
-      Array.from((e.dataTransfer && e.dataTransfer.files) || []).filter(f => /^image\//.test(f.type)).forEach(addImageLayer);
-    });
-  }
-  const clear = document.getElementById("upload-library-clear");
-  if (clear){
-    let timer = null;
-    clear.addEventListener("click", () => {
-      if (!timer){
-        clear.textContent = "Tap again to clear";
-        timer = setTimeout(() => { clear.textContent = "Clear all"; timer = null; }, 2500);
-        return;
-      }
-      clearTimeout(timer); timer = null;
-      clear.textContent = "Clear all";
-      memoryLibrary = [];
-      saveUploadLibrary([]);
-      renderUploadLibrary();
-    });
-  }
-}
-
 /* ---------- Selection + property panel ---------- */
 
 function onDesignSelectionChange(){
   selectedObject = designCanvas.getActiveObject();
   updatePropsPanel(selectedObject);
   refreshLayersList();
-  // Desktop: open the Edit panel as soon as a layer is selected.
-  // Phones/tablets use the Edit button on the layer instead.
-  if (selectedObject && !window.matchMedia("(max-width: 900px)").matches){
-    document.dispatchEvent(new CustomEvent("studio:edit-requested"));
-  }
 }
 
 function onDesignSelectionCleared(){
@@ -1565,8 +1522,6 @@ function updatePropsPanel(obj){
 
   empty.style.display = "none";
   sharedActions.style.display = "flex";
-  const lockBtn = document.getElementById("prop-lock");
-  if (lockBtn) lockBtn.textContent = obj.lockMovementX ? "Unlock" : "Lock";
 
   if (obj.type === "i-text" || obj.type === "text" || obj.type === "textbox"){
     textPanel.style.display = "block";
@@ -1583,20 +1538,6 @@ function updatePropsPanel(obj){
     document.querySelectorAll("#prop-text-align .toggle-btn").forEach(b => {
       b.classList.toggle("active", b.dataset.align === (obj.textAlign || "left"));
     });
-    const setVal = (id, valId, v) => {
-      const el = document.getElementById(id); if (el) el.value = v;
-      const out = document.getElementById(valId); if (out) out.textContent = v;
-    };
-    markActiveSwatch(document.getElementById("prop-text-color").value);
-    document.getElementById("prop-text-underline").classList.toggle("active", !!obj.underline);
-    document.getElementById("prop-text-strike").classList.toggle("active", !!obj.linethrough);
-    setVal("prop-text-spacing", "prop-text-spacing-val", Math.round(obj.charSpacing || 0));
-    setVal("prop-text-lineheight", "prop-text-lineheight-val", Number(obj.lineHeight || 1.16).toFixed(1));
-    setVal("prop-text-stroke", "prop-text-stroke-val", Math.round(obj.strokeWidth || 0));
-    if (obj.stroke && /^#/.test(obj.stroke)) document.getElementById("prop-text-stroke-color").value = obj.stroke;
-    setVal("prop-text-shadow", "prop-text-shadow-val", obj.shadow ? Math.round(obj.shadow.blur || 0) : 0);
-    if (obj.shadow && /^#/.test(obj.shadow.color || "")) document.getElementById("prop-text-shadow-color").value = obj.shadow.color;
-    setVal("prop-text-opacity", "prop-text-opacity-val", Math.round((obj.opacity == null ? 1 : obj.opacity) * 100));
     settingProps = false;
   } else if (obj.type === "image"){
     textPanel.style.display = "none";
@@ -1605,7 +1546,6 @@ function updatePropsPanel(obj){
     const opacityPct = Math.round((obj.opacity == null ? 1 : obj.opacity) * 100);
     document.getElementById("prop-image-opacity").value = opacityPct;
     document.getElementById("prop-image-opacity-val").textContent = opacityPct;
-    updateImagePanel(obj);
     settingProps = false;
   } else {
     // Multiple objects selected at once - just offer duplicate/delete.
@@ -1614,407 +1554,7 @@ function updatePropsPanel(obj){
   }
 }
 
-// Loads a (Google) font before drawing it, then re-measures the text so the box fits.
-function applyFontFamily(obj, family){
-  obj.set("fontFamily", family);
-  designCanvas.requestRenderAll();
-  const primary = String(family).split(",")[0].trim().replace(/['"]/g, "");
-  if (!(document.fonts && document.fonts.load)){ commitDesignHistory(); return; }
-  const spec = `${obj.fontStyle || "normal"} ${obj.fontWeight || "normal"} ${Math.round(obj.fontSize || 32)}px "${primary}"`;
-  document.fonts.load(spec, obj.text || "A").catch(() => {}).then(() => {
-    if (fabric.util.clearFabricFontCache) fabric.util.clearFabricFontCache(primary);
-    obj.dirty = true;
-    if (obj.initDimensions) obj.initDimensions();
-    obj.setCoords();
-    designCanvas.requestRenderAll();
-    commitDesignHistory();
-  });
-}
-
-// Wires a slider to an object property: live while dragging, history snapshot on release.
-function bindTextRange(id, valId, apply){
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.addEventListener("input", function(){
-    if (settingProps || !selectedObject) return;
-    const v = Number(this.value);
-    const out = document.getElementById(valId);
-    if (out) out.textContent = this.value;
-    apply(selectedObject, v);
-    selectedObject.dirty = true;
-    if (selectedObject.initDimensions) selectedObject.initDimensions();
-    selectedObject.setCoords();
-    designCanvas.requestRenderAll();
-  });
-  el.addEventListener("change", commitDesignHistory);
-}
-
-function bindTextToggle(id, prop, onVal, offVal){
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.addEventListener("click", function(){
-    if (!selectedObject) return;
-    const on = selectedObject[prop] === onVal;
-    selectedObject.set(prop, on ? offVal : onVal);
-    this.classList.toggle("active", !on);
-    designCanvas.requestRenderAll();
-    commitDesignHistory();
-  });
-}
-
-function applyTextOutline(obj){
-  const w = Number(document.getElementById("prop-text-stroke").value) || 0;
-  const col = document.getElementById("prop-text-stroke-color").value;
-  obj.set({ stroke: w ? col : null, strokeWidth: w, paintFirst: "stroke", strokeLineJoin: "round" });
-}
-
-function applyTextShadow(obj){
-  const blur = Number(document.getElementById("prop-text-shadow").value) || 0;
-  const col = document.getElementById("prop-text-shadow-color").value;
-  obj.set("shadow", blur ? new fabric.Shadow({ color: col, blur: blur, offsetX: Math.max(1, blur / 4), offsetY: Math.max(1, blur / 4) }) : null);
-}
-
-function markActiveSwatch(color){
-  document.querySelectorAll("#pp-text-swatches .pp-sw[data-color]").forEach(sw => {
-    sw.classList.toggle("on", sw.dataset.color.toLowerCase() === String(color).toLowerCase());
-  });
-}
-
-function bindExtraTextOptions(){
-  const picker = document.getElementById("prop-text-color");
-  document.querySelectorAll("#pp-text-swatches .pp-sw[data-color]").forEach(sw => {
-    sw.addEventListener("click", () => {
-      if (!selectedObject || !picker) return;
-      picker.value = sw.dataset.color;
-      picker.dispatchEvent(new Event("input", { bubbles: true }));
-      picker.dispatchEvent(new Event("change", { bubbles: true }));
-      markActiveSwatch(sw.dataset.color);
-    });
-  });
-  if (picker) picker.addEventListener("input", () => markActiveSwatch(picker.value));
-  bindTextToggle("prop-text-underline", "underline", true, false);
-  bindTextToggle("prop-text-strike", "linethrough", true, false);
-
-  bindTextRange("prop-text-spacing", "prop-text-spacing-val", (o, v) => o.set("charSpacing", v));
-  bindTextRange("prop-text-lineheight", "prop-text-lineheight-val", (o, v) => o.set("lineHeight", v));
-  bindTextRange("prop-text-stroke", "prop-text-stroke-val", (o) => applyTextOutline(o));
-  bindTextRange("prop-text-shadow", "prop-text-shadow-val", (o) => applyTextShadow(o));
-  bindTextRange("prop-text-opacity", "prop-text-opacity-val", (o, v) => o.set("opacity", v / 100));
-
-  const sc = document.getElementById("prop-text-stroke-color");
-  if (sc){
-    sc.addEventListener("input", function(){
-      if (settingProps || !selectedObject) return;
-      applyTextOutline(selectedObject);
-      designCanvas.requestRenderAll();
-    });
-    sc.addEventListener("change", commitDesignHistory);
-  }
-  const shc = document.getElementById("prop-text-shadow-color");
-  if (shc){
-    shc.addEventListener("input", function(){
-      if (settingProps || !selectedObject) return;
-      applyTextShadow(selectedObject);
-      designCanvas.requestRenderAll();
-    });
-    shc.addEventListener("change", commitDesignHistory);
-  }
-
-  // Flip / centre work for text and images
-  const flip = document.getElementById("prop-flip");
-  if (flip) flip.addEventListener("click", () => {
-    if (!selectedObject) return;
-    selectedObject.set("flipX", !selectedObject.flipX);
-    selectedObject.setCoords();
-    designCanvas.requestRenderAll();
-    commitDesignHistory();
-  });
-  const ch = document.getElementById("prop-center-h");
-  if (ch) ch.addEventListener("click", () => {
-    if (!selectedObject) return;
-    designCanvas.centerObjectH(selectedObject);
-    selectedObject.setCoords();
-    designCanvas.requestRenderAll();
-    commitDesignHistory();
-  });
-  const cv = document.getElementById("prop-center-v");
-  if (cv) cv.addEventListener("click", () => {
-    if (!selectedObject) return;
-    designCanvas.centerObjectV(selectedObject);
-    selectedObject.setCoords();
-    designCanvas.requestRenderAll();
-    commitDesignHistory();
-  });
-}
-
-
-/* ---------- Image tools (all client-side, no external services) ---------- */
-const IMG_PRINT_WIDTH_IN = { "T-Shirts": 12, "Hoodies": 12, "Tote Bags": 12, "Mugs": 8, "Photo Frames": 8 };
-
-function imgNat(obj){
-  const el = obj._originalElement || obj._element || {};
-  return { w: el.naturalWidth || el.width || obj.width, h: el.naturalHeight || el.height || obj.height };
-}
-function imgFilter(obj, type){ return (obj.filters || []).find(f => f && f.type === type); }
-function imgSetFilter(obj, type, inst){
-  obj.filters = (obj.filters || []).filter(f => f && f.type !== type);
-  if (inst) obj.filters.push(inst);
-}
-function imgRefresh(obj, commit){
-  obj.applyFilters();
-  obj.dirty = true;
-  designCanvas.requestRenderAll();
-  if (commit) commitDesignHistory();
-}
-function imgThrottle(fn, ms){
-  let t = 0, tm = null;
-  return function(...a){
-    const now = Date.now();
-    clearTimeout(tm);
-    if (now - t >= ms){ t = now; fn.apply(this, a); }
-    else tm = setTimeout(() => { t = Date.now(); fn.apply(this, a); }, ms);
-  };
-}
-
-function printAreaRect(){
-  const cw = designCanvas.getWidth(), ch = designCanvas.getHeight();
-  const g = document.querySelector(".print-guide"), st = document.getElementById("studio-stage");
-  if (g && st){
-    const gr = g.getBoundingClientRect(), sr = st.getBoundingClientRect();
-    if (gr.width > 20 && sr.width > 20){
-      return { x: (gr.left - sr.left) / sr.width * cw, y: (gr.top - sr.top) / sr.height * ch, w: gr.width / sr.width * cw, h: gr.height / sr.height * ch };
-    }
-  }
-  return { x: 0, y: 0, w: cw, h: ch };
-}
-
-function imgFit(obj, cover){
-  const r = printAreaRect();
-  const quarter = Math.round(obj.angle / 90) % 2 !== 0 && obj.angle % 90 === 0;
-  const w = quarter ? obj.height : obj.width, h = quarter ? obj.width : obj.height;
-  const k = cover ? Math.max(r.w / w, r.h / h) : Math.min(r.w / w, r.h / h);
-  obj.set({ scaleX: k, scaleY: k, originX: "center", originY: "center", left: r.x + r.w / 2, top: r.y + r.h / 2 });
-  obj.setCoords();
-  designCanvas.requestRenderAll();
-  commitDesignHistory();
-  updateImageQuality(obj);
-}
-
-function updateImageQuality(obj){
-  const el = document.getElementById("pp-quality");
-  if (!el || !obj || obj.type !== "image") return;
-  if (obj.gfxVector){
-    el.className = "pp-quality q-good";
-    el.textContent = "Vector artwork. Stays sharp at any size and prints at full quality.";
-    return;
-  }
-  const inches = (IMG_PRINT_WIDTH_IN[currentProduct && currentProduct.category] || 10);
-  const shownIn = obj.getScaledWidth() / designCanvas.getWidth() * inches;
-  const dpi = Math.round(obj.width / Math.max(0.1, shownIn));
-  let cls = "q-good", msg = `Great print quality (about ${dpi} DPI)`;
-  if (dpi < 72){ cls = "q-low"; msg = `Very low resolution (about ${dpi} DPI). It will look blurry when printed. Make it smaller or upload a larger photo.`; }
-  else if (dpi < 120){ cls = "q-low"; msg = `Low resolution (about ${dpi} DPI). It may print soft. Try a smaller size or a better photo.`; }
-  else if (dpi < 200){ cls = "q-ok"; msg = `Good print quality (about ${dpi} DPI)`; }
-  el.className = "pp-quality " + cls;
-  el.textContent = msg + " - estimate only";
-}
-
-function imgShapePath(shape, s){
-  if (shape === "heart"){
-    const p = new fabric.Path("M50 88C20 62 2 44 2 26C2 12 13 2 27 2C38 2 46 8 50 16C54 8 62 2 73 2C87 2 98 12 98 26C98 44 80 62 50 88Z");
-    const k = s / Math.max(p.width, p.height);
-    p.set({ originX: "center", originY: "center", left: 0, top: 0, scaleX: k, scaleY: k });
-    return p;
-  }
-  const pts = [];
-  for (let i = 0; i < 10; i++){
-    const r = (i % 2 ? 0.2 : 0.5) * s * (i % 2 ? 1.0 : 1.0) * (i % 2 ? 1.0 : 1.0);
-    const rad = i % 2 ? s * 0.2 : s * 0.5, a = -Math.PI / 2 + i * Math.PI / 5;
-    pts.push({ x: Math.cos(a) * rad, y: Math.sin(a) * rad });
-  }
-  return new fabric.Polygon(pts, { originX: "center", originY: "center", left: 0, top: 0 });
-}
-
-function imgApplyShape(obj, shape){
-  obj.gfxShape = shape || "";
-  const s = Math.min(obj.width, obj.height);
-  let clip = null;
-  if (shape === "circle") clip = new fabric.Circle({ radius: s / 2, originX: "center", originY: "center", left: 0, top: 0 });
-  else if (shape === "rounded") clip = new fabric.Rect({ width: obj.width, height: obj.height, rx: s * 0.18, ry: s * 0.18, originX: "center", originY: "center", left: 0, top: 0 });
-  else if (shape === "heart" || shape === "star") clip = imgShapePath(shape, s);
-  obj.clipPath = clip;
-  obj.dirty = true;
-  designCanvas.requestRenderAll();
-}
-
-function imgApplyCrop(obj){
-  const v = id => (Number(document.getElementById(id).value) || 0) / 100;
-  let L = v("img-crop-l"), R = v("img-crop-r"), T = v("img-crop-t"), B = v("img-crop-b");
-  if (L + R > 0.9){ R = 0.9 - L; }
-  if (T + B > 0.9){ B = 0.9 - T; }
-  const n = imgNat(obj);
-  obj.set({ cropX: n.w * L, cropY: n.h * T, width: n.w * (1 - L - R), height: n.h * (1 - T - B) });
-  if (obj.gfxShape) imgApplyShape(obj, obj.gfxShape);
-  obj.dirty = true;
-  obj.setCoords();
-  designCanvas.requestRenderAll();
-  updateImageQuality(obj);
-}
-
-function imgApplyBorder(obj){
-  const w = Number(document.getElementById("img-border").value) || 0;
-  obj.set({ stroke: w ? document.getElementById("img-border-color").value : null, strokeWidth: w, strokeUniform: true });
-}
-function imgApplyShadow(obj){
-  const b = Number(document.getElementById("img-shadow").value) || 0;
-  obj.set("shadow", b ? new fabric.Shadow({ color: document.getElementById("img-shadow-color").value, blur: b, offsetX: Math.max(1, b / 4), offsetY: Math.max(1, b / 4) }) : null);
-}
-
-function imgReadAdjustments(obj){
-  const val = (id) => Number(document.getElementById(id).value) || 0;
-  const F = fabric.Image.filters;
-  imgSetFilter(obj, "Brightness", val("img-brightness") ? new F.Brightness({ brightness: val("img-brightness") / 100 }) : null);
-  imgSetFilter(obj, "Contrast", val("img-contrast") ? new F.Contrast({ contrast: val("img-contrast") / 100 }) : null);
-  imgSetFilter(obj, "Saturation", val("img-saturation") ? new F.Saturation({ saturation: val("img-saturation") / 100 }) : null);
-  imgSetFilter(obj, "Blur", val("img-blur") ? new F.Blur({ blur: val("img-blur") / 100 }) : null);
-  const rm = document.getElementById("img-rmwhite").checked;
-  imgSetFilter(obj, "RemoveColor", rm ? new F.RemoveColor({ color: "#ffffff", distance: val("img-rmwhite-tol") / 100 }) : null);
-}
-
-function updateImagePanel(obj){
-  const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; const o = document.getElementById(id + "-val"); if (o) o.textContent = v; };
-  const f = (t) => imgFilter(obj, t);
-  set("img-brightness", f("Brightness") ? Math.round(f("Brightness").brightness * 100) : 0);
-  set("img-contrast", f("Contrast") ? Math.round(f("Contrast").contrast * 100) : 0);
-  set("img-saturation", f("Saturation") ? Math.round(f("Saturation").saturation * 100) : 0);
-  set("img-blur", f("Blur") ? Math.round(f("Blur").blur * 100) : 0);
-  document.getElementById("img-rmwhite").checked = !!f("RemoveColor");
-  set("img-rmwhite-tol", f("RemoveColor") ? Math.round(f("RemoveColor").distance * 100) : 15);
-  const n = imgNat(obj);
-  const L = (obj.cropX || 0) / n.w, T = (obj.cropY || 0) / n.h;
-  set("img-crop-l", Math.round(L * 100)); set("img-crop-t", Math.round(T * 100));
-  set("img-crop-r", Math.max(0, Math.round((1 - L - obj.width / n.w) * 100)));
-  set("img-crop-b", Math.max(0, Math.round((1 - T - obj.height / n.h) * 100)));
-  set("img-border", Math.round(obj.strokeWidth || 0));
-  if (obj.stroke && /^#/.test(obj.stroke)) document.getElementById("img-border-color").value = obj.stroke;
-  set("img-shadow", obj.shadow ? Math.round(obj.shadow.blur || 0) : 0);
-  const shape = obj.gfxShape || "";
-  document.querySelectorAll("#img-shapes .pp-chip").forEach(c => c.classList.toggle("on", c.dataset.shape === shape));
-  const preset = ["Grayscale", "Sepia", "Invert"].find(t => f(t)) || "";
-  document.querySelectorAll("#img-presets .pp-chip").forEach(c => c.classList.toggle("on", c.dataset.preset === preset));
-  updateImageQuality(obj);
-}
-
-function bindImageTools(){
-  const sel = () => (selectedObject && selectedObject.type === "image") ? selectedObject : null;
-  const on = (id, ev, fn) => { const el = document.getElementById(id); if (el) el.addEventListener(ev, fn); };
-
-  on("img-bgremove", "click", () => {
-    const o = sel();
-    if (!o || !window.GfxBgRemove){ showToast("Background remover is still loading. Try again in a moment"); return; }
-    window.GfxBgRemove.open(o, (url) => {
-      const keepW = o.getScaledWidth();
-      imgSetFilter(o, "RemoveColor", null);
-      o.setSrc(url, () => {
-        o.set({ cropX: 0, cropY: 0 });
-        o.scaleToWidth(keepW);
-        if (o.gfxShape) imgApplyShape(o, o.gfxShape);
-        o.setCoords();
-        designCanvas.requestRenderAll();
-        refreshLayersList();
-        commitDesignHistory();
-        updatePropsPanel(o);
-      });
-    });
-  });
-  on("img-fit", "click", () => { const o = sel(); if (o) imgFit(o, false); });
-  on("img-fill", "click", () => { const o = sel(); if (o) imgFit(o, true); });
-  on("img-rot90", "click", () => { const o = sel(); if (!o) return; o.rotate(((o.angle || 0) + 90) % 360); o.setCoords(); designCanvas.requestRenderAll(); commitDesignHistory(); });
-  on("img-flipv", "click", () => { const o = sel(); if (!o) return; o.set("flipY", !o.flipY); designCanvas.requestRenderAll(); commitDesignHistory(); });
-
-  document.querySelectorAll("#img-shapes .pp-chip").forEach(chip => chip.addEventListener("click", () => {
-    const o = sel(); if (!o) return;
-    imgApplyShape(o, chip.dataset.shape);
-    document.querySelectorAll("#img-shapes .pp-chip").forEach(c => c.classList.toggle("on", c === chip));
-    commitDesignHistory();
-  }));
-
-  ["img-crop-l", "img-crop-r", "img-crop-t", "img-crop-b"].forEach(id => {
-    on(id, "input", function(){ if (settingProps) return; const o = sel(); if (!o) return; document.getElementById(id + "-val").textContent = this.value; imgApplyCrop(o); });
-    on(id, "change", commitDesignHistory);
-  });
-
-  document.querySelectorAll("#img-presets .pp-chip").forEach(chip => chip.addEventListener("click", () => {
-    const o = sel(); if (!o) return;
-    ["Grayscale", "Sepia", "Invert"].forEach(t => imgSetFilter(o, t, null));
-    if (chip.dataset.preset) imgSetFilter(o, chip.dataset.preset, new fabric.Image.filters[chip.dataset.preset]());
-    document.querySelectorAll("#img-presets .pp-chip").forEach(c => c.classList.toggle("on", c === chip));
-    imgRefresh(o, true);
-  }));
-
-  const applyAdj = imgThrottle(() => { const o = sel(); if (o){ imgReadAdjustments(o); imgRefresh(o, false); } }, 150);
-  ["img-brightness", "img-contrast", "img-saturation", "img-blur", "img-rmwhite-tol"].forEach(id => {
-    on(id, "input", function(){ if (settingProps) return; document.getElementById(id + "-val").textContent = this.value; applyAdj(); });
-    on(id, "change", () => { const o = sel(); if (o){ imgReadAdjustments(o); imgRefresh(o, true); } });
-  });
-  on("img-rmwhite", "change", () => { const o = sel(); if (o){ imgReadAdjustments(o); imgRefresh(o, true); } });
-
-  [["img-border", "img-border-color", imgApplyBorder], ["img-shadow", "img-shadow-color", imgApplyShadow]].forEach(([sl, col, fn]) => {
-    on(sl, "input", function(){ if (settingProps) return; const o = sel(); if (!o) return; document.getElementById(sl + "-val").textContent = this.value; fn(o); o.dirty = true; designCanvas.requestRenderAll(); });
-    on(col, "input", () => { if (settingProps) return; const o = sel(); if (o){ fn(o); o.dirty = true; designCanvas.requestRenderAll(); } });
-    on(sl, "change", commitDesignHistory); on(col, "change", commitDesignHistory);
-  });
-
-  on("img-reset", "click", () => {
-    const o = sel(); if (!o) return;
-    const n = imgNat(o);
-    o.filters = []; o.clipPath = null; o.gfxShape = "";
-    o.set({ stroke: null, strokeWidth: 0, shadow: null, opacity: 1, flipX: false, flipY: false, cropX: 0, cropY: 0, width: n.w, height: n.h });
-    imgRefresh(o, true); o.setCoords(); updatePropsPanel(o);
-  });
-
-  on("img-replace-input", "change", function(){
-    const o = sel(), file = this.files && this.files[0];
-    this.value = "";
-    if (!o || !file || file.type.indexOf("image") !== 0) return;
-    const rd = new FileReader();
-    rd.onload = (ev) => {
-      const keepW = o.getScaledWidth();
-      addToUploadLibrary(ev.target.result, file.name);
-      o.setSrc(ev.target.result, () => {
-        o.set({ cropX: 0, cropY: 0 });
-        o.gfxId = ""; // new picture: forget the old uncut original
-        o.scaleToWidth(keepW);
-        if (o.gfxShape) imgApplyShape(o, o.gfxShape);
-        o.setCoords();
-        designCanvas.requestRenderAll();
-        refreshLayersList();
-        commitDesignHistory();
-        updatePropsPanel(o);
-      });
-    };
-    rd.readAsDataURL(file);
-  });
-
-  if (designCanvas){
-    designCanvas.on("object:scaling", () => { const o = sel(); if (o) updateImageQuality(o); });
-    designCanvas.on("object:modified", () => { const o = sel(); if (o) updateImageQuality(o); });
-  }
-
-  on("prop-lock", "click", () => {
-    const objs = designCanvas.getActiveObjects();
-    if (!objs.length) return;
-    const lock = !objs[0].lockMovementX;
-    objs.forEach(o => o.set({ lockMovementX: lock, lockMovementY: lock, lockScalingX: lock, lockScalingY: lock, lockRotation: lock, hasControls: !lock }));
-    document.getElementById("prop-lock").textContent = lock ? "Unlock" : "Lock";
-    designCanvas.requestRenderAll();
-    commitDesignHistory();
-  });
-}
-
 function bindStudioPropertyPanel(){
-  bindImageTools();
-  bindExtraTextOptions();
   const content = document.getElementById("prop-text-content");
   if (content){
     content.addEventListener("input", function(){
@@ -2030,7 +1570,9 @@ function bindStudioPropertyPanel(){
   if (font){
     font.addEventListener("change", function(){
       if (!selectedObject) return;
-      applyFontFamily(selectedObject, this.value);
+      selectedObject.set("fontFamily", this.value);
+      designCanvas.requestRenderAll();
+      commitDesignHistory();
     });
   }
 
@@ -2101,6 +1643,8 @@ function bindStudioPropertyPanel(){
     opacity.addEventListener("change", commitDesignHistory);
   }
 
+  const removeBg = document.getElementById("prop-remove-bg");
+  if (removeBg) removeBg.addEventListener("click", removeBackgroundOfSelected);
 
   const duplicate = document.getElementById("prop-duplicate");
   if (duplicate){

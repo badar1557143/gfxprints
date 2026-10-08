@@ -584,7 +584,7 @@ function initCheckoutPage(){
         if (body) body.innerHTML = `Your order and design file(s) were shared as one attachment, ref <strong>${orderRef}</strong>. Our team will confirm the total, delivery, and payment with you on WhatsApp.`;
       } else if (designNote){
         designNote.textContent = hasDesigns
-          ? ", and we've downloaded your design file(s) to your device, attach them in that chat as a Document (not Photo) for full print quality, then send"
+          ? ", then send it so we can confirm your order"
           : "";
       }
       document.getElementById("checkout-form-wrap").style.display = "none";
@@ -600,11 +600,7 @@ function initCheckoutPage(){
     // since browsers can silently block several downloads fired at once.
     const openWhatsAppAndDownload = () => {
       window.open(whatsappLink(messageText), "_blank", "noopener");
-      let delay = 0;
-      cart.forEach(item => (item.designFiles || []).forEach(file => {
-        setTimeout(() => { if (file.blob) triggerFileDownload(file.blob, designFileName(item, file, orderRef)); }, delay);
-        delay += 500;
-      }));
+      // No automatic download of design files; the order is placed only.
       finishOrder(false);
     };
 

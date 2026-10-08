@@ -120,38 +120,79 @@ async function initVisitorCounter(){
   } catch (e){ /* offline or blocked: show nothing */ }
 }
 
-/* ---------- Design file downloads (JPG only) ---------- */
-// Design files are exported as flattened JPGs (white background, no
-// transparency). Shared by the Design Studio and the cart's "Download" buttons.
+/* ---------- Design (print) files: PNG, kept in IndexedDB ----------
+   The 300 DPI print files are too big for localStorage (about 5 MB), so the cart keeps only a small
+   record { id, label, key, mime } and the PNG itself lives in IndexedDB (Blob, no base64 bloat). */
+const GfxFiles = (() => {
+  const mem = new Map();
+  let dbp = null;
+  const db = () => dbp || (dbp = new Promise((res, rej) => {
+    try {
+      const r = indexedDB.open("gfxprints-files", 1);
+      r.onupgradeneeded = () => r.result.createObjectStore("f");
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => rej(r.error);
+    } catch (e){ rej(e); }
+  }));
+  const tx = (mode, fn) => db().then(d => new Promise((res, rej) => {
+    const t = d.transaction("f", mode), req = fn(t.objectStore("f"));
+    t.oncomplete = () => res(req ? req.result : undefined);
+    t.onerror = t.onabort = () => rej(t.error);
+  }));
+  return {
+    async put(key, blob){ mem.set(key, blob); try { await tx("readwrite", s => s.put(blob, key)); return true; } catch (e){ return false; } },
+    async get(key){ if (mem.has(key)) return mem.get(key); try { return (await tx("readonly", s => s.get(key))) || null; } catch (e){ return null; } },
+    async clear(){ mem.clear(); try { await tx("readwrite", s => s.clear()); } catch (e){} }
+  };
+})();
+window.GfxFiles = GfxFiles;
 
+function dataUrlToBlob(dataUrl){
+  const m = /^data:([^;,]+)?(;base64)?,(.*)$/s.exec(dataUrl || "");
+  if (!m) return null;
+  const bin = m[2] ? atob(m[3]) : decodeURIComponent(m[3]), bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new Blob([bytes], { type: m[1] || "image/png" });
+}
+function blobToDataUrl(blob){
+  return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error); r.readAsDataURL(blob); });
+}
+// Puts the real file (Blob) on every design-file record of these cart items: file.blob
+async function hydrateDesignFiles(cart){
+  for (const item of (cart || [])){
+    for (const f of (item.designFiles || [])){
+      if (f.blob) continue;
+      if (f.key) f.blob = await GfxFiles.get(f.key);
+      else if (f.dataUrl) f.blob = dataUrlToBlob(f.dataUrl);
+    }
+  }
+}
+function designFileExt(file){
+  const t = (file && (file.blob && file.blob.type || file.mime)) || (/^data:image\/jpe?g/i.test(file && file.dataUrl || "") ? "image/jpeg" : "image/png");
+  return /jpe?g/i.test(t) ? "jpg" : "png";
+}
+
+/* ---------- Design file downloads ---------- */
+// href: a data URL string or a Blob (Blob is safest for big files).
 function triggerFileDownload(href, filename){
+  const isBlob = typeof Blob !== "undefined" && href instanceof Blob;
+  const url = isBlob ? URL.createObjectURL(href) : href;
   const a = document.createElement("a");
-  a.href = href;
+  a.href = url;
   a.download = filename;
   document.body.appendChild(a);
   a.click();
   a.remove();
+  if (isBlob) setTimeout(() => URL.revokeObjectURL(url), 15000);
 }
 
-// Downloads any image data URL as a JPG. Files that are already JPG go straight
-// through; older cart items saved as PNG are flattened onto white first.
-function downloadDesignAsJpg(dataUrl, filenameBase){
-  if (/^data:image\/jpe?g/i.test(dataUrl)){
-    triggerFileDownload(dataUrl, `${filenameBase}.jpg`);
+// Downloads one cart design file (needs file.blob, see hydrateDesignFiles).
+function downloadDesignFile(file, filenameBase){
+  if (!file || !file.blob){
+    showToast("This design file is no longer on this device. Please create the design again.");
     return;
   }
-  const img = new Image();
-  img.onload = () => {
-    const canvas = document.createElement("canvas");
-    canvas.width = img.naturalWidth;
-    canvas.height = img.naturalHeight;
-    const ctx = canvas.getContext("2d");
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(img, 0, 0);
-    triggerFileDownload(canvas.toDataURL("image/jpeg", 0.95), `${filenameBase}.jpg`);
-  };
-  img.src = dataUrl;
+  triggerFileDownload(file.blob, `${filenameBase}.${designFileExt(file)}`);
 }
 
 function getCart(){

@@ -44,7 +44,7 @@ function renderCartPage(){
         <button class="ci-remove" data-i="${i}">Remove</button>
         ${(item.designFiles || []).map((f, fi) => `
           <span class="ci-download-wrap">
-            <button class="ci-download" data-i="${i}" data-file="${fi}">Download ${(item.designFiles.length > 1 ? f.label : "Design")} (JPG)</button>
+            <button class="ci-download" data-i="${i}" data-file="${fi}">Download ${(item.designFiles.length > 1 ? f.label : "Design")} (PNG)</button>
           </span>
         `).join("")}
       </div>
@@ -55,9 +55,10 @@ function renderCartPage(){
     const item = getCart()[Number(btn.dataset.i)];
     const file = item && item.designFiles && item.designFiles[Number(btn.dataset.file)];
     if (!file) return;
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", async () => {
       const base = `${(item.name || "gfxprints-design").replace(/\s+/g, "-").toLowerCase()}-${file.label.replace(/\s+/g, "-").toLowerCase()}`;
-      downloadDesignAsJpg(file.dataUrl, base);
+      await hydrateDesignFiles([item]);
+      downloadDesignFile(file, base);
     });
   });
 
@@ -389,8 +390,7 @@ function dataUrlToFile(dataUrl, filename, fallbackMime){
 
 function designFileName(item, file, orderRef){
   const base = `${(item.name || "gfxprints-design").replace(/\s+/g, "-").toLowerCase()}-${file.label.replace(/\s+/g, "-").toLowerCase()}-${orderRef}`;
-  const ext = /^data:image\/jpe?g/i.test(file.dataUrl || "") ? "jpg" : "png";
-  return `${base}.${ext}`;
+  return `${base}.${designFileExt(file)}`;
 }
 
 // Tries the device's native share sheet so the order text and design
@@ -412,7 +412,7 @@ function tryNativeOrderShare(cart, orderRef, messageText){
 
   const designFiles = [];
   cart.forEach(item => (item.designFiles || []).forEach(file => {
-    designFiles.push(dataUrlToFile(file.dataUrl, designFileName(item, file, orderRef)));
+    if (file.blob) designFiles.push(new File([file.blob], designFileName(item, file, orderRef), { type: file.blob.type || "image/png" }));
   }));
   if (!designFiles.length || !navigator.canShare({ files: designFiles })) return null;
 
@@ -432,16 +432,21 @@ async function uploadOrderToCloud(cart, info){
   if (!ORDER_ENDPOINT) return null;
   const contact = checkoutContactInfo();
   const slug = (s) => String(s || "item").replace(/\s+/g, "-").toLowerCase();
-  let items = cart.map(item => {
+  let items = [];
+  for (const item of cart){
     const files = [];
-    (item.designFiles || []).forEach(f => {
-      const p = splitDataUrl(f.dataUrl);
-      if (p) files.push({ label: f.label, name: designFileName(item, f, info.orderRef), mime: p.mime, data: p.data });
-    });
+    for (const f of (item.designFiles || [])){
+      if (!f.blob) continue;
+      const p = splitDataUrl(await blobToDataUrl(f.blob));
+      if (p){
+        const entry = { label: f.label, name: designFileName(item, f, info.orderRef), mime: p.mime, data: p.data };
+        files.push(entry);
+      }
+    }
     const prev = splitDataUrl(item.designPreview);
     if (prev && files.length) files.push({ label: "Preview", name: `${slug(item.name)}-preview-${info.orderRef}.${/png/.test(prev.mime) ? "png" : "jpg"}`, mime: prev.mime, data: prev.data });
-    return { name: item.name, qty: item.qty, price: item.price, color: item.color, size: item.size, orientation: item.orientation, packaging: item.packaging, files };
-  });
+    items.push({ name: item.name, qty: item.qty, price: item.price, color: item.color, size: item.size, orientation: item.orientation, packaging: item.packaging, files });
+  }
   const shot = currentWalletShot();
   if (shot && items.length){
     const p = splitDataUrl(shot.dataUrl);
@@ -451,6 +456,8 @@ async function uploadOrderToCloud(cart, info){
   if (size() > 24e6){ // too big: drop the mockup previews and keep only the print files
     items = items.map(it => Object.assign({}, it, { files: it.files.filter(f => f.label !== "Preview") }));
   }
+  // Print files are never shrunk: they must stay exactly 300 DPI. If the order is still too big for one upload,
+  // return null and checkout falls back to the WhatsApp attach flow with the full-size files.
   if (size() > 30e6) return null;
 
   const payload = {
@@ -530,6 +537,7 @@ function initCheckoutPage(){
       return;
     }
     const cart = getCart();
+    await hydrateDesignFiles(cart);
     const subtotal = cartSubtotal();
     const shippingMethod = document.querySelector('input[name="shipping"]:checked');
     const shipping = shippingMethod && shippingMethod.value === "express" ? SHIPPING_EXPRESS : SHIPPING_STANDARD;
@@ -582,6 +590,7 @@ function initCheckoutPage(){
       document.getElementById("checkout-form-wrap").style.display = "none";
       document.getElementById("checkout-confirmation").style.display = "block";
       localStorage.removeItem(STORAGE_CART);
+      if (window.GfxFiles) GfxFiles.clear();
       updateCartBadge();
     };
 
@@ -593,7 +602,7 @@ function initCheckoutPage(){
       window.open(whatsappLink(messageText), "_blank", "noopener");
       let delay = 0;
       cart.forEach(item => (item.designFiles || []).forEach(file => {
-        setTimeout(() => triggerFileDownload(file.dataUrl, designFileName(item, file, orderRef)), delay);
+        setTimeout(() => { if (file.blob) triggerFileDownload(file.blob, designFileName(item, file, orderRef)); }, delay);
         delay += 500;
       }));
       finishOrder(false);

@@ -60,9 +60,9 @@ function initCustomizePage(){
   }
 }
 
-// Lets the customer save their design as a JPG print file so they can attach it
+// Lets the customer save their design as a PNG print file (about 300 DPI) so they can attach it
 // in the WhatsApp chat (a wa.me link can only pre-fill text, not attach files).
-// JPG only, artwork only, 4x resolution, flattened onto white. Products with more
+// PNG only, artwork only. Clothing and bags keep a transparent background, mugs and frames are flattened onto white. Products with more
 // than one print side get a small "choose side" menu; single-side products
 // download straight away.
 function initDownloadButton(btn, wrap){
@@ -97,34 +97,56 @@ function initDownloadButton(btn, wrap){
 
 function renderDownloadMenu(menu){
   const withDesign = currentSides.filter(s => sidesState[s.id] && sidesState[s.id].hasContent);
-  let html = '<div class="download-menu-title">Download JPG - choose side</div>';
+  let html = '<div class="download-menu-title">Download PNG - choose side</div>';
   html += currentSides.map(s => {
     const has = !!(sidesState[s.id] && sidesState[s.id].hasContent);
-    return `<button type="button" data-side="${s.id}"${has ? "" : " disabled"}>${s.label}<small>${has ? "JPG of this side" : "No design on this side yet"}</small></button>`;
+    return `<button type="button" data-side="${s.id}"${has ? "" : " disabled"}>${s.label}<small>${has ? "PNG of this side" : "No design on this side yet"}</small></button>`;
   }).join("");
   if (withDesign.length > 1){
-    html += '<button type="button" data-side="all">All sides<small>One JPG per side</small></button>';
+    html += '<button type="button" data-side="all">All sides<small>One PNG per side</small></button>';
   }
   menu.innerHTML = html;
 }
 
-// Flattens a fabric canvas onto white and returns a high-res JPG data URL.
-function canvasToJpg(canvas){
-  const prev = canvas.backgroundColor;
-  canvas.backgroundColor = "#ffffff";
+const APPAREL_CATS = ["T-Shirts", "Hoodies", "Tote Bags"];
+
+// Exports a fabric canvas as a PNG Blob at EXACTLY 300 DPI over the printable width (never lower, never higher),
+// with 300 DPI saved inside the file. Clothing keeps a transparent background so no white box is printed;
+// mugs and frames are flattened onto white. If this device cannot make a canvas that big, no smaller file is
+// made (that would break the 300 DPI rule): the customer is told instead.
+const PRINT_DPI = 300;
+async function canvasToPng(canvas){
   try {
-    return canvas.toDataURL({ format: "jpeg", quality: 0.95, multiplier: 4 });
-  } finally {
-    canvas.backgroundColor = prev;
-    if (canvas.renderAll) canvas.renderAll();
+    const cat = currentProduct && currentProduct.category;
+    const inches = IMG_PRINT_WIDTH_IN[cat] || 10, w = canvas.getWidth();
+    const mult = (inches * PRINT_DPI) / Math.max(1, w);
+    const prev = canvas.backgroundColor;
+    canvas.backgroundColor = APPAREL_CATS.indexOf(cat) >= 0 ? "" : "#ffffff";
+    let el;
+    try {
+      el = canvas.toCanvasElement(mult);
+    } finally {
+      canvas.backgroundColor = prev;
+      if (canvas.renderAll) canvas.renderAll();
+    }
+    const blob = await new Promise((res) => el.toBlob(res, "image/png"));
+    if (!blob) throw new Error("png export failed");
+    if (window.GfxUpscale && window.GfxUpscale.pngWithDpi){
+      const bytes = window.GfxUpscale.pngWithDpi(new Uint8Array(await blob.arrayBuffer()), PRINT_DPI);
+      return new Blob([bytes], { type: "image/png" });
+    }
+    return blob;
+  } catch (e){
+    showToast("This device could not create the 300 DPI print file. Please try on a computer or contact us on WhatsApp");
+    return null;
   }
 }
 
-// JPG data URL for one print side. The side on screen is exported live; any
+// PNG Blob for one print side. The side on screen is exported live; any
 // other side is rendered from its saved state on an off-screen canvas.
-function exportSideJpg(sideId, callback){
+function exportSidePng(sideId, callback){
   if (currentSides.length < 2 || sideId === activeSideId){
-    callback(canvasToJpg(designCanvas));
+    canvasToPng(designCanvas).then(callback, () => callback(null));
     return;
   }
   const st = sidesState[sideId];
@@ -132,9 +154,7 @@ function exportSideJpg(sideId, callback){
   const temp = new fabric.StaticCanvas(null, { width: designCanvas.getWidth(), height: designCanvas.getHeight() });
   temp.loadFromJSON(st.history[st.historyIndex], () => {
     temp.renderAll();
-    const url = canvasToJpg(temp);
-    temp.dispose();
-    callback(url);
+    canvasToPng(temp).then((blob) => { temp.dispose(); callback(blob); }, () => { temp.dispose(); callback(null); });
   });
 }
 
@@ -151,16 +171,16 @@ function handleDownloadDesign(sideId){
   const productSlug = (currentProduct && currentProduct.name || "gfxprints-design").replace(/\s+/g, "-").toLowerCase();
 
   ids.forEach((id, i) => {
-    exportSideJpg(id, (dataUrl) => {
+    exportSidePng(id, (dataUrl) => {
       if (!dataUrl) return;
       const side = currentSides.find(s => s.id === id);
       const sidePart = multi && side ? `-${side.label.replace(/\s+/g, "-").toLowerCase()}` : "";
       // Staggered so browsers don't block several downloads fired at once.
-      setTimeout(() => triggerFileDownload(dataUrl, `${productSlug}${sidePart}-design.jpg`), i * 400);
+      setTimeout(() => triggerFileDownload(dataUrl, `${productSlug}${sidePart}-design.png`), i * 400);
     });
   });
   const label = multi ? (sideId === "all" ? "All sides" : ((currentSides.find(s => s.id === sideId) || {}).label || "Design")) : "Design";
-  showToast(`${label} downloaded as JPG. Attach it to your WhatsApp order`);
+  showToast(`${label} downloaded as PNG. Attach it to your WhatsApp order`);
 }
 
 /* ---------- Product picker ---------- */
@@ -801,7 +821,7 @@ function collectSidesDesign(){
 }
 
 // Renders every side's saved JSON into an off-screen canvas and exports each as
-// a high-res JPG (flattened on white) - so a design made on the Back (or any side that
+// a high-res PNG - so a design made on the Back (or any side that
 // isn't the one currently open) still gets attached to the cart item, not just
 // whichever side happened to be on screen when "Add to Cart" was clicked.
 function buildAllSideDesignFiles(sidesDesignMap, callback){
@@ -817,13 +837,16 @@ function buildAllSideDesignFiles(sidesDesignMap, callback){
     temp.loadFromJSON(sidesDesignMap[sideId], () => {
       temp.renderAll();
       const sideDef = currentSides.find(s => s.id === sideId);
-      results.push({ id: sideId, label: (sideDef && sideDef.label) || sideId, dataUrl: canvasToJpg(temp) });
-      temp.dispose();
-      remaining -= 1;
-      if (remaining === 0){
-        results.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
-        callback(results);
-      }
+      const label = (sideDef && sideDef.label) || sideId;
+      canvasToPng(temp).catch(() => null).then((blob) => {
+        if (blob) results.push({ id: sideId, label, blob });
+        temp.dispose();
+        remaining -= 1;
+        if (remaining === 0){
+          results.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
+          callback(results);
+        }
+      });
     });
   });
 }
@@ -838,23 +861,27 @@ function handleAddToCart(buyNow){
   const hasDesign = anySideHasContent();
   const sidesDesign = collectSidesDesign();
 
-  const finish = (previewDataUrl, designFiles) => {
+  const finish = async (previewDataUrl, designFiles) => {
     // Save a copy of the customer's design to their own device right when
-    // they add it to the cart / buy now - before the cart write below -
-    // so they already have the file even if they never reach checkout, or
-    // checkout's own attach step doesn't cover their case (e.g. desktop,
-    // where WhatsApp sharing falls back to a manual-attach step anyway).
+    // they add it to the cart / buy now, so they already have the file even if
+    // they never reach checkout. The PNG itself is kept in IndexedDB (too big for
+    // localStorage); the cart only keeps a small record of it.
     // Staggered a beat apart per file since browsers can silently block
     // several downloads triggered in the same instant.
+    const fileRecords = [];
     if (designFiles && designFiles.length){
       let delay = 0;
-      designFiles.forEach(file => {
-        setTimeout(() => {
-          const base = `${(p.name || "gfxprints-design").replace(/\s+/g, "-").toLowerCase()}-${file.label.replace(/\s+/g, "-").toLowerCase()}`;
-          triggerFileDownload(file.dataUrl, `${base}.jpg`);
-        }, delay);
+      const stamp = Date.now() + "-" + Math.random().toString(36).slice(2, 7);
+      for (const file of designFiles){
+        const base = `${(p.name || "gfxprints-design").replace(/\s+/g, "-").toLowerCase()}-${file.label.replace(/\s+/g, "-").toLowerCase()}`;
+        setTimeout(() => triggerFileDownload(file.blob, `${base}.png`), delay);
         delay += 400;
-      });
+        const key = `f-${stamp}-${file.id}`;
+        const saved = await GfxFiles.put(key, file.blob);
+        const rec = { id: file.id, label: file.label, key, mime: "image/png" };
+        if (!saved && file.blob.size < 1.2e6) rec.dataUrl = await blobToDataUrl(file.blob);   // last resort when IndexedDB is blocked
+        fileRecords.push(rec);
+      }
     }
 
     addToCart({
@@ -869,12 +896,12 @@ function handleAddToCart(buyNow){
       customText: hasDesign ? summarizeDesign() : "",
       customDesign: sidesDesign || (hasDesign ? designCanvas.toJSON() : null),
       designPreview: previewDataUrl || null,
-      // High-res artwork-only JPG(s) - the actual print file(s), one
+      // High-res artwork-only PNG(s) - the actual print file(s), one
       // per customized side (vs. designPreview above, which is a mockup thumbnail).
-      designFiles: designFiles || [],
+      designFiles: fileRecords,
       qty: qty
     });
-    showToast(designFiles && designFiles.length ? `${p.name} added to cart. Design saved to your device` : `${p.name} added to cart`);
+    showToast(fileRecords.length ? `${p.name} added to cart. Design saved to your device` : `${p.name} added to cart`);
     if (buyNow){
       window.location.href = "checkout.html";
     }
@@ -890,7 +917,7 @@ function handleAddToCart(buyNow){
       buildAllSideDesignFiles(sidesDesign, (files) => finish(previewDataUrl, files));
     } else {
       // Single-canvas product: what's on screen right now is the whole design.
-      finish(previewDataUrl, [{ id: "design", label: "Design", dataUrl: canvasToJpg(designCanvas) }]);
+      canvasToPng(designCanvas).catch(() => null).then((blob) => finish(previewDataUrl, blob ? [{ id: "design", label: "Design", blob }] : []));
     }
   };
 
@@ -952,7 +979,7 @@ function setupStudioControls(){
 
   const baseToObject = O.toObject;
   O.toObject = function(extra){
-    return baseToObject.call(this, ["gfxShape", "gfxId", "gfxVector", "lockMovementX", "lockMovementY", "lockScalingX", "lockScalingY", "lockRotation", "hasControls"].concat(extra || []));
+    return baseToObject.call(this, ["gfxShape", "gfxId", "gfxTrim", "gfxVector", "lockMovementX", "lockMovementY", "lockScalingX", "lockScalingY", "lockRotation", "hasControls"].concat(extra || []));
   };
   O.transparentCorners = false;
   // Phones/tablets: tapping a selected text layer must NOT drop into on-canvas typing
@@ -1352,6 +1379,7 @@ function placeImageOnCanvas(dataUrl, opts){
     designCanvas.requestRenderAll();
     refreshLayersList();
     commitDesignHistory();
+    if (!(opts && opts.vector)) setTimeout(() => autoFixQuality(img), 60);
   });
 }
 
@@ -1800,6 +1828,58 @@ function imgFit(obj, cover){
   updateImageQuality(obj);
 }
 
+/* ---------- Auto-fix print quality ----------
+   When a picture would print below about 300 DPI (new upload, or the customer made it bigger), it is
+   enlarged automatically with clean resampling. Same size and place on the product, more pixels. */
+const AUTO_DPI_TARGET = 300, AUTO_DPI_TRIGGER = 280;
+let autoFixBusy = false;
+function autoFixEnabled(){ try { return localStorage.getItem("gfxprints_autofix") !== "0"; } catch (e){ return true; } }
+function imgEffectiveDpi(o){
+  const inches = IMG_PRINT_WIDTH_IN[currentProduct && currentProduct.category] || 10;
+  const shownIn = Math.max(0.1, o.getScaledWidth() / designCanvas.getWidth() * inches);
+  return o.width / shownIn;
+}
+// swap in the enlarged picture but keep the exact same look: crop, size and position
+function applyEnlargedPicture(o, nat, res, done){
+  const fx = res.w / nat.w, fy = res.h / nat.h;
+  const keep = { cx: o.cropX || 0, cy: o.cropY || 0, w: o.width, h: o.height, sx: o.scaleX, sy: o.scaleY };
+  o.setSrc(res.url, () => {
+    o.set({ cropX: keep.cx * fx, cropY: keep.cy * fy, width: keep.w * fx, height: keep.h * fy, scaleX: keep.sx / fx, scaleY: keep.sy / fy });
+    if (window.GfxBgRemove) window.GfxBgRemove.forget(o.gfxId);
+    o.gfxTrim = null;
+    if (o.gfxShape) imgApplyShape(o, o.gfxShape);
+    o.dirty = true; o.setCoords();
+    designCanvas.requestRenderAll();
+    refreshLayersList();
+    commitDesignHistory();
+    if (done) done();
+  });
+}
+async function autoFixQuality(o){
+  if (!autoFixEnabled() || autoFixBusy || !window.GfxUpscale || !window.GfxUpscale.auto) return;
+  if (!o || o.type !== "image" || o.gfxVector || !designCanvas || designCanvas.getObjects().indexOf(o) < 0) return;
+  const el = o._originalElement || o._element;
+  if (!el) return;
+  const dpi = imgEffectiveDpi(o);
+  if (!(dpi > 0) || dpi >= AUTO_DPI_TRIGGER) return;
+  const nat = imgNat(o), key = nat.w + "x" + nat.h + "@" + Math.round(dpi / 15);
+  if (o.gfxAutoKey === key) return;            // already tried at this size: do not loop
+  o.gfxAutoKey = key;
+  autoFixBusy = true;
+  const note = document.getElementById("pp-quality");
+  if (note){ note.className = "pp-quality q-ok"; note.textContent = "Improving print quality..."; }
+  try {
+    const res = await window.GfxUpscale.auto(el, { dpiNow: dpi, target: AUTO_DPI_TARGET });
+    if (res && designCanvas.getObjects().indexOf(o) >= 0){
+      applyEnlargedPicture(o, nat, res, () => {
+        showToast("Print quality improved: picture enlarged " + res.scale + "x");
+        updateImageQuality(o);
+      });
+    }
+  } catch (e){ /* auto-fix is optional: the picture stays as it was */ }
+  finally { autoFixBusy = false; updateImageQuality(o); }
+}
+
 function updateImageQuality(obj){
   const el = document.getElementById("pp-quality");
   if (!el || !obj || obj.type !== "image") return;
@@ -1912,18 +1992,50 @@ function bindImageTools(){
   on("img-bgremove", "click", () => {
     const o = sel();
     if (!o || !window.GfxBgRemove){ showToast("Background remover is still loading. Try again in a moment"); return; }
-    window.GfxBgRemove.open(o, (url) => {
-      const keepW = o.getScaledWidth();
+    window.GfxBgRemove.open(o, (url, trim) => {
+      const rad = fabric.util.degreesToRadians(o.angle || 0);
+      const fx = o.flipX ? -1 : 1, fy = o.flipY ? -1 : 1;
+      const nat = imgNat(o);                                  // size of the picture currently on the layer (before any crop)
+      const prev = o.gfxTrim || null;                         // box the current picture was trimmed to (if any)
+      const k = o.scaleX * nat.w / (prev ? prev.w : trim.fullW);   // screen px per processed px (ignores crop sliders: the remover works on the whole picture)
+      const rot = (v) => fabric.util.rotateVector(v, rad);
+      // If the layer was cropped, its centre is the centre of the crop window; move to the centre of the whole picture
+      const cropOff = rot({ x: (nat.w / 2 - ((o.cropX || 0) + o.width / 2)) * o.scaleX * fx, y: (nat.h / 2 - ((o.cropY || 0) + o.height / 2)) * o.scaleY * fy });
+      const center = o.getCenterPoint();
+      const elCenter = { x: center.x + cropOff.x, y: center.y + cropOff.y };
+      // vector from the full image's centre to the centre of a trimmed box, in canvas space
+      const off = (t) => rot({ x: ((t.x + t.w / 2) - t.fullW / 2) * k * fx, y: ((t.y + t.h / 2) - t.fullH / 2) * k * fy });
+      const o0 = prev ? off(prev) : { x: 0, y: 0 }, o1 = off(trim);
+      const fullCenter = { x: elCenter.x - o0.x, y: elCenter.y - o0.y };
       imgSetFilter(o, "RemoveColor", null);
       o.setSrc(url, () => {
         o.set({ cropX: 0, cropY: 0 });
-        o.scaleToWidth(keepW);
+        o.scaleToWidth(trim.w * k);                           // visible part keeps its size...
+        o.setPositionByOrigin(new fabric.Point(fullCenter.x + o1.x, fullCenter.y + o1.y), "center", "center");   // ...and its place
+        o.gfxTrim = trim;
         if (o.gfxShape) imgApplyShape(o, o.gfxShape);
         o.setCoords();
         designCanvas.requestRenderAll();
         refreshLayersList();
         commitDesignHistory();
         updatePropsPanel(o);
+      });
+    });
+  });
+  on("img-hires", "click", () => {
+    const o = sel();
+    if (!o) return;
+    if (!window.GfxUpscale){ showToast("Hi-res tool is still loading. Try again in a moment"); return; }
+    if (o.gfxVector){ showToast("Vector artwork is already sharp at any size"); return; }
+    const el = o._originalElement || o._element;
+    const nat = imgNat(o);
+    const inches = IMG_PRINT_WIDTH_IN[currentProduct && currentProduct.category] || 10;
+    const shownIn = Math.max(0.1, o.getScaledWidth() / designCanvas.getWidth() * inches);   // printed width of this picture, in inches
+    window.GfxUpscale.open(el, { dpi: o.width / shownIn, inches: shownIn }, (url, res) => {
+      // keep the picture exactly the same size and place on the product: more pixels, same look
+      applyEnlargedPicture(o, nat, { url, w: res.w, h: res.h }, () => {
+        updatePropsPanel(o);
+        showToast("Picture enlarged " + res.scale + "×");
       });
     });
   });
@@ -1983,7 +2095,7 @@ function bindImageTools(){
       addToUploadLibrary(ev.target.result, file.name);
       o.setSrc(ev.target.result, () => {
         o.set({ cropX: 0, cropY: 0 });
-        o.gfxId = ""; // new picture: forget the old uncut original
+        o.gfxId = ""; o.gfxTrim = null; // new picture: forget the old uncut original
         o.scaleToWidth(keepW);
         if (o.gfxShape) imgApplyShape(o, o.gfxShape);
         o.setCoords();
@@ -1998,7 +2110,12 @@ function bindImageTools(){
 
   if (designCanvas){
     designCanvas.on("object:scaling", () => { const o = sel(); if (o) updateImageQuality(o); });
-    designCanvas.on("object:modified", () => { const o = sel(); if (o) updateImageQuality(o); });
+    designCanvas.on("object:modified", (e) => { const o = sel(); if (o) updateImageQuality(o); if (e && e.target && e.target.type === "image") autoFixQuality(e.target); });
+    const af = document.getElementById("img-autofix");
+    if (af){
+      af.checked = autoFixEnabled();
+      af.addEventListener("change", () => { try { localStorage.setItem("gfxprints_autofix", af.checked ? "1" : "0"); } catch (e){} if (af.checked && sel()) autoFixQuality(sel()); });
+    }
   }
 
   on("prop-lock", "click", () => {

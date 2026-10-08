@@ -831,6 +831,14 @@ function buildAllSideDesignFiles(sidesDesignMap, callback){
   const height = designCanvas.getHeight();
   const results = [];
   let remaining = ids.length;
+  let finished = false;
+  const done = () => {
+    if (finished) return;
+    finished = true;
+    results.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
+    callback(results);
+  };
+  setTimeout(done, 20000);   // never hang if one side fails to render
 
   ids.forEach(sideId => {
     const temp = new fabric.StaticCanvas(null, { width, height });
@@ -842,23 +850,113 @@ function buildAllSideDesignFiles(sidesDesignMap, callback){
         if (blob) results.push({ id: sideId, label, blob });
         temp.dispose();
         remaining -= 1;
-        if (remaining === 0){
-          results.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
-          callback(results);
-        }
+        if (remaining === 0) done();
       });
     });
   });
 }
 
 let addToCartBusy = false;   // the 300 DPI export takes a moment: ignore extra taps so only one file is made
-function handleAddToCart(buyNow){
+function handleAddToCart(buyNow, skipQualityCheck){
   if (addToCartBusy) return;
   addToCartBusy = true;
   setTimeout(() => { addToCartBusy = false; }, 20000);   // safety release
-  try { handleAddToCartNow(buyNow); } catch (e){ addToCartBusy = false; throw e; }
+  try { handleAddToCartNow(buyNow, skipQualityCheck); } catch (e){ addToCartBusy = false; throw e; }
 }
-function handleAddToCartNow(buyNow){
+
+// Pictures that would print blurry at the size they have on the product, on every side with a design.
+// Works from the saved side data, so a side that is not on screen is checked too.
+function findLowQualityImages(sidesDesign){
+  const rule = qualityRule();
+  const inches = IMG_PRINT_WIDTH_IN[currentProduct && currentProduct.category] || 10;
+  const canvasW = designCanvas.getWidth();
+  const parts = sidesDesign
+    ? Object.keys(sidesDesign).map(id => {
+        const def = currentSides.find(x => x.id === id);
+        return { label: (def && def.label) || id, json: sidesDesign[id] };
+      })
+    : [{ label: "Your design", json: JSON.stringify(designCanvas.toJSON()) }];
+  const found = [];
+  parts.forEach(part => {
+    let data;
+    try { data = typeof part.json === "string" ? JSON.parse(part.json) : part.json; } catch (e){ return; }
+    ((data && data.objects) || []).forEach(o => {
+      if (!o || o.type !== "image" || o.gfxVector) return;
+      const scaledW = (o.width || 0) * Math.abs(o.scaleX || 1);
+      if (!(scaledW > 0)) return;
+      const shownIn = Math.max(0.1, scaledW / canvasW * inches);
+      const dpi = Math.round(o.width / shownIn);
+      if (dpi < rule.ok) found.push({ side: part.label, dpi, tooSmall: dpi < rule.block });
+    });
+  });
+  return found;
+}
+
+// Asks the customer before a blurry picture goes to the cart. Pictures far too small to print cannot continue.
+function showQualityGate(issues, onContinue){
+  const old = document.getElementById("quality-gate");
+  if (old) old.remove();
+  const stopped = issues.some(i => i.tooSmall);
+  const multi = new Set(issues.map(i => i.side)).size > 1;
+  const wrap = document.createElement("div");
+  wrap.id = "quality-gate";
+  wrap.className = "qg-overlay";
+  wrap.setAttribute("role", "dialog");
+  wrap.setAttribute("aria-modal", "true");
+  wrap.setAttribute("aria-labelledby", "qg-title");
+
+  const box = document.createElement("div");
+  box.className = "qg-box";
+  const h = document.createElement("h2");
+  h.id = "qg-title";
+  h.textContent = stopped ? "This picture is too small to print" : "This picture may print blurry";
+  const p = document.createElement("p");
+  p.textContent = stopped
+    ? "It does not have enough detail for the size it has on the product. Make it smaller, or upload a bigger photo."
+    : "It does not have enough detail for the size it has on the product, so the print can look soft or pixelated.";
+  const ul = document.createElement("ul");
+  issues.forEach(i => {
+    const li = document.createElement("li");
+    li.textContent = (multi ? i.side + ": " : "") + "about " + i.dpi + " DPI" + (i.tooSmall ? " (too small)" : "");
+    ul.appendChild(li);
+  });
+  const tips = document.createElement("p");
+  tips.className = "qg-tip";
+  tips.textContent = "Tip: dragging the corner handles to make the picture smaller makes it sharper.";
+
+  const actions = document.createElement("div");
+  actions.className = "qg-actions";
+  const close = () => { wrap.remove(); document.removeEventListener("keydown", onKey); };
+  const onKey = (e) => { if (e.key === "Escape") close(); };
+  const fix = document.createElement("button");
+  fix.type = "button";
+  fix.className = "btn btn-accent btn-sm";
+  fix.textContent = "Fix my design";
+  fix.addEventListener("click", close);
+  actions.appendChild(fix);
+  if (!stopped){
+    const go = document.createElement("button");
+    go.type = "button";
+    go.className = "btn btn-outline btn-sm";
+    go.textContent = "Continue anyway";
+    go.addEventListener("click", () => { close(); onContinue(); });
+    actions.appendChild(go);
+  }
+  const wa = document.createElement("a");
+  wa.className = "qg-wa";
+  wa.target = "_blank";
+  wa.rel = "noopener";
+  wa.href = whatsappLink("Hi GfxPrints, I want to order " + ((currentProduct && currentProduct.name) || "a custom product") + " but my picture is low resolution. I can send the original file here.");
+  wa.textContent = "Send us the original on WhatsApp";
+
+  box.appendChild(h); box.appendChild(p); box.appendChild(ul); box.appendChild(tips); box.appendChild(actions); box.appendChild(wa);
+  wrap.appendChild(box);
+  document.body.appendChild(wrap);
+  document.addEventListener("keydown", onKey);
+  fix.focus();
+}
+
+function handleAddToCartNow(buyNow, skipQualityCheck){
   const p = currentProduct;
   if (!selectedColor || !selectedSize || !isVariantOrderable(p, selectedColor, selectedPackaging, selectedSize)){
     addToCartBusy = false;
@@ -868,6 +966,16 @@ function handleAddToCartNow(buyNow){
   const qty = Number(document.getElementById("pd-qty").value) || 1;
   const hasDesign = anySideHasContent();
   const sidesDesign = collectSidesDesign();
+
+  // Blurry pictures: ask first (or stop, if far too small). "Continue anyway" re-runs this without the check.
+  if (hasDesign && !skipQualityCheck){
+    const issues = findLowQualityImages(sidesDesign);
+    if (issues.length){
+      addToCartBusy = false;
+      showQualityGate(issues, () => handleAddToCart(buyNow, true));
+      return;
+    }
+  }
 
   const finish = async (previewDataUrl, designFiles) => {
     // Save a copy of the customer's design to their own device right when
@@ -905,7 +1013,7 @@ function handleAddToCartNow(buyNow){
       packaging: selectedPackaging,
       orientation: selectedOrientation,
       customText: hasDesign ? summarizeDesign() : "",
-      customDesign: sidesDesign || (hasDesign ? designCanvas.toJSON() : null),
+      customDesign: hasDesign ? { id: Date.now() + "-" + Math.random().toString(36).slice(2, 7) } : null,   // print files are in IndexedDB; keep the cart item small
       designPreview: previewDataUrl || null,
       // High-res artwork-only PNG(s) - the actual print file(s), one
       // per customized side (vs. designPreview above, which is a mockup thumbnail).
@@ -1391,16 +1499,35 @@ function placeImageOnCanvas(dataUrl, opts){
     designCanvas.requestRenderAll();
     refreshLayersList();
     commitDesignHistory();
-    if (!(opts && opts.vector)) setTimeout(() => autoFixQuality(img), 60);
   });
 }
 
+// PNG, JPG, SVG and WebP are accepted. Some systems give a file with no type, so the extension counts too.
+const ALLOWED_IMAGE_EXT = /\.(png|jpe?g|svg|webp)$/i;
+function isAllowedImageFile(f){
+  return !!f && ((f.type && f.type.indexOf("image/") === 0) || ALLOWED_IMAGE_EXT.test(f.name || ""));
+}
+function imageMimeFromName(name){
+  const m = String(name || "").toLowerCase().match(/\.(png|jpe?g|svg|webp)$/);
+  if (!m) return "";
+  return { png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", svg: "image/svg+xml", webp: "image/webp" }[m[1]];
+}
 function addImageLayer(file){
-  if (!file || !file.type || file.type.indexOf("image") !== 0) return;
+  if (!isAllowedImageFile(file)){
+    showToast("Please upload a PNG, JPG, SVG or WebP image");
+    return;
+  }
   const reader = new FileReader();
   reader.onload = (ev) => {
-    addToUploadLibrary(ev.target.result, file.name);
-    placeImageOnCanvas(ev.target.result);
+    let url = ev.target.result;
+    // A file with a missing type reads as application/octet-stream, which images cannot load: fix the type.
+    if (typeof url === "string" && url.indexOf("data:image/") !== 0){
+      const mime = imageMimeFromName(file.name);
+      const at = url.indexOf(";base64,");
+      if (mime && at > 0) url = "data:" + mime + url.slice(at);
+    }
+    addToUploadLibrary(url, file.name);
+    placeImageOnCanvas(url);
   };
   reader.readAsDataURL(file);
 }
@@ -1548,7 +1675,7 @@ function initUploadPanel(){
     dz.addEventListener("drop", (e) => {
       e.preventDefault();
       if (input && input.disabled) return;
-      Array.from((e.dataTransfer && e.dataTransfer.files) || []).filter(f => /^image\//.test(f.type)).forEach(addImageLayer);
+      Array.from((e.dataTransfer && e.dataTransfer.files) || []).forEach(addImageLayer);
     });
   }
   const clear = document.getElementById("upload-library-clear");
@@ -1791,6 +1918,19 @@ function bindExtraTextOptions(){
 /* ---------- Image tools (all client-side, no external services) ---------- */
 const IMG_PRINT_WIDTH_IN = { "T-Shirts": 12, "Hoodies": 12, "Tote Bags": 12, "Mugs": 8, "Photo Frames": 8 };
 
+// Print-quality rules, in DPI at the size the picture has on the product. Change the numbers here to tune the checks.
+//   good  : at or above this = green
+//   ok    : at or above this = yellow (may print soft); below it = red (customer must confirm to order)
+//   block : below this the order is stopped (picture is too small to print)
+const QUALITY_RULES = {
+  "default":      { good: 150, ok: 100, block: 50 },   // T-shirts, hoodies, tote bags, other large prints
+  "Mugs":         { good: 200, ok: 120, block: 50 },   // small prints show detail loss sooner
+  "Photo Frames": { good: 200, ok: 120, block: 50 }
+};
+function qualityRule(){
+  return QUALITY_RULES[currentProduct && currentProduct.category] || QUALITY_RULES["default"];
+}
+
 function imgNat(obj){
   const el = obj._originalElement || obj._element || {};
   return { w: el.naturalWidth || el.width || obj.width, h: el.naturalHeight || el.height || obj.height };
@@ -1840,58 +1980,6 @@ function imgFit(obj, cover){
   updateImageQuality(obj);
 }
 
-/* ---------- Auto-fix print quality ----------
-   When a picture would print below about 300 DPI (new upload, or the customer made it bigger), it is
-   enlarged automatically with clean resampling. Same size and place on the product, more pixels. */
-const AUTO_DPI_TARGET = 300, AUTO_DPI_TRIGGER = 280;
-let autoFixBusy = false;
-function autoFixEnabled(){ try { return localStorage.getItem("gfxprints_autofix") !== "0"; } catch (e){ return true; } }
-function imgEffectiveDpi(o){
-  const inches = IMG_PRINT_WIDTH_IN[currentProduct && currentProduct.category] || 10;
-  const shownIn = Math.max(0.1, o.getScaledWidth() / designCanvas.getWidth() * inches);
-  return o.width / shownIn;
-}
-// swap in the enlarged picture but keep the exact same look: crop, size and position
-function applyEnlargedPicture(o, nat, res, done){
-  const fx = res.w / nat.w, fy = res.h / nat.h;
-  const keep = { cx: o.cropX || 0, cy: o.cropY || 0, w: o.width, h: o.height, sx: o.scaleX, sy: o.scaleY };
-  o.setSrc(res.url, () => {
-    o.set({ cropX: keep.cx * fx, cropY: keep.cy * fy, width: keep.w * fx, height: keep.h * fy, scaleX: keep.sx / fx, scaleY: keep.sy / fy });
-    if (window.GfxBgRemove) window.GfxBgRemove.forget(o.gfxId);
-    o.gfxTrim = null;
-    if (o.gfxShape) imgApplyShape(o, o.gfxShape);
-    o.dirty = true; o.setCoords();
-    designCanvas.requestRenderAll();
-    refreshLayersList();
-    commitDesignHistory();
-    if (done) done();
-  });
-}
-async function autoFixQuality(o){
-  if (!autoFixEnabled() || autoFixBusy || !window.GfxUpscale || !window.GfxUpscale.auto) return;
-  if (!o || o.type !== "image" || o.gfxVector || !designCanvas || designCanvas.getObjects().indexOf(o) < 0) return;
-  const el = o._originalElement || o._element;
-  if (!el) return;
-  const dpi = imgEffectiveDpi(o);
-  if (!(dpi > 0) || dpi >= AUTO_DPI_TRIGGER) return;
-  const nat = imgNat(o), key = nat.w + "x" + nat.h + "@" + Math.round(dpi / 15);
-  if (o.gfxAutoKey === key) return;            // already tried at this size: do not loop
-  o.gfxAutoKey = key;
-  autoFixBusy = true;
-  const note = document.getElementById("pp-quality");
-  if (note){ note.className = "pp-quality q-ok"; note.textContent = "Improving print quality..."; }
-  try {
-    const res = await window.GfxUpscale.auto(el, { dpiNow: dpi, target: AUTO_DPI_TARGET });
-    if (res && designCanvas.getObjects().indexOf(o) >= 0){
-      applyEnlargedPicture(o, nat, res, () => {
-        showToast("Print quality improved: picture enlarged " + res.scale + "x");
-        updateImageQuality(o);
-      });
-    }
-  } catch (e){ /* auto-fix is optional: the picture stays as it was */ }
-  finally { autoFixBusy = false; updateImageQuality(o); }
-}
-
 function updateImageQuality(obj){
   const el = document.getElementById("pp-quality");
   if (!el || !obj || obj.type !== "image") return;
@@ -1903,10 +1991,12 @@ function updateImageQuality(obj){
   const inches = (IMG_PRINT_WIDTH_IN[currentProduct && currentProduct.category] || 10);
   const shownIn = obj.getScaledWidth() / designCanvas.getWidth() * inches;
   const dpi = Math.round(obj.width / Math.max(0.1, shownIn));
-  let cls = "q-good", msg = `Great print quality (about ${dpi} DPI)`;
-  if (dpi < 72){ cls = "q-low"; msg = `Very low resolution (about ${dpi} DPI). It will look blurry when printed. Make it smaller or upload a larger photo.`; }
-  else if (dpi < 120){ cls = "q-low"; msg = `Low resolution (about ${dpi} DPI). It may print soft. Try a smaller size or a better photo.`; }
-  else if (dpi < 200){ cls = "q-ok"; msg = `Good print quality (about ${dpi} DPI)`; }
+  const rule = qualityRule();
+  let cls = "q-good", msg;
+  if (dpi >= 300){ msg = `Excellent print quality (about ${dpi} DPI)`; }
+  else if (dpi >= rule.good){ msg = `Good print quality (about ${dpi} DPI)`; }
+  else if (dpi >= rule.ok){ cls = "q-ok"; msg = `May print slightly soft (about ${dpi} DPI). A smaller size or a bigger photo will look sharper.`; }
+  else { cls = "q-low"; msg = `Will print blurry (about ${dpi} DPI). Make it smaller or upload a bigger photo.`; }
   el.className = "pp-quality " + cls;
   el.textContent = msg + " - estimate only";
 }
@@ -2034,23 +2124,6 @@ function bindImageTools(){
       });
     });
   });
-  on("img-hires", "click", () => {
-    const o = sel();
-    if (!o) return;
-    if (!window.GfxUpscale){ showToast("Hi-res tool is still loading. Try again in a moment"); return; }
-    if (o.gfxVector){ showToast("Vector artwork is already sharp at any size"); return; }
-    const el = o._originalElement || o._element;
-    const nat = imgNat(o);
-    const inches = IMG_PRINT_WIDTH_IN[currentProduct && currentProduct.category] || 10;
-    const shownIn = Math.max(0.1, o.getScaledWidth() / designCanvas.getWidth() * inches);   // printed width of this picture, in inches
-    window.GfxUpscale.open(el, { dpi: o.width / shownIn, inches: shownIn }, (url, res) => {
-      // keep the picture exactly the same size and place on the product: more pixels, same look
-      applyEnlargedPicture(o, nat, { url, w: res.w, h: res.h }, () => {
-        updatePropsPanel(o);
-        showToast("Picture enlarged " + res.scale + "×");
-      });
-    });
-  });
   on("img-fit", "click", () => { const o = sel(); if (o) imgFit(o, false); });
   on("img-fill", "click", () => { const o = sel(); if (o) imgFit(o, true); });
   on("img-rot90", "click", () => { const o = sel(); if (!o) return; o.rotate(((o.angle || 0) + 90) % 360); o.setCoords(); designCanvas.requestRenderAll(); commitDesignHistory(); });
@@ -2122,12 +2195,7 @@ function bindImageTools(){
 
   if (designCanvas){
     designCanvas.on("object:scaling", () => { const o = sel(); if (o) updateImageQuality(o); });
-    designCanvas.on("object:modified", (e) => { const o = sel(); if (o) updateImageQuality(o); if (e && e.target && e.target.type === "image") autoFixQuality(e.target); });
-    const af = document.getElementById("img-autofix");
-    if (af){
-      af.checked = autoFixEnabled();
-      af.addEventListener("change", () => { try { localStorage.setItem("gfxprints_autofix", af.checked ? "1" : "0"); } catch (e){} if (af.checked && sel()) autoFixQuality(sel()); });
-    }
+    designCanvas.on("object:modified", () => { const o = sel(); if (o) updateImageQuality(o); });
   }
 
   on("prop-lock", "click", () => {

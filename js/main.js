@@ -200,7 +200,23 @@ function getCart(){
   catch(e){ return []; }
 }
 function saveCart(cart){
-  localStorage.setItem(STORAGE_CART, JSON.stringify(cart));
+  try {
+    localStorage.setItem(STORAGE_CART, JSON.stringify(cart));
+  } catch (err){
+    // Storage full (two-sided designs carry big images). The print files live in IndexedDB,
+    // so drop the heavy copies first: design JSON, then the mockup thumbnails.
+    const slim = cart.map(it => Object.assign({}, it, { customDesign: it.customDesign ? { saved: true } : null }));
+    try {
+      localStorage.setItem(STORAGE_CART, JSON.stringify(slim));
+    } catch (err2){
+      const slimmer = slim.map(it => Object.assign({}, it, { designPreview: null }));
+      try {
+        localStorage.setItem(STORAGE_CART, JSON.stringify(slimmer));
+      } catch (err3){
+        if (typeof showToast === "function") showToast("Could not save your cart. Please clear some browser storage and try again");
+      }
+    }
+  }
   updateCartBadge();
 }
 function cartCount(){

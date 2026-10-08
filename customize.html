@@ -15,7 +15,7 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=Caveat:wght@600&display=swap"></noscript>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Amiri:wght@400;700&family=Anton&family=Bangers&family=Bebas+Neue&family=Dancing+Script:wght@400;700&family=Great+Vibes&family=Lateef:wght@400;700&family=Lobster&family=Montserrat:wght@400;700&family=Noto+Nastaliq+Urdu:wght@400;700&family=Oswald:wght@400;700&family=Pacifico&family=Permanent+Marker&family=Playfair+Display:wght@400;700&family=Poppins:wght@400;700&family=Righteous&family=Satisfy&display=swap" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Amiri:wght@400;700&family=Anton&family=Bangers&family=Bebas+Neue&family=Dancing+Script:wght@400;700&family=Great+Vibes&family=Lateef:wght@400;700&family=Lobster&family=Montserrat:wght@400;700&family=Noto+Nastaliq+Urdu:wght@400;700&family=Oswald:wght@400;700&family=Pacifico&family=Permanent+Marker&family=Playfair+Display:wght@400;700&family=Poppins:wght@400;700&family=Righteous&family=Satisfy&display=swap"></noscript>
-<link rel="stylesheet" href="css/style.min.css?v=20261015">
+<link rel="stylesheet" href="css/style.min.css?v=20261019">
 </head>
 <body class="app-page">
 <a class="skip-link" href="#main">Skip to content</a>
@@ -87,7 +87,7 @@
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
         <span>Uploads</span>
       </button>
-      <input type="file" id="tool-upload-image" accept="image/*" class="visually-hidden" multiple>
+      <input type="file" id="tool-upload-image" accept="image/*,.png,.jpg,.jpeg,.svg,.webp" class="visually-hidden" multiple>
 
       <button type="button" class="app-rail-btn" id="rail-clipart" data-opens="clipart">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2.5 4 2.5S16 14 16 14"/><path d="M9 9.5h.01M15 9.5h.01"/></svg>
@@ -199,7 +199,7 @@
           <span class="up-drop-text">
             <strong>Add images</strong>
             <span class="up-sub">Tap to choose files, or drop them here</span>
-            <small>JPG, PNG or WebP</small>
+            <small>PNG, JPG, SVG or WebP</small>
           </span>
         </label>
 
@@ -349,16 +349,10 @@
             </div>
 
             <div class="pp-quality" id="pp-quality" role="status"></div>
-            <label class="pp-autofix"><input type="checkbox" id="img-autofix" checked><span>Auto-fix print quality (about 300 DPI)</span></label>
 
             <section class="ip-hero">
               <button type="button" class="ip-hero-btn ip-ico" id="img-bgremove">Remove background</button>
               <p>Auto-detects the background, then lets you fine-tune with Erase and Restore brushes.</p>
-            </section>
-
-            <section class="ip-hero ip-hero-2">
-              <button type="button" class="ip-hero-btn ip-hero-alt ip-ico" id="img-hires">Hi-res &amp; DPI</button>
-              <p>Enlarge 2&times;&ndash;4&times; for sharper prints, and download a PNG with 300 DPI saved inside.</p>
             </section>
 
             <div class="ip-tabs">
@@ -430,7 +424,7 @@
             <div class="ip-foot">
               <label class="ip-ghost ip-ico" id="img-replace-lbl" for="img-replace-input">Replace image</label>
               <button type="button" class="ip-ghost ip-ico" id="img-reset">Reset effects</button>
-              <input type="file" id="img-replace-input" accept="image/*" class="visually-hidden">
+              <input type="file" id="img-replace-input" accept="image/*,.png,.jpg,.jpeg,.svg,.webp" class="visually-hidden">
             </div>
             <p class="pp-tip ip-hint">Drag the round corners to resize and the blue handle on top to rotate.</p>
           </div>
@@ -508,10 +502,10 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js" defer></script>
 <script src="js/products.min.js?v=20261015" defer></script>
-<script src="js/main.min.js?v=20261015" defer></script>
+<script src="js/main.min.js?v=20261016" defer></script>
 <script src="js/bgremove.min.js?v=20261015" defer></script>
 <script src="js/upscale.min.js?v=20261015" defer></script>
-<script src="js/customize.min.js?v=20261015" defer></script>
+<script src="js/customize.min.js?v=20261019" defer></script>
 <script src="js/customize-ui.min.js?v=20261015" defer></script>
 <script src="js/shortcuts.min.js?v=20261015" defer></script>
 <script src="js/view.min.js?v=20261015" defer></script>

@@ -851,9 +851,17 @@ function buildAllSideDesignFiles(sidesDesignMap, callback){
   });
 }
 
+let addToCartBusy = false;   // the 300 DPI export takes a moment: ignore extra taps so only one file is made
 function handleAddToCart(buyNow){
+  if (addToCartBusy) return;
+  addToCartBusy = true;
+  setTimeout(() => { addToCartBusy = false; }, 20000);   // safety release
+  try { handleAddToCartNow(buyNow); } catch (e){ addToCartBusy = false; throw e; }
+}
+function handleAddToCartNow(buyNow){
   const p = currentProduct;
   if (!selectedColor || !selectedSize || !isVariantOrderable(p, selectedColor, selectedPackaging, selectedSize)){
+    addToCartBusy = false;
     showToast(selectedColor && selectedSize ? `Size ${selectedSize} is not available in ${selectedColor}` : "Please choose a colour and size");
     return;
   }
@@ -902,6 +910,7 @@ function handleAddToCart(buyNow){
       qty: qty
     });
     showToast(fileRecords.length ? `${p.name} added to cart. Design saved to your device` : `${p.name} added to cart`);
+    addToCartBusy = false;
     if (buyNow){
       window.location.href = "checkout.html";
     }

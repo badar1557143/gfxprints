@@ -5,10 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Customize Your Product | GfxPrints</title>
 <meta name="description" content="Design your own personalized product at GfxPrints. Choose a product, add your text or photo, and preview it live before you order.">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png">
+<link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
+<meta name="theme-color" content="#2438E0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=Caveat:wght@600&display=swap" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=Caveat:wght@600&display=swap"></noscript>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Amiri:wght@400;700&family=Anton&family=Bangers&family=Bebas+Neue&family=Dancing+Script:wght@400;700&family=Great+Vibes&family=Lateef:wght@400;700&family=Lobster&family=Montserrat:wght@400;700&family=Noto+Nastaliq+Urdu:wght@400;700&family=Oswald:wght@400;700&family=Pacifico&family=Permanent+Marker&family=Playfair+Display:wght@400;700&family=Poppins:wght@400;700&family=Righteous&family=Satisfy&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Amiri:wght@400;700&family=Anton&family=Bangers&family=Bebas+Neue&family=Dancing+Script:wght@400;700&family=Great+Vibes&family=Lateef:wght@400;700&family=Lobster&family=Montserrat:wght@400;700&family=Noto+Nastaliq+Urdu:wght@400;700&family=Oswald:wght@400;700&family=Pacifico&family=Permanent+Marker&family=Playfair+Display:wght@400;700&family=Poppins:wght@400;700&family=Righteous&family=Satisfy&display=swap"></noscript>
 <link rel="stylesheet" href="css/style.min.css">
 </head>
 <body class="app-page">
@@ -83,6 +89,11 @@
       </button>
       <input type="file" id="tool-upload-image" accept="image/*" class="visually-hidden" multiple>
 
+      <button type="button" class="app-rail-btn" id="rail-clipart" data-opens="clipart">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2.5 4 2.5S16 14 16 14"/><path d="M9 9.5h.01M15 9.5h.01"/></svg>
+        <span>Clipart</span>
+      </button>
+
       <button type="button" class="app-rail-btn" id="rail-layers" data-opens="edit">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 3 3 8 12 13 21 8 12 3"/><polyline points="3 12 12 17 21 12"/><polyline points="3 16 12 21 21 16"/></svg>
         <span>Layers</span>
@@ -106,14 +117,18 @@
     </nav>
 
     <!-- SLIDE-OUT DRAWER -->
-    <aside class="app-drawer" id="app-drawer">
+    <aside class="app-drawer" id="app-drawer" aria-label="Design tools panel">
       <button type="button" class="app-drawer-close" id="drawer-close" aria-label="Close panel">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
       </button>
 
       <!-- PRODUCT PANEL -->
       <div class="app-drawer-panel" id="panel-product">
-        <h2 class="app-drawer-title">Choose a product</h2>
+        <header class="pp-head">
+          <h2 class="app-drawer-title">Choose a product</h2>
+          <p class="pp-sub">Pick what you want to print on, then set it up below.</p>
+        </header>
+
         <div class="cz-picker-wrap">
           <button type="button" class="cz-arrow cz-arrow-prev" id="cz-prev" aria-label="Show previous products" hidden>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
@@ -125,7 +140,7 @@
         </div>
 
         <div class="cz-card-mini">
-          <img id="cz-thumb" class="cz-thumb" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" alt="" width="56" height="56">
+          <img id="cz-thumb" class="cz-thumb" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" alt="" width="64" height="64">
           <div class="cz-product-info">
             <div class="pd-cat" id="cz-cat"></div>
             <h3 class="cz-name" id="cz-name"></h3>
@@ -133,53 +148,100 @@
               <span class="cz-price" id="cz-price"></span>
               <span class="cz-old" id="cz-old-price" style="display:none;"></span>
             </div>
-            <a class="cz-details" id="cz-details-link" href="product.html">Product details</a>
           </div>
+          <a class="cz-details" id="cz-details-link" href="product.html" aria-label="View product details">
+            <span>Details</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>
+          </a>
         </div>
 
-        <div class="option-block">
-          <h4 id="pd-color-label">Color</h4>
-          <div class="swatches" id="pd-colors"></div>
-        </div>
-        <div class="option-block">
-          <h4>Size</h4>
-          <div class="size-pills" id="pd-sizes"></div>
-        </div>
-        <div class="option-block" id="pd-orientation-block" style="display:none;">
-          <h4>Orientation</h4>
-          <div class="size-pills" id="pd-orientation"></div>
-        </div>
-        <div class="option-block" id="pd-packaging-block" style="display:none;">
-          <h4>Packaging</h4>
-          <div class="size-pills" id="pd-packaging"></div>
-        </div>
-        <div class="option-block">
-          <h4>Quantity</h4>
-          <div class="qty-row">
-            <button type="button" id="qty-minus" aria-label="Decrease quantity">−</button>
-            <input type="text" id="pd-qty" value="1" readonly aria-label="Quantity">
-            <button type="button" id="qty-plus" aria-label="Increase quantity">+</button>
+        <section class="option-block">
+          <div class="opt-head">
+            <h4 id="pd-color-label">Color</h4>
+            <span class="opt-val" id="pd-color-val"></span>
           </div>
-        </div>
+          <div class="swatches" id="pd-colors"></div>
+        </section>
+        <section class="option-block">
+          <div class="opt-head">
+            <h4>Size</h4>
+            <span class="opt-val" id="pd-size-val"></span>
+          </div>
+          <div class="size-pills" id="pd-sizes"></div>
+        </section>
+        <section class="option-block" id="pd-orientation-block" style="display:none;">
+          <div class="opt-head"><h4>Orientation</h4></div>
+          <div class="size-pills" id="pd-orientation"></div>
+        </section>
+        <section class="option-block" id="pd-packaging-block" style="display:none;">
+          <div class="opt-head"><h4>Packaging</h4></div>
+          <div class="size-pills" id="pd-packaging"></div>
+        </section>
+        <section class="option-block opt-qty">
+          <div class="opt-head"><h4>Quantity</h4></div>
+          <div class="qty-row">
+            <button type="button" id="qty-minus" aria-label="Decrease quantity">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg>
+            </button>
+            <input type="text" id="pd-qty" value="1" readonly aria-label="Quantity">
+            <button type="button" id="qty-plus" aria-label="Increase quantity">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            </button>
+          </div>
+        </section>
       </div>
 
       <!-- UPLOADS PANEL -->
       <div class="app-drawer-panel" id="panel-uploads" hidden>
         <h2 class="app-drawer-title">Uploads</h2>
-        <label class="btn btn-outline btn-block upload-trigger" for="tool-upload-image">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
-          Upload a file
+        <label class="up-drop" id="upload-dropzone" for="tool-upload-image">
+          <span class="up-drop-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg></span>
+          <span class="up-drop-text">
+            <strong>Add images</strong>
+            <span class="up-sub">Tap to choose files, or drop them here</span>
+            <small>JPG, PNG or WebP</small>
+          </span>
         </label>
-        <p class="hint-sm" style="margin:10px 0 12px;">Anything you upload is saved here so you can reuse it later without re-uploading.</p>
-        <p class="notice upload-warning" style="margin:0 0 18px;">
-          📌 Your uploads are saved only on <strong>this device/browser</strong>, not on our server. So:
-          <br>• Switch phones/browsers or clear your data, and they'll be gone.
-          <br>• We keep your last 40 uploads. Older ones get removed to make space for new ones.
-        </p>
 
-        <h3 class="upload-library-title">My Uploads</h3>
-        <p class="upload-library-empty" id="upload-library-empty">Nothing uploaded yet. Files you add will show up here.</p>
+
+        <div class="up-head">
+          <h3>Your uploads<span class="up-count" id="upload-library-count"></span></h3>
+          <button type="button" class="up-clear" id="upload-library-clear" hidden>Clear all</button>
+        </div>
+        <div class="upload-library-empty" id="upload-library-empty">
+          <strong>No uploads yet</strong>
+          <span>Images you add will appear here, ready to reuse on any side.</span>
+        </div>
         <div class="upload-library-grid" id="upload-library-grid"></div>
+
+        <details class="up-note">
+          <summary><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>Saved on this device only</summary>
+          <p>Your uploads stay in this browser, not on our server. They disappear if you switch phones or browsers, or clear your browser data. We keep your latest 40 and remove the oldest to make room.</p>
+        </details>
+      </div>
+
+      <!-- CLIPART & STICKERS PANEL -->
+      <div class="app-drawer-panel" id="panel-clipart" hidden>
+        <h2 class="app-drawer-title">Clipart &amp; Stickers</h2>
+        <input type="search" id="clipart-search" class="clip-search" placeholder="Search hearts, stars, cat, party..." aria-label="Search clipart">
+        <div class="clip-cats" id="clipart-cats" role="group" aria-label="Clipart categories"></div>
+        <div class="clip-opts">
+          <div>
+            <label>Sticker outline</label>
+            <div class="clip-seg" id="clipart-outline">
+              <button type="button" class="active" data-outline="">None</button>
+              <button type="button" data-outline="#ffffff">White</button>
+              <button type="button" data-outline="#15171b">Black</button>
+            </div>
+          </div>
+          <div>
+            <label for="clipart-color">Icon colour</label>
+            <input type="color" id="clipart-color" value="#15171b" class="color-input">
+          </div>
+        </div>
+        <p class="hint-sm">Tap a design to add it. Icon colour applies to the Icons set; outline gives a die-cut sticker look.</p>
+        <div class="clip-grid" id="clipart-grid"></div>
+        <p class="props-empty" id="clipart-empty" hidden>No clipart matches that search.</p>
       </div>
 
       <!-- EDIT (PROPERTIES / LAYERS) PANEL -->
@@ -189,68 +251,196 @@
           <button type="button" class="studio-tab" data-tab="layers" role="tab" aria-selected="false">Layers <span class="tab-badge" id="layer-count-badge">0</span></button>
         </div>
 
-        <div class="studio-tab-panel" id="tab-properties">
-          <p class="props-empty" id="props-empty">Select a layer on the canvas, or add text or an image to get started.</p>
+        <div class="studio-tab-panel pp" id="tab-properties">
+          <div class="pp-empty" id="props-empty">
+            <strong>Nothing selected</strong>
+            <span>Tap a layer on the canvas, or add text or an image to start editing.</span>
+          </div>
 
+          <!-- TEXT LAYER -->
           <div id="props-text" class="props-group" style="display:none;">
-            <div class="form-row">
-              <label for="prop-text-content">Text</label>
-              <input type="text" id="prop-text-content" maxlength="40" placeholder="e.g. Muhammad">
-            </div>
-            <div class="form-row form-row-split">
-              <div>
-                <label for="prop-text-font">Font</label>
-                <select id="prop-text-font">
+            <div class="pp-head"><span class="pp-kind">Aa</span><div><strong>Text layer</strong><small>Edit the selected text</small></div></div>
+
+            <section class="pp-card">
+              <label class="pp-title" for="prop-text-content">Text</label>
+              <textarea id="prop-text-content" rows="2" maxlength="80" placeholder="Type your text"></textarea>
+            </section>
+
+            <section class="pp-card">
+              <label class="pp-title" for="prop-text-font">Font</label>
+              <select id="prop-text-font">
+                <optgroup label="Clean">
                   <option value="'IBM Plex Sans', sans-serif">Plex Sans</option>
+                  <option value="'Montserrat', sans-serif">Montserrat</option>
+                  <option value="'Poppins', sans-serif">Poppins</option>
                   <option value="'Archivo Expanded', sans-serif">Archivo Expanded</option>
-                  <option value="'Caveat', cursive">Handwritten</option>
+                </optgroup>
+                <optgroup label="Bold &amp; Impact">
+                  <option value="'Bebas Neue', sans-serif">Bebas Neue</option>
+                  <option value="'Anton', sans-serif">Anton</option>
+                  <option value="'Oswald', sans-serif">Oswald</option>
+                  <option value="'Bangers', cursive">Bangers</option>
+                  <option value="'Righteous', cursive">Righteous</option>
+                  <option value="'Permanent Marker', cursive">Permanent Marker</option>
+                </optgroup>
+                <optgroup label="Script &amp; Handwritten">
+                  <option value="'Caveat', cursive">Handwritten (Caveat)</option>
+                  <option value="'Pacifico', cursive">Pacifico</option>
+                  <option value="'Lobster', cursive">Lobster</option>
+                  <option value="'Dancing Script', cursive">Dancing Script</option>
+                  <option value="'Satisfy', cursive">Satisfy</option>
+                  <option value="'Great Vibes', cursive">Great Vibes</option>
+                </optgroup>
+                <optgroup label="Serif">
                   <option value="Georgia, serif">Classic Serif</option>
-                </select>
-              </div>
-              <div>
-                <label for="prop-text-color">Color</label>
-                <input type="color" id="prop-text-color" value="#15171b" class="color-input">
-              </div>
-            </div>
-            <div class="form-row">
-              <label for="prop-text-size">Size <span id="prop-text-size-val">32</span>px</label>
-              <input type="range" id="prop-text-size" min="10" max="120" value="32">
-            </div>
-            <div class="form-row form-row-split">
-              <div>
-                <label>Style</label>
-                <div class="btn-toggle-row">
+                  <option value="'Playfair Display', serif">Playfair Display</option>
+                  <option value="'Abril Fatface', serif">Abril Fatface</option>
+                </optgroup>
+                <optgroup label="Urdu / Arabic">
+                  <option value="'Noto Nastaliq Urdu', serif">Nastaliq (Urdu)</option>
+                  <option value="'Amiri', serif">Amiri</option>
+                  <option value="'Lateef', serif">Lateef</option>
+                </optgroup>
+              </select>
+              <div class="pp-row"><label for="prop-text-size">Size</label><output class="pp-val"><span id="prop-text-size-val">32</span>px</output><input type="range" id="prop-text-size" min="10" max="160" step="1" value="32"></div>
+              <div class="pp-split">
+                <div class="pp-seg" role="group" aria-label="Text style">
                   <button type="button" class="toggle-btn" id="prop-text-bold" title="Bold"><b>B</b></button>
                   <button type="button" class="toggle-btn" id="prop-text-italic" title="Italic"><i>I</i></button>
+                  <button type="button" class="toggle-btn" id="prop-text-underline" title="Underline"><u>U</u></button>
+                  <button type="button" class="toggle-btn" id="prop-text-strike" title="Strikethrough"><s>S</s></button>
+                </div>
+                <div class="pp-seg" id="prop-text-align" role="group" aria-label="Alignment">
+                  <button type="button" class="toggle-btn" data-align="left" title="Align left"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h14"/></svg></button>
+                  <button type="button" class="toggle-btn" data-align="center" title="Align center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M7 12h10M5 18h14"/></svg></button>
+                  <button type="button" class="toggle-btn" data-align="right" title="Align right"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M10 12h10M6 18h14"/></svg></button>
                 </div>
               </div>
-              <div>
-                <label>Align</label>
-                <div class="btn-toggle-row" id="prop-text-align">
-                  <button type="button" class="toggle-btn" data-align="left" title="Align left">L</button>
-                  <button type="button" class="toggle-btn" data-align="center" title="Align center">C</button>
-                  <button type="button" class="toggle-btn" data-align="right" title="Align right">R</button>
+            </section>
+
+            <section class="pp-card">
+              <span class="pp-title">Color</span>
+              <div class="pp-swatches" id="pp-text-swatches"><button type="button" class="pp-sw" data-color="#15171b" style="--c:#15171b" aria-label="Color #15171b"></button><button type="button" class="pp-sw" data-color="#ffffff" style="--c:#ffffff" aria-label="Color #ffffff"></button><button type="button" class="pp-sw" data-color="#E5484D" style="--c:#E5484D" aria-label="Color #E5484D"></button><button type="button" class="pp-sw" data-color="#F5A524" style="--c:#F5A524" aria-label="Color #F5A524"></button><button type="button" class="pp-sw" data-color="#F5D90A" style="--c:#F5D90A" aria-label="Color #F5D90A"></button><button type="button" class="pp-sw" data-color="#12A150" style="--c:#12A150" aria-label="Color #12A150"></button><button type="button" class="pp-sw" data-color="#2447F0" style="--c:#2447F0" aria-label="Color #2447F0"></button><button type="button" class="pp-sw" data-color="#8E4EC6" style="--c:#8E4EC6" aria-label="Color #8E4EC6"></button>
+                <label class="pp-sw pp-sw-custom" title="Custom color"><input type="color" id="prop-text-color" value="#15171b" aria-label="Custom text color"></label>
+              </div>
+            </section>
+
+            <details class="pp-card pp-acc">
+              <summary>Spacing</summary>
+              <div class="pp-row"><label for="prop-text-spacing">Letter spacing</label><output class="pp-val"><span id="prop-text-spacing-val">0</span></output><input type="range" id="prop-text-spacing" min="-50" max="600" step="10" value="0"></div>
+              <div class="pp-row"><label for="prop-text-lineheight">Line height</label><output class="pp-val"><span id="prop-text-lineheight-val">1.2</span></output><input type="range" id="prop-text-lineheight" min="0.8" max="2.4" step="0.1" value="1.2"></div>
+            </details>
+
+            <details class="pp-card pp-acc">
+              <summary>Effects</summary>
+              <div class="pp-row"><label for="prop-text-stroke">Outline</label><output class="pp-val"><span id="prop-text-stroke-val">0</span>px</output><input type="range" id="prop-text-stroke" min="0" max="12" step="1" value="0"></div>
+              <div class="pp-colorline"><label for="prop-text-stroke-color">Outline color</label><input type="color" id="prop-text-stroke-color" value="#000000" class="color-input"></div>
+              <div class="pp-row"><label for="prop-text-shadow">Shadow</label><output class="pp-val"><span id="prop-text-shadow-val">0</span></output><input type="range" id="prop-text-shadow" min="0" max="20" step="1" value="0"></div>
+              <div class="pp-colorline"><label for="prop-text-shadow-color">Shadow color</label><input type="color" id="prop-text-shadow-color" value="#000000" class="color-input"></div>
+              <div class="pp-row"><label for="prop-text-opacity">Opacity</label><output class="pp-val"><span id="prop-text-opacity-val">100</span>%</output><input type="range" id="prop-text-opacity" min="10" max="100" step="1" value="100"></div>
+            </details>
+          </div>
+
+          <!-- IMAGE LAYER -->
+          <div id="props-image" class="props-group ip" style="display:none;">
+            <div class="ip-head">
+              <span class="ip-badge"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-8 8"/></svg></span>
+              <div><strong>Image</strong><small>Edit the selected image</small></div>
+            </div>
+
+            <div class="pp-quality" id="pp-quality" role="status"></div>
+
+            <section class="ip-hero">
+              <button type="button" class="ip-hero-btn ip-ico" id="img-bgremove">Remove background</button>
+              <p>Auto-detects the background, then lets you fine-tune with Erase and Restore brushes.</p>
+            </section>
+
+            <div class="ip-tabs">
+              <input type="radio" name="ip-tab" id="ip-t-layout" class="visually-hidden" checked>
+              <input type="radio" name="ip-tab" id="ip-t-filters" class="visually-hidden">
+              <input type="radio" name="ip-tab" id="ip-t-effects" class="visually-hidden">
+              <div class="ip-tablist" role="tablist" aria-label="Image tools">
+                <label for="ip-t-layout">Layout</label><label for="ip-t-filters">Filters</label><label for="ip-t-effects">Effects</label>
+              </div>
+
+              <div class="ip-pane ip-p-layout">
+                <div class="ip-group">
+                  <span class="ip-label">Size &amp; position</span>
+                  <div class="ip-tools">
+                    <button type="button" class="ip-tool ip-ico" id="img-fit" title="Whole image inside the print area">Fit</button>
+                    <button type="button" class="ip-tool ip-ico" id="img-fill" title="Cover the whole print area">Fill</button>
+                    <button type="button" class="ip-tool ip-ico" id="img-rot90" title="Rotate 90 degrees">Rotate</button>
+                    <button type="button" class="ip-tool ip-ico" id="img-flipv" title="Flip vertical">Flip V</button>
+                  </div>
+                  <div class="ip-slider"><label for="prop-image-opacity">Opacity</label><output class="pp-val"><span id="prop-image-opacity-val">100</span>%</output><input type="range" id="prop-image-opacity" min="10" max="100" step="1" value="100"></div>
+                </div>
+                <div class="ip-group">
+                  <span class="ip-label">Shape</span>
+                  <div class="ip-tiles" id="img-shapes"><button type="button" class="pp-chip ip-tile on" data-shape=""><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" stroke-dasharray="3 3"/></svg><span>None</span></button><button type="button" class="pp-chip ip-tile" data-shape="circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/></svg><span>Circle</span></button><button type="button" class="pp-chip ip-tile" data-shape="rounded"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="5"/></svg><span>Rounded</span></button><button type="button" class="pp-chip ip-tile" data-shape="heart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 20C5 14.5 3 11 3 8a4.5 4.5 0 0 1 9-1 4.5 4.5 0 0 1 9 1c0 3-2 6.5-9 12z"/></svg><span>Heart</span></button><button type="button" class="pp-chip ip-tile" data-shape="star"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L12 16.9 6.6 19.8l1.1-6.1L3.2 9.4l6.1-.8z"/></svg><span>Star</span></button></div>
+                </div>
+                <details class="ip-more">
+                  <summary>Crop edges</summary>
+                  <div class="ip-two">
+                    <div class="ip-slider"><label for="img-crop-l">Left</label><output class="pp-val"><span id="img-crop-l-val">0</span>%</output><input type="range" id="img-crop-l" min="0" max="45" step="1" value="0"></div><div class="ip-slider"><label for="img-crop-r">Right</label><output class="pp-val"><span id="img-crop-r-val">0</span>%</output><input type="range" id="img-crop-r" min="0" max="45" step="1" value="0"></div>
+                    <div class="ip-slider"><label for="img-crop-t">Top</label><output class="pp-val"><span id="img-crop-t-val">0</span>%</output><input type="range" id="img-crop-t" min="0" max="45" step="1" value="0"></div><div class="ip-slider"><label for="img-crop-b">Bottom</label><output class="pp-val"><span id="img-crop-b-val">0</span>%</output><input type="range" id="img-crop-b" min="0" max="45" step="1" value="0"></div>
+                  </div>
+                </details>
+              </div>
+
+              <div class="ip-pane ip-p-filters">
+                <div class="ip-group">
+                  <span class="ip-label">Presets</span>
+                  <div class="ip-tiles ip-tiles-4" id="img-presets"><button type="button" class="pp-chip ip-tile on" data-preset=""><i class="ip-sample" style="filter:none"></i><span>Original</span></button><button type="button" class="pp-chip ip-tile" data-preset="Grayscale"><i class="ip-sample" style="filter:grayscale(1)"></i><span>B&amp;W</span></button><button type="button" class="pp-chip ip-tile" data-preset="Sepia"><i class="ip-sample" style="filter:sepia(1)"></i><span>Sepia</span></button><button type="button" class="pp-chip ip-tile" data-preset="Invert"><i class="ip-sample" style="filter:invert(1)"></i><span>Invert</span></button></div>
+                </div>
+                <div class="ip-group">
+                  <span class="ip-label">Adjust</span>
+                  <div class="ip-slider"><label for="img-brightness">Brightness</label><output class="pp-val"><span id="img-brightness-val">0</span></output><input type="range" id="img-brightness" min="-100" max="100" step="1" value="0"></div>
+                  <div class="ip-slider"><label for="img-contrast">Contrast</label><output class="pp-val"><span id="img-contrast-val">0</span></output><input type="range" id="img-contrast" min="-100" max="100" step="1" value="0"></div>
+                  <div class="ip-slider"><label for="img-saturation">Saturation</label><output class="pp-val"><span id="img-saturation-val">0</span></output><input type="range" id="img-saturation" min="-100" max="100" step="1" value="0"></div>
+                  <div class="ip-slider"><label for="img-blur">Blur</label><output class="pp-val"><span id="img-blur-val">0</span></output><input type="range" id="img-blur" min="0" max="30" step="1" value="0"></div>
+                </div>
+                <div class="ip-group">
+                  <span class="ip-label">Clean-up</span>
+                  <label class="ip-switch"><input type="checkbox" id="img-rmwhite"><span class="ip-track" aria-hidden="true"></span><span>Remove white background</span></label>
+                  <div class="ip-slider"><label for="img-rmwhite-tol">White tolerance</label><output class="pp-val"><span id="img-rmwhite-tol-val">15</span>%</output><input type="range" id="img-rmwhite-tol" min="1" max="60" step="1" value="15"></div>
+                </div>
+              </div>
+
+              <div class="ip-pane ip-p-effects">
+                <div class="ip-group">
+                  <span class="ip-label">Border</span>
+                  <div class="ip-slider"><label for="img-border">Thickness</label><output class="pp-val"><span id="img-border-val">0</span>px</output><input type="range" id="img-border" min="0" max="20" step="1" value="0"></div>
+                  <div class="pp-colorline"><label for="img-border-color">Colour</label><input type="color" id="img-border-color" value="#ffffff" class="color-input"></div>
+                  <p class="pp-tip">Follows the image edges. Hidden when a shape is applied.</p>
+                </div>
+                <div class="ip-group">
+                  <span class="ip-label">Shadow</span>
+                  <div class="ip-slider"><label for="img-shadow">Softness</label><output class="pp-val"><span id="img-shadow-val">0</span></output><input type="range" id="img-shadow" min="0" max="30" step="1" value="0"></div>
+                  <div class="pp-colorline"><label for="img-shadow-color">Colour</label><input type="color" id="img-shadow-color" value="#000000" class="color-input"></div>
                 </div>
               </div>
             </div>
+
+            <div class="ip-foot">
+              <label class="ip-ghost ip-ico" id="img-replace-lbl" for="img-replace-input">Replace image</label>
+              <button type="button" class="ip-ghost ip-ico" id="img-reset">Reset effects</button>
+              <input type="file" id="img-replace-input" accept="image/*" class="visually-hidden">
+            </div>
+            <p class="pp-tip ip-hint">Drag the round corners to resize and the blue handle on top to rotate.</p>
           </div>
 
-          <div id="props-image" class="props-group" style="display:none;">
-            <div class="form-row">
-              <label for="prop-image-opacity">Opacity <span id="prop-image-opacity-val">100</span>%</label>
-              <input type="range" id="prop-image-opacity" min="10" max="100" value="100">
+          <!-- ARRANGE (text + images) -->
+          <section class="ip-arrange pp-arrange" id="props-shared-actions" style="display:none;">
+            <span class="ip-label">Arrange</span>
+            <div class="ip-tools ip-tools-3">
+              <button type="button" class="ip-tool ip-ico" id="prop-flip">Flip</button>
+              <button type="button" class="ip-tool ip-ico" id="prop-center-h">Center</button>
+              <button type="button" class="ip-tool ip-ico" id="prop-center-v">Middle</button>
+              <button type="button" class="ip-tool ip-ico" id="prop-duplicate">Duplicate</button>
+              <button type="button" class="ip-tool ip-ico" id="prop-lock">Lock</button>
+              <button type="button" class="ip-tool ip-ico ip-danger" id="prop-delete">Delete</button>
             </div>
-            <div class="form-row">
-              <button type="button" class="btn btn-outline btn-block" id="prop-remove-bg">Remove background</button>
-              <p class="hint-sm" id="prop-remove-bg-status" style="margin-top:8px;" aria-live="polite">Cuts out the subject and makes the background transparent. The first use downloads a small AI model, so give it a moment. Not happy with the result? Press Undo.</p>
-            </div>
-            <p class="hint-sm">Drag the round corner handles on the canvas to resize and the blue handle on top to rotate. Use the buttons under the layer to duplicate or delete it.</p>
-          </div>
-
-          <div class="studio-actions" id="props-shared-actions" style="display:none;">
-            <button type="button" class="btn btn-outline btn-sm" id="prop-duplicate">Duplicate</button>
-            <button type="button" class="btn btn-outline btn-sm" id="prop-delete">Delete</button>
-          </div>
+          </section>
         </div>
 
         <div class="studio-tab-panel" id="tab-layers" style="display:none;">
@@ -276,11 +466,28 @@
       </div>
       <p class="studio-hint" id="studio-hint-text">Dashed line marks the printable area. Drag a layer to move it; drag the round corner handles to resize, the blue handle on top to rotate, and use the buttons underneath to duplicate or delete.</p>
 
-      <div class="app-zoom-bar">
-        <button type="button" class="app-zoom-btn" id="zoom-out" aria-label="Zoom out">−</button>
-        <input type="range" id="zoom-slider" min="50" max="150" value="100" step="5" aria-label="Zoom level">
-        <span class="app-zoom-val" id="zoom-val">100%</span>
-        <button type="button" class="app-zoom-btn" id="zoom-in" aria-label="Zoom in">+</button>
+      <div class="app-zoom-bar vbar" id="view-bar" role="toolbar" aria-label="Canvas view controls">
+        <button type="button" class="vb vb-icon" id="vc-hand" aria-pressed="false" title="Hand tool: drag to move the canvas (H, or hold Space)" aria-label="Hand tool"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12"/><path d="M11 11.5V4a1.5 1.5 0 0 1 3 0v7.5"/><path d="M14 11V5.5a1.5 1.5 0 0 1 3 0V13"/><path d="M17 9.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-1.5a6 6 0 0 1-4.6-2.1L4.5 15c-.7-.9-.5-2.2.4-2.8a2 2 0 0 1 2.6.2L8 13"/></svg></button>
+        <span class="vb-sep" aria-hidden="true"></span>
+        <button type="button" class="vb vb-icon" id="vc-out" title="Zoom out (-)" aria-label="Zoom out"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+        <input type="range" id="vc-slider" min="25" max="300" step="1" value="100" aria-label="Zoom level">
+        <button type="button" class="vb vb-icon" id="vc-in" title="Zoom in (+)" aria-label="Zoom in"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+        <div class="vb-menu-wrap">
+          <button type="button" class="vb vb-pct" id="vc-pct" aria-haspopup="menu" aria-expanded="false" title="Zoom presets">100%<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></button>
+          <div class="vb-menu" id="vc-menu" role="menu" hidden>
+            <button type="button" role="menuitem" data-act="fit">Zoom to fit<kbd>F</kbd></button>
+            <button type="button" role="menuitem" data-act="reset">Reset view<kbd>0</kbd></button>
+            <hr>
+            <button type="button" role="menuitem" data-z="300">300%</button>
+            <button type="button" role="menuitem" data-z="200">200%</button>
+            <button type="button" role="menuitem" data-z="150">150%</button>
+            <button type="button" role="menuitem" data-z="100">100%</button>
+            <button type="button" role="menuitem" data-z="75">75%</button>
+            <button type="button" role="menuitem" data-z="50">50%</button>
+            <button type="button" role="menuitem" data-z="25">25%</button>
+          </div>
+        </div>
+        <button type="button" class="vb vb-icon" id="vc-fit" title="Fit to screen (F)" aria-label="Fit to screen"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4"/></svg></button>
       </div>
     </main>
 
@@ -296,7 +503,11 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js" defer></script>
 <script src="js/products.min.js" defer></script>
 <script src="js/main.min.js" defer></script>
+<script src="js/bgremove.min.js" defer></script>
 <script src="js/customize.min.js" defer></script>
 <script src="js/customize-ui.min.js" defer></script>
+<script src="js/shortcuts.min.js" defer></script>
+<script src="js/view.min.js" defer></script>
+<script src="js/clipart.min.js" defer></script>
 </body>
 </html>

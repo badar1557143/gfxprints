@@ -183,6 +183,42 @@ swatch colors go in `colorToHex()` in `js/products.js`.
 - `seo.hideRatings`, `seo.hideShippingReturns`, `seo.hideSizeGuide` - hide those blocks (and rating data in the page's structured data) for a product.
 - A size with no valid retail price in `variantPrices` cannot be added to the cart.
 
+## Clipart & Sticker Library
+
+`js/clipart.js` adds a **Clipart** tool to the Design Studio rail: ~40 original
+vector designs (stickers, love, nature, fun, shapes, icons) drawn as inline SVG,
+so no extra image files or network calls are needed. Customers can search,
+filter by category, add a die-cut **sticker outline** (white or black) and
+recolour the single-colour **Icons** set. Items are placed on the canvas like any
+uploaded image (move / resize / rotate / opacity / layers / undo all work) and
+are saved with the cart design as normal.
+
+To add designs, append an entry to the `ITEMS` array in `js/clipart.js`
+(`[id, name, category, search tags, mono (0/1), svg]`, 100x100 viewBox; use
+`currentColor` for parts that should follow the icon-colour picker). Then run
+`sh tools/build.sh` to refresh `js/clipart.min.js`.
+
+## Keyboard shortcuts, zoom & Hand tool
+
+`js/shortcuts.js` + `js/view.js` (Design Studio only). Press `?` in the studio for the full list.
+Copy / Cut / Paste (Ctrl or Cmd + C/X/V; pasting an image from the system clipboard adds it as a layer), Duplicate (D),
+Select all (A), Undo (Z) / Redo (Shift+Z or Y), Delete, Esc to deselect, arrow keys nudge 1px (Shift = 10px),
+Ctrl + ] / [ reorders layers (add Shift for front / back).
+
+**View bar** (bottom of the canvas): Hand tool, zoom out / slider / zoom in, a % menu with presets, and Fit.
+Ctrl/Cmd + mouse wheel (or trackpad pinch) zooms toward the cursor (25-300%). Plain wheel scrolls the canvas when it is
+bigger than the view. **Hand tool**: click it, press `H`, hold `Space`, or use the middle mouse button, then drag to move the
+canvas anywhere. `F` fits to screen, `0` resets, `+` / `-` step the zoom. **Touch:** one finger on the empty background (or anywhere with the Hand tool on) moves the canvas; two fingers pinch to zoom and move it at once. A finger on the design itself still edits layers.
+Shortcuts are ignored while typing or editing text.
+
 ## Minified files
 
 The pages load `css/style.min.css` and `js/*.min.js`. Edit the normal files (`css/style.css`, `js/*.js`), then run `sh tools/build.sh` (needs Node.js) and commit the `.min` files too. If you skip this step, your changes will not show on the site.
+
+## Publishing (GitHub Pages)
+
+1. Upload the contents of this folder to the repository root and enable Pages (branch `main`, folder `/ (root)`).
+2. `404.html` and `robots.txt` are picked up automatically. `favicon.ico` and the icons in `assets/brand/` are linked from every page.
+3. Canonical links and share-preview tags are built from the live address by `initSeoTags()` in `js/main.js`, so they stay correct on `github.io` or on a custom domain.
+4. After editing `css/style.css` or any `js/*.js` file, run `sh tools/build.sh` and upload the rebuilt `.min` files too.
+5. Optional once the final address is known: add a `sitemap.xml` with absolute URLs and a `Sitemap:` line in `robots.txt`.

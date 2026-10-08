@@ -323,8 +323,15 @@ function renderRelated(p){
   if (!wrap) return;
   const related = PRODUCTS.filter(x => x.category === p.category && x.id !== p.id).slice(0, 4);
   const fallback = related.length ? related : PRODUCTS.filter(x => x.id !== p.id).slice(0, 4);
+  if (!fallback.length){
+    const sec = wrap.closest("section");
+    if (sec) sec.style.display = "none";
+    return;
+  }
   wrap.innerHTML = fallback.map(productCardHTML).join("");
   bindWishlistButtons(wrap);
+  // These cards are added after the page's first reveal pass, so without this they stay at opacity 0.
+  observeReveal(wrap);
 }
 
 /* ---------- SEO helpers ---------- */

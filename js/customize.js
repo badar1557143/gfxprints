@@ -882,8 +882,11 @@ function handleAddToCartNow(buyNow){
       const stamp = Date.now() + "-" + Math.random().toString(36).slice(2, 7);
       for (const file of designFiles){
         const base = `${(p.name || "gfxprints-design").replace(/\s+/g, "-").toLowerCase()}-${file.label.replace(/\s+/g, "-").toLowerCase()}`;
-        setTimeout(() => triggerFileDownload(file.blob, `${base}.png`), delay);
-        delay += 400;
+        // Buy Now goes straight to checkout, so skip the device download there.
+        if (!buyNow){
+          setTimeout(() => triggerFileDownload(file.blob, `${base}.png`), delay);
+          delay += 400;
+        }
         const key = `f-${stamp}-${file.id}`;
         const saved = await GfxFiles.put(key, file.blob);
         const rec = { id: file.id, label: file.label, key, mime: "image/png" };
@@ -909,7 +912,7 @@ function handleAddToCartNow(buyNow){
       designFiles: fileRecords,
       qty: qty
     });
-    showToast(fileRecords.length ? `${p.name} added to cart. Design saved to your device` : `${p.name} added to cart`);
+    showToast(fileRecords.length && !buyNow ? `${p.name} added to cart. Design saved to your device` : `${p.name} added to cart`);
     addToCartBusy = false;
     if (buyNow){
       window.location.href = "checkout.html";

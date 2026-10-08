@@ -493,6 +493,22 @@ async function uploadOrderToCloud(cart, info){
   return null;
 }
 
+// Small spinner on the Place order button while the order is saved (can take a few seconds with design files).
+function setSubmitLoading(btn, on, label){
+  if (!btn) return;
+  if (on){
+    if (btn.classList.contains("is-loading")) return;
+    btn.dataset.origHtml = btn.innerHTML;
+    btn.classList.add("is-busy", "is-loading");
+    btn.setAttribute("aria-busy", "true");
+    btn.innerHTML = '<span class="btn-spinner" aria-hidden="true"></span><span class="btn-load-text">' + (label || "Please wait...") + '</span>';
+  } else {
+    btn.classList.remove("is-busy", "is-loading");
+    btn.removeAttribute("aria-busy");
+    if (btn.dataset.origHtml != null){ btn.innerHTML = btn.dataset.origHtml; delete btn.dataset.origHtml; }
+  }
+}
+
 function initCheckoutPage(){
   const form = document.getElementById("checkout-form");
   if (!form) return;
@@ -536,8 +552,19 @@ function initCheckoutPage(){
       form.reportValidity();
       return;
     }
+    const submitBtn = form.querySelector('button[type="submit"]');
+    submitting = true;
+    setSubmitLoading(submitBtn, true, "Placing your order...");
+    const stopLoading = () => { submitting = false; setSubmitLoading(submitBtn, false); };
     const cart = getCart();
-    await hydrateDesignFiles(cart);
+    try {
+      await hydrateDesignFiles(cart);
+    } catch (err){
+      console.error("Could not read design files", err);
+      stopLoading();
+      showToast("Something went wrong. Please try again");
+      return;
+    }
     const subtotal = cartSubtotal();
     const shippingMethod = document.querySelector('input[name="shipping"]:checked');
     const shipping = shippingMethod && shippingMethod.value === "express" ? SHIPPING_EXPRESS : SHIPPING_STANDARD;
@@ -547,8 +574,6 @@ function initCheckoutPage(){
     // Save the order + print files online first (Google Drive / Sheet), when it's set up.
     let cloud = null;
     if (ORDER_ENDPOINT){
-      submitting = true;
-      const submitBtn = form.querySelector('button[type="submit"]');
       let status = document.getElementById("checkout-status");
       if (!status && submitBtn){
         status = document.createElement("p");
@@ -558,16 +583,14 @@ function initCheckoutPage(){
         status.style.marginTop = "10px";
         submitBtn.insertAdjacentElement("afterend", status);
       }
-      if (submitBtn) submitBtn.disabled = true;
       if (status) status.textContent = hasDesigns ? "Saving your order and design files. Please keep this page open..." : "Saving your order...";
       cloud = await uploadOrderToCloud(cart, { orderRef, subtotal, shipping });
       if (status) status.textContent = "";
-      if (submitBtn) submitBtn.disabled = false;
-      submitting = false;
     }
     const messageText = buildOrderMessageText(cart, subtotal, shipping, shippingMethod, orderRef, cloud);
 
     const finishOrder = (viaShare, saved) => {
+      stopLoading();
       const designNote = document.getElementById("confirmation-design-note");
       const heading = document.querySelector("#checkout-confirmation h2");
       const body = document.querySelector("#checkout-confirmation p");
@@ -622,6 +645,7 @@ function initCheckoutPage(){
           if (err && err.name === "AbortError"){
             // Customer closed the share sheet without picking anything -
             // don't also pop open WhatsApp behind their back.
+            stopLoading();
             showToast("Order not sent. Tap Place Order to try again.");
             return;
           }
@@ -632,6 +656,11 @@ function initCheckoutPage(){
     }
   });
 }
+
+// Back button can restore the page with the spinner still showing.
+window.addEventListener("pageshow", () => {
+  document.querySelectorAll("button.is-loading").forEach(b => setSubmitLoading(b, false));
+});
 
 document.addEventListener("DOMContentLoaded", () => {
   renderCartPage();

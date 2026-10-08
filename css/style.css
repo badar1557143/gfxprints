@@ -2701,3 +2701,12 @@ body.bgr-open{ overflow:hidden; }
 .qg-actions{ display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 10px; }
 .qg-actions .btn{ flex:1 1 140px; justify-content:center; }
 .qg-wa{ display:block; text-align:center; font-size:.88rem; font-weight:600; color:var(--cobalt); text-decoration:underline; }
+
+/* ---------- Small loading spinner on the Add to Cart / Buy Now buttons ---------- */
+.btn.is-busy{ pointer-events:none; }
+.btn.is-loading{ display:inline-flex; align-items:center; justify-content:center; gap:8px; opacity:.85; cursor:progress; }
+.btn-spinner{ width:15px; height:15px; flex:none; border-radius:50%; border:2.5px solid currentColor; border-right-color:transparent; animation:btn-spin .7s linear infinite; }
+.btn-load-text{ white-space:nowrap; }
+@keyframes btn-spin{ to{ transform:rotate(360deg); } }
+@media (prefers-reduced-motion: reduce){ .btn-spinner{ animation-duration:1.8s; } }
+.btn-block.is-loading{ display:flex; width:100%; }

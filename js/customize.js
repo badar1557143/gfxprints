@@ -856,6 +856,34 @@ function buildAllSideDesignFiles(sidesDesignMap, callback){
   });
 }
 
+// Small spinner on the Add to Cart / Buy Now button while the design files are prepared (a few seconds on big designs).
+let busyTimer = null;
+function setCartButtonLoading(buyNow, on){
+  clearTimeout(busyTimer);
+  ["add-to-cart-btn", "buy-now-btn"].forEach(id => {
+    const b = document.getElementById(id);
+    if (!b) return;
+    const mine = id === (buyNow ? "buy-now-btn" : "add-to-cart-btn");
+    if (on){
+      b.classList.add("is-busy");
+      b.setAttribute("aria-busy", "true");
+      if (mine && !b.classList.contains("is-loading")){
+        b.dataset.origHtml = b.innerHTML;
+        b.classList.add("is-loading");
+        b.innerHTML = '<span class="btn-spinner" aria-hidden="true"></span><span class="btn-load-text">Please wait...</span>';
+      }
+    } else {
+      b.classList.remove("is-busy", "is-loading");
+      b.removeAttribute("aria-busy");
+      if (b.dataset.origHtml != null){ b.innerHTML = b.dataset.origHtml; delete b.dataset.origHtml; }
+    }
+  });
+  if (on) busyTimer = setTimeout(() => setCartButtonLoading(buyNow, false), 60000);   // never leave a button stuck
+}
+function hideBusyOverlay(){ setCartButtonLoading(false, false); }   // reset both buttons
+// Coming back with the browser Back button can restore the page with the spinner still showing.
+window.addEventListener("pageshow", hideBusyOverlay);
+
 let addToCartBusy = false;   // the 300 DPI export takes a moment: ignore extra taps so only one file is made
 function handleAddToCart(buyNow, skipQualityCheck){
   if (addToCartBusy) return;
@@ -977,7 +1005,9 @@ function handleAddToCartNow(buyNow, skipQualityCheck){
     }
   }
 
-  const finish = async (previewDataUrl, designFiles) => {
+  setCartButtonLoading(buyNow, true);
+
+  const finishWork = async (previewDataUrl, designFiles) => {
     // Save a copy of the customer's design to their own device right when
     // they add it to the cart / buy now, so they already have the file even if
     // they never reach checkout. The PNG itself is kept in IndexedDB (too big for
@@ -1023,7 +1053,19 @@ function handleAddToCartNow(buyNow, skipQualityCheck){
     showToast(fileRecords.length && !buyNow ? `${p.name} added to cart. Design saved to your device` : `${p.name} added to cart`);
     addToCartBusy = false;
     if (buyNow){
-      window.location.href = "checkout.html";
+      window.location.href = "checkout.html";   // the button keeps its spinner until checkout opens
+    } else {
+      setCartButtonLoading(false, false);
+    }
+  };
+  const finish = async (previewDataUrl, designFiles) => {
+    try {
+      await finishWork(previewDataUrl, designFiles);
+    } catch (err){
+      console.error("Add to cart failed", err);
+      setCartButtonLoading(false, false);
+      addToCartBusy = false;
+      showToast("Something went wrong. Please try again");
     }
   };
 

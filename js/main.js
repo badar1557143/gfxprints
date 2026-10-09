@@ -72,6 +72,7 @@ function initSeoTags(){
 // Floating chat bubble, added to every page that loads main.js.
 function initWhatsAppFloat(){
   if (document.getElementById("whatsapp-float")) return;
+  if (/checkout\.html$/.test(window.location.pathname)) document.body.classList.add("checkout-page");
   const a = document.createElement("a");
   a.id = "whatsapp-float";
   a.className = "whatsapp-float";

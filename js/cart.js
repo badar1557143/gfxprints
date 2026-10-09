@@ -42,28 +42,10 @@ function renderCartPage(){
           <button aria-label="Increase quantity" data-i="${i}" class="ci-plus">+</button>
         </div>
         <button class="ci-remove" data-i="${i}">Remove</button>
-        ${(item.designFiles || []).map((f, fi) => `
-          <span class="ci-download-wrap">
-            <button class="ci-download" data-i="${i}" data-file="${fi}">Download ${(item.designFiles.length > 1 ? f.label : "Design")} (PNG)</button>
-          </span>
-        `).join("")}
       </div>
       <div class="ci-price">${formatPrice(item.price * item.qty)}</div>
     </div>`).join("");
 
-  wrap.querySelectorAll(".ci-download").forEach(btn => {
-    const item = getCart()[Number(btn.dataset.i)];
-    const file = item && item.designFiles && item.designFiles[Number(btn.dataset.file)];
-    if (!file) return;
-    btn.addEventListener("click", async () => {
-      const base = `${(item.name || "gfxprints-design").replace(/\s+/g, "-").toLowerCase()}-${file.label.replace(/\s+/g, "-").toLowerCase()}`;
-      await hydrateDesignFiles([item]);
-      downloadDesignFile(file, base);
-    });
-  });
-
-  const designHint = document.getElementById("design-file-hint");
-  if (designHint) designHint.style.display = cart.some(item => item.designFiles && item.designFiles.length) ? "block" : "none";
 
   wrap.querySelectorAll(".ci-remove").forEach(btn => {
     btn.addEventListener("click", () => {

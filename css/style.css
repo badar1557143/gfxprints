@@ -1975,7 +1975,7 @@ label, .newsletter-form, .newsletter-form > *{ max-width: 100%; min-width: 0; }
   .app-rail::-webkit-scrollbar{ display:none; }
   .rail-extra{ display:flex; }
   .app-rail-btn{
-    flex: 0 0 auto; min-width: 66px; padding: 6px 6px; gap: 4px;
+    flex: 1 1 0; min-width: 0; padding: 6px 1px; gap: 4px;
     text-decoration: none; justify-content: center;
   }
   .app-rail-btn span:not(.app-rail-badge){ display:block; font-size: 0.66rem; line-height: 1.1; white-space: nowrap; }
@@ -2043,7 +2043,7 @@ label, .newsletter-form, .newsletter-form > *{ max-width: 100%; min-width: 0; }
   .app-topbar{ padding: 0 var(--space-2); gap: 4px; }
   .app-topbar-center{ gap: 4px; }
   .app-topbar .btn-sm{ padding: 7px 8px; font-size: 0.7rem; }
-  .app-rail-btn{ min-width: 60px; }
+  .app-rail-btn{ min-width: 0; }
 }
 @media (max-width: 300px){
   .app-home-btn, .app-icon-btn{ width: 32px; height: 32px; }
@@ -2710,3 +2710,19 @@ body.bgr-open{ overflow:hidden; }
 @keyframes btn-spin{ to{ transform:rotate(360deg); } }
 @media (prefers-reduced-motion: reduce){ .btn-spinner{ animation-duration:1.8s; } }
 .btn-block.is-loading{ display:flex; width:100%; }
+
+/* ---------- Touch targets, WhatsApp bubble, share image (site audit fixes) ---------- */
+.footer-col a{ display:inline-block; padding:7px 0; }
+.footer-col li{ margin:0; }
+.breadcrumb a{ display:inline-block; padding:10px 2px; margin:-10px 0; }
+.view-all-link{ display:inline-block; padding:12px 4px; margin:-12px 0; }
+.qty-row input{ height:42px; }
+@media (max-width:900px){
+  .footer-col a{ padding:10px 0; }
+  .qty-row input{ height:44px; }
+  /* The chat bubble would sit on top of the design area and the Place order button */
+  body.app-page .whatsapp-float, body.checkout-page .whatsapp-float{ display:none; }
+}
+.app-drawer-close, #panel-product .cz-arrow{ min-width:36px; min-height:36px; }
+.ab-crumb a, .ct-crumb a{ display:inline-block; padding:10px 2px; margin:-10px 0; }
+@media (max-width:900px){ .app-rail-btn span:not(.app-rail-badge){ font-size:0.62rem; letter-spacing:-0.01em; } }

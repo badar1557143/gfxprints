@@ -443,8 +443,7 @@ async function uploadOrderToCloud(cart, info){
         files.push(entry);
       }
     }
-    const prev = splitDataUrl(item.designPreview);
-    if (prev && files.length) files.push({ label: "Preview", name: `${slug(item.name)}-preview-${info.orderRef}.${/png/.test(prev.mime) ? "png" : "jpg"}`, mime: prev.mime, data: prev.data });
+    // The mockup preview image is not sent with the order, only the print files.
     items.push({ name: item.name, qty: item.qty, price: item.price, color: item.color, size: item.size, orientation: item.orientation, packaging: item.packaging, files });
   }
   const shot = currentWalletShot();
@@ -453,9 +452,6 @@ async function uploadOrderToCloud(cart, info){
     if (p) items[0].files.push({ label: "Payment screenshot", name: `payment-screenshot-${info.orderRef}.jpg`, mime: p.mime, data: p.data });
   }
   const size = () => items.reduce((n, it) => n + it.files.reduce((m, f) => m + f.data.length, 0), 0);
-  if (size() > 24e6){ // too big: drop the mockup previews and keep only the print files
-    items = items.map(it => Object.assign({}, it, { files: it.files.filter(f => f.label !== "Preview") }));
-  }
   // Print files are never shrunk: they must stay exactly 300 DPI. If the order is still too big for one upload,
   // return null and checkout falls back to the WhatsApp attach flow with the full-size files.
   if (size() > 30e6) return null;

@@ -136,7 +136,7 @@
   document.addEventListener("paste", (e) => {
     if (!canvas() || bgrOpen() || editing() || inField(e, true)) return;
     const files = Array.from((e.clipboardData && e.clipboardData.files) || []).filter((f) => /^image\//.test(f.type));
-    if (files.length && typeof addImageLayer === "function"){ e.preventDefault(); files.forEach(addImageLayer); return; }
+    if (files.length && typeof handleUploadedFiles === "function"){ e.preventDefault(); handleUploadedFiles(files); return; }
     if (paste()) e.preventDefault();
   });
 

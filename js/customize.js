@@ -1452,14 +1452,14 @@ function initDesignStudio(product){
 
 function bindStudioToolbar(product){
   const addTextBtn = document.getElementById("tool-add-text");
-  if (addTextBtn) addTextBtn.addEventListener("click", addTextLayer);
+  // The Text button now opens the Text panel (customize-ui.js); layers are added from there.
 
   initUploadPanel();
 
   const uploadInput = document.getElementById("tool-upload-image");
   if (uploadInput){
     uploadInput.addEventListener("change", (e) => {
-      Array.from(e.target.files || []).forEach(addImageLayer);
+      handleUploadedFiles(e.target.files);
       e.target.value = ""; // allow re-selecting the same file later
     });
   }
@@ -1495,24 +1495,38 @@ function defaultTextColor(){
   return onPhoto && isDarkSurface(currentProduct, selectedColor) ? "#ffffff" : "#15171b";
 }
 
-function addTextLayer(){
-  const text = new fabric.IText("Your Text", {
+function addTextLayer(opts){
+  opts = opts || {};
+  const text = new fabric.IText(opts.text || "Your Text", {
     left: designCanvas.getWidth() / 2,
-    top: designCanvas.getHeight() / 2,
+    top: designCanvas.getHeight() / 2 + (opts.dy || 0) * designCanvas.getHeight(),
     originX: "center",
     originY: "center",
-    fontFamily: "'IBM Plex Sans', sans-serif",
-    fontSize: 32,
-    fill: defaultTextColor(),
-    fontWeight: "normal",
+    fontFamily: opts.fontFamily || "'IBM Plex Sans', sans-serif",
+    fontSize: opts.fontSize || 32,
+    fill: opts.fill || defaultTextColor(),
+    fontWeight: opts.fontWeight || "normal",
     fontStyle: "normal",
     textAlign: "center"
   });
+  // Keep big presets inside the printable area
+  const maxW = designCanvas.getWidth() * 0.88;
+  let guard = 40;
+  while (text.width > maxW && text.fontSize > 12 && guard--) text.set("fontSize", Math.max(12, Math.round(text.fontSize * 0.9)));
   designCanvas.add(text);
   designCanvas.setActiveObject(text);
   designCanvas.requestRenderAll();
   refreshLayersList();
   commitDesignHistory();
+  document.dispatchEvent(new CustomEvent("studio:text-added"));
+  const fam = String(text.fontFamily).split(",")[0].trim().replace(/['"]/g, "");
+  if (document.fonts && document.fonts.load){
+    document.fonts.load(`${text.fontWeight} ${text.fontSize}px "${fam}"`, text.text).catch(() => {}).then(() => {
+      if (fabric.util.clearFabricFontCache) fabric.util.clearFabricFontCache(fam);
+      text.dirty = true; if (text.initDimensions) text.initDimensions(); text.setCoords(); designCanvas.requestRenderAll();
+    });
+  }
+  return text;
 }
 
 // Places an image (from a data URL) onto the active canvas - shared by a fresh
@@ -1568,10 +1582,24 @@ function addImageLayer(file){
       const at = url.indexOf(";base64,");
       if (mime && at > 0) url = "data:" + mime + url.slice(at);
     }
+    // Uploading only saves the file to "Your uploads". The customer taps an
+    // image in that list to put it on the canvas.
     addToUploadLibrary(url, file.name);
-    placeImageOnCanvas(url);
   };
   reader.readAsDataURL(file);
+}
+
+// Several files can be chosen or dropped at once: add them all to the library
+// and show a single message instead of one per file.
+function handleUploadedFiles(fileList){
+  const files = Array.from(fileList || []);
+  if (!files.length) return;
+  const valid = files.filter(isAllowedImageFile);
+  if (valid.length !== files.length) showToast("Please upload a PNG, JPG, SVG or WebP image");
+  valid.forEach(addImageLayer);
+  if (valid.length) showToast(valid.length === 1
+    ? "Added to Your uploads. Tap it to place it on your design"
+    : valid.length + " images added to Your uploads. Tap one to place it on your design");
 }
 
 /* ---------- Upload Library ----------
@@ -1658,84 +1686,187 @@ function addToUploadLibrary(dataUrl, name){
 function removeFromUploadLibrary(id){
   memoryLibrary = getUploadLibrary().filter(item => item.id !== id);
   saveUploadLibrary(memoryLibrary);
+  upSelected.delete(id);
   renderUploadLibrary();
 }
 
 function escAttr(s){
-  return String(s || "").replace(/"/g, "&quot;");
+  return String(s || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
 }
 
 function upText(str){
   return String(str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+/* Canva-style picker state: search text, multi-select mode and the open "..." menu */
+let upQuery = "";
+let upSelectMode = false;
+const upSelected = new Set();
+
+function upAddToDesign(item){
+  if (!item) return;
+  placeImageOnCanvas(item.dataUrl);
+  // Opens the Edit panel (listened to in customize-ui.js)
+  document.dispatchEvent(new Event("studio:edit-requested"));
+}
+
+function upCloseMenus(){
+  document.querySelectorAll(".up-menu").forEach(m => m.remove());
+  document.querySelectorAll(".upload-lib-item.menu-open").forEach(i => i.classList.remove("menu-open"));
+}
+
+function upSetSelectMode(on){
+  upSelectMode = on;
+  if (!on) upSelected.clear();
+  upCloseMenus();
+  renderUploadLibrary();
+}
+
+function upToggleSelect(id){
+  if (upSelected.has(id)) upSelected.delete(id); else upSelected.add(id);
+  if (!upSelected.size) upSelectMode = false;
+  renderUploadLibrary();
+}
+
+function upOpenMenu(itemEl, id){
+  const had = itemEl.classList.contains("menu-open");
+  upCloseMenus();
+  if (had) return;
+  itemEl.classList.add("menu-open");
+  const menu = document.createElement("div");
+  menu.className = "up-menu";
+  menu.setAttribute("role", "menu");
+  menu.innerHTML = `
+    <button type="button" role="menuitem" data-act="add">Add to design</button>
+    <button type="button" role="menuitem" data-act="select">Select</button>
+    <button type="button" role="menuitem" data-act="delete" class="danger">Delete</button>`;
+  menu.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const btn = e.target.closest("button[data-act]");
+    if (!btn) return;
+    const act = btn.dataset.act;
+    upCloseMenus();
+    if (act === "add") upAddToDesign(getUploadLibrary().find(i => i.id === id));
+    else if (act === "select"){ upSelectMode = true; upSelected.add(id); renderUploadLibrary(); }
+    else if (act === "delete") removeFromUploadLibrary(id);
+  });
+  itemEl.appendChild(menu);
+}
+
 function renderUploadLibrary(){
   const grid = document.getElementById("upload-library-grid");
   const empty = document.getElementById("upload-library-empty");
   const count = document.getElementById("upload-library-count");
-  const clear = document.getElementById("upload-library-clear");
+  const selectBtn = document.getElementById("upload-library-clear");
+  const selbar = document.getElementById("upload-selbar");
+  const selCount = document.getElementById("upload-sel-count");
+  const noMatch = document.getElementById("upload-no-match");
   if (!grid) return;
   const library = getUploadLibrary();
+  const q = upQuery.trim().toLowerCase();
+  const shown = q ? library.filter(i => String(i.name).toLowerCase().includes(q)) : library;
+
   if (empty) empty.style.display = library.length ? "none" : "flex";
-  if (count) count.textContent = library.length ? `${library.length} of ${UPLOAD_LIBRARY_MAX}` : "";
-  if (clear) clear.hidden = !library.length;
+  if (noMatch) noMatch.hidden = !(library.length && !shown.length);
+  if (count) count.textContent = library.length ? ` ${library.length}` : "";
+  if (selectBtn){
+    selectBtn.hidden = !library.length;
+    selectBtn.textContent = upSelectMode ? "Done" : "Select";
+  }
+  if (selbar) selbar.hidden = !(upSelectMode && upSelected.size);
+  if (selCount) selCount.textContent = `${upSelected.size} selected`;
+  grid.classList.toggle("selecting", upSelectMode);
 
-  grid.innerHTML = library.map(item => `
-    <div class="upload-lib-item" data-id="${item.id}" title="${escAttr(item.name)}">
-      <button type="button" class="upload-lib-add" aria-label="Add ${escAttr(item.name)} to your design">
+  grid.innerHTML = shown.map(item => {
+    const sel = upSelected.has(item.id);
+    return `
+    <div class="upload-lib-item${sel ? " selected" : ""}" data-id="${item.id}" title="${escAttr(item.name)}">
+      <button type="button" class="upload-lib-add" aria-label="${upSelectMode ? "Select" : "Add"} ${escAttr(item.name)}">
         <img src="${item.dataUrl}" alt="" loading="lazy" decoding="async">
-        <span class="up-cap">${upText(String(item.name).replace(/\.[^.]+$/, ""))}</span>
       </button>
-      <button type="button" class="upload-lib-remove" data-id="${item.id}" aria-label="Delete ${escAttr(item.name)} from your uploads">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      <span class="up-check" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+      <button type="button" class="up-more" aria-label="More options for ${escAttr(item.name)}" aria-haspopup="menu">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
       </button>
-    </div>
-  `).join("");
-
-  grid.querySelectorAll(".upload-lib-add").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const id = btn.closest(".upload-lib-item").dataset.id;
-      const item = getUploadLibrary().find(i => i.id === id);
-      if (item) placeImageOnCanvas(item.dataUrl);
-    });
-  });
-  grid.querySelectorAll(".upload-lib-remove").forEach(btn => {
-    btn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      removeFromUploadLibrary(btn.dataset.id);
-    });
-  });
+    </div>`;
+  }).join("");
 }
 
-// Drag-and-drop onto the drop area, and a two-tap "Clear all".
+// Drag-and-drop onto the panel, search, selection bar and event delegation.
 function initUploadPanel(){
+  const panel = document.getElementById("panel-uploads");
   const dz = document.getElementById("upload-dropzone");
   const input = document.getElementById("tool-upload-image");
-  if (dz){
-    ["dragenter", "dragover"].forEach(ev => dz.addEventListener(ev, (e) => { e.preventDefault(); dz.classList.add("dragging"); }));
-    ["dragleave", "drop"].forEach(ev => dz.addEventListener(ev, () => dz.classList.remove("dragging")));
-    dz.addEventListener("drop", (e) => {
+  const grid = document.getElementById("upload-library-grid");
+  if (panel){
+    ["dragenter", "dragover"].forEach(ev => panel.addEventListener(ev, (e) => { e.preventDefault(); if (dz) dz.classList.add("dragging"); }));
+    panel.addEventListener("dragleave", (e) => { if (!panel.contains(e.relatedTarget) && dz) dz.classList.remove("dragging"); });
+    panel.addEventListener("drop", (e) => {
       e.preventDefault();
+      if (dz) dz.classList.remove("dragging");
       if (input && input.disabled) return;
-      Array.from((e.dataTransfer && e.dataTransfer.files) || []).forEach(addImageLayer);
+      handleUploadedFiles(e.dataTransfer && e.dataTransfer.files);
     });
   }
-  const clear = document.getElementById("upload-library-clear");
-  if (clear){
-    let timer = null;
-    clear.addEventListener("click", () => {
-      if (!timer){
-        clear.textContent = "Tap again to clear";
-        timer = setTimeout(() => { clear.textContent = "Clear all"; timer = null; }, 2500);
-        return;
-      }
-      clearTimeout(timer); timer = null;
-      clear.textContent = "Clear all";
-      memoryLibrary = [];
-      saveUploadLibrary([]);
-      renderUploadLibrary();
+
+  const search = document.getElementById("upload-search");
+  if (search) search.addEventListener("input", () => { upQuery = search.value; renderUploadLibrary(); });
+
+  if (grid){
+    grid.addEventListener("click", (e) => {
+      const itemEl = e.target.closest(".upload-lib-item");
+      if (!itemEl) return;
+      const id = itemEl.dataset.id;
+      if (e.target.closest(".up-menu")) return;
+      if (e.target.closest(".up-more")){ e.stopPropagation(); upOpenMenu(itemEl, id); return; }
+      if (upSelectMode){ upToggleSelect(id); return; }
+      upAddToDesign(getUploadLibrary().find(i => i.id === id));
     });
+    // Long-press a photo to start selecting (touch devices)
+    let pressTimer = null;
+    grid.addEventListener("pointerdown", (e) => {
+      const itemEl = e.target.closest(".upload-lib-item");
+      if (!itemEl || e.target.closest(".up-more, .up-menu") || upSelectMode) return;
+      pressTimer = setTimeout(() => {
+        pressTimer = null;
+        upSelectMode = true; upSelected.add(itemEl.dataset.id);
+        grid.dataset.justPressed = "1";
+        renderUploadLibrary();
+      }, 500);
+    });
+    ["pointerup", "pointerleave", "pointercancel", "pointermove"].forEach(ev =>
+      grid.addEventListener(ev, () => { if (pressTimer){ clearTimeout(pressTimer); pressTimer = null; } }));
+    grid.addEventListener("click", (e) => {
+      if (grid.dataset.justPressed){ delete grid.dataset.justPressed; e.stopImmediatePropagation(); }
+    }, true);
   }
+  document.addEventListener("click", (e) => { if (!e.target.closest(".up-menu, .up-more")) upCloseMenus(); });
+
+  const selectBtn = document.getElementById("upload-library-clear");
+  if (selectBtn) selectBtn.addEventListener("click", () => upSetSelectMode(!upSelectMode));
+  const cancel = document.getElementById("upload-sel-cancel");
+  if (cancel) cancel.addEventListener("click", () => upSetSelectMode(false));
+  const all = document.getElementById("upload-sel-all");
+  if (all) all.addEventListener("click", () => {
+    const q = upQuery.trim().toLowerCase();
+    getUploadLibrary().filter(i => !q || String(i.name).toLowerCase().includes(q)).forEach(i => upSelected.add(i.id));
+    renderUploadLibrary();
+  });
+  const add = document.getElementById("upload-sel-add");
+  if (add) add.addEventListener("click", () => {
+    const items = getUploadLibrary().filter(i => upSelected.has(i.id));
+    items.forEach(upAddToDesign);
+    upSetSelectMode(false);
+  });
+  const del = document.getElementById("upload-sel-delete");
+  if (del) del.addEventListener("click", () => {
+    const n = upSelected.size;
+    if (!n) return;
+    memoryLibrary = getUploadLibrary().filter(i => !upSelected.has(i.id));
+    saveUploadLibrary(memoryLibrary);
+    upSetSelectMode(false);
+    showToast(n === 1 ? "Upload deleted" : n + " uploads deleted");
+  });
 }
 
 /* ---------- Selection + property panel ---------- */
@@ -1749,9 +1880,23 @@ function onDesignSelectionChange(){
   if (selectedObject && !window.matchMedia("(max-width: 900px)").matches){
     document.dispatchEvent(new CustomEvent("studio:edit-requested"));
   }
+  announceSelection(selectedObject);
+}
+
+// Tells the app chrome (customize-ui.js) what is selected, so phones can swap the
+// main tool bar for the editing tool bar.
+function announceSelection(obj){
+  let kind = "";
+  if (obj){
+    if (obj.type === "i-text" || obj.type === "text" || obj.type === "textbox") kind = "text";
+    else if (obj.type === "image") kind = "image";
+    else kind = "other";
+  }
+  document.dispatchEvent(new CustomEvent("studio:selection", { detail: { kind: kind } }));
 }
 
 function onDesignSelectionCleared(){
+  announceSelection(null);
   selectedObject = null;
   updatePropsPanel(null);
   refreshLayersList();

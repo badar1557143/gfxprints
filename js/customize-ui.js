@@ -253,6 +253,7 @@ const add = (o) => {
       format: I('<path d="M4 6h16M4 12h10M4 18h14"/>'),
       advanced: I('<path d="M7 5h10M12 5v10"/><path d="M4 19h16M7 17l-3 2 3 2M17 17l3 2-3 2"/>'),
       transp: I('<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 12h8M12 4v8M12 20v-8h8"/>'),
+      crop: I('<path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/>'),
       layers: I('<polygon points="12 3 3 8 12 13 21 8 12 3"/><polyline points="3 12 12 17 21 12"/>'),
       position: I('<rect x="4" y="4" width="8" height="8" rx="1.5"/><rect x="12" y="12" width="8" height="8" rx="1.5"/>'),
       nudge: I('<path d="M12 3v18M3 12h18M9 6l3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3"/>'),
@@ -351,9 +352,10 @@ const add = (o) => {
       image: [
         { label: "Replace", icon: ICON.replace, run: clickId("img-replace-input") },
         { label: "Remove BG", icon: ICON.bg, run: () => { clickId("img-bgremove")(); } },
-        { label: "Adjust", icon: ICON.adjust, run: () => openEditAt({ radio: "ip-t-filters", focus: ".ip-tabs" }) },
-        { label: "Layout", icon: ICON.layout, run: () => openEditAt({ radio: "ip-t-layout", focus: ".ip-tabs" }) },
-        { label: "Effects", icon: ICON.effects, run: () => openEditAt({ radio: "ip-t-effects", focus: ".ip-tabs" }) },
+        { label: "Filters", icon: ICON.adjust, tray: "filters", run: tray("filters") },
+        { label: "Layout", icon: ICON.layout, tray: "imglayout", run: tray("imglayout") },
+        { label: "Crop", icon: ICON.crop, tray: "crop", run: tray("crop") },
+        { label: "Effects", icon: ICON.effects, tray: "imgfx", run: tray("imgfx") },
         { label: "Transparency", icon: ICON.transp, tray: "opacity", run: tray("opacity") }
       ].concat(SHARED),
       text: [

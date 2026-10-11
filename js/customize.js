@@ -1124,19 +1124,19 @@ function studioHandleScale(){
   const el = designCanvas && designCanvas.upperCanvasEl;
   const w = el ? el.getBoundingClientRect().width : 0;
   if (!w) return 1;
-  return Math.min(2.4, Math.max(0.8, designCanvas.getWidth() / w));
+  // Handles shrink on small canvases (phones) so they never swamp the design
+  const fit = Math.min(1, Math.max(0.62, w / 520));
+  return Math.min(2.4, Math.max(0.5, designCanvas.getWidth() / w * fit));
 }
 
 function setupStudioControls(){
   if (typeof fabric === "undefined" || fabric.__gfxControls) return;
   fabric.__gfxControls = true;
 
-  const BLUE = "#2447F0", RED = "#E5484D", WHITE = "#ffffff";
+  const PURPLE = "#8B3DFF", GRAY = "#9097A6", INK = "#1c1f2a", WHITE = "#ffffff";
   const touch = !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
   const small = () => window.matchMedia("(max-width: 900px)").matches;   // phones + tablets
-  const editW = () => Math.max(R * 6.4, 66);                              // Edit button width
-  const dupOff = () => small() ? (editW() / 2 + R + 11) : (R + 9);       // leave room for the Edit button
-  const R = touch ? 11 : 8;                 // corner handle radius (screen px)
+  const R = touch ? 9 : 7;                 // corner handle radius (screen px)
   const O = fabric.Object.prototype;
 
   const baseToObject = O.toObject;
@@ -1157,8 +1157,8 @@ function setupStudioControls(){
   O.lockScalingFlip = true;   // dragging a handle past the opposite edge must not mirror the layer
   O.cornerStyle = "circle";
   O.cornerColor = WHITE;
-  O.cornerStrokeColor = BLUE;
-  O.borderColor = BLUE;
+  O.cornerStrokeColor = GRAY;
+  O.borderColor = PURPLE;
   O.borderScaleFactor = 2;
   O.borderOpacityWhenMoving = 1;
   O.snapAngle = 15;          // rotation clicks to every 15 degrees when you get close
@@ -1185,14 +1185,14 @@ function setupStudioControls(){
     ctx.closePath();
   }
 
-  // Corner handles: white circle, blue ring
+  // Corner handles: white circle, grey ring (Canva style)
   function renderCorner(ctx, left, top, style, obj){
     place(ctx, left, top, obj, false);
     shadow(ctx);
     ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI * 2);
     ctx.fillStyle = WHITE; ctx.fill();
     ctx.shadowColor = "transparent";
-    ctx.lineWidth = 2.5; ctx.strokeStyle = BLUE; ctx.stroke();
+    ctx.lineWidth = 2; ctx.strokeStyle = GRAY; ctx.stroke();
     ctx.restore();
   }
 
@@ -1206,60 +1206,120 @@ function setupStudioControls(){
       roundRect(ctx, -w / 2, -h / 2, w, h, h / 2);
       ctx.fillStyle = WHITE; ctx.fill();
       ctx.shadowColor = "transparent";
-      ctx.lineWidth = 2.2; ctx.strokeStyle = BLUE; ctx.stroke();
+      ctx.lineWidth = 2; ctx.strokeStyle = GRAY; ctx.stroke();
       ctx.restore();
     };
   }
 
-  // Rotate handle: solid blue circle with a circular arrow
-  function renderRotate(ctx, left, top, style, obj){
-    place(ctx, left, top, obj, false);
-    const r = R + 4;
+  // ---- Canva-style selection: floating toolbar above (duplicate, delete, more),
+  // ---- rotate + move buttons below (they turn with the layer).
+  const S = () => touch ? 38 : 32;            // toolbar button pitch (screen px)
+  const RM = () => touch ? 18 : 14;           // rotate / move button radius (screen px)
+  function layout(obj){
+    const k = studioHandleK || 1;
+    const bb = obj.getBoundingRect(false, true);
+    const cv = obj.canvas, W = cv ? cv.getWidth() : 1e9, H = cv ? cv.getHeight() : 1e9;
+    const rowOff = (touch ? 42 : 36) * k, need = rowOff + 26 * k, half = 26 * k;
+    const top = bb.top, bottom = bb.top + bb.height;
+    const below = top < need && H - bottom >= need;          // no room above: toolbar goes under the layer
+    const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), Math.max(lo, hi));
+    const tbHalf = (S() * 1.5 + 6) * k;
+    return {
+      tbBelow: below,
+      tbY: clamp(below ? bottom + rowOff : top - rowOff, half, H - half),
+      tbX: clamp(bb.left + bb.width / 2, tbHalf, W - tbHalf)
+    };
+  }
+  // Toolbar: always upright, above the layer's bounding box.
+  const posTb = (n) => function(dim, m, obj){ const L = layout(obj), k = studioHandleK || 1; return new fabric.Point(L.tbX + n * S() * k, L.tbY); };
+  // Rotate + move: sit under the layer in ITS OWN frame, so they turn with it (like Canva).
+  // If that spot is off the canvas they flip to the layer's other side.
+  const posRm = (n) => function(dim, m, obj){
+    const k = studioHandleK || 1, L = layout(obj), cv = obj.canvas;
+    const W = cv ? cv.getWidth() : 1e9, H = cv ? cv.getHeight() : 1e9, half = 26 * k;
+    const row = (touch ? 40 : 34) * k, st = (touch ? 44 : 38) * k, dx = n * (RM() + 2) * k;
+    const opts = [0.5 * dim.y + row + (L.tbBelow ? st : 0), -0.5 * dim.y - (row + (L.tbBelow ? 0 : st))];
+    const at = (oy, x) => fabric.util.transformPoint({ x: x, y: oy }, m);
+    const fits = (p) => p.x >= half && p.x <= W - half && p.y >= half && p.y <= H - half;
+    let oy = opts[0];
+    if (!fits(at(opts[0], 0)) && fits(at(opts[1], 0))) oy = opts[1];
+    const p = at(oy, dx);
+    return new fabric.Point(Math.min(Math.max(p.x, half), Math.max(half, W - half)), Math.min(Math.max(p.y, half), Math.max(half, H - half)));
+  };
+
+  function ink(ctx, w){ ctx.lineWidth = w || 1.9; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = INK; }
+  function disc(ctx, r){
     shadow(ctx);
     ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2);
-    ctx.fillStyle = BLUE; ctx.fill();
+    ctx.fillStyle = WHITE; ctx.fill();
     ctx.shadowColor = "transparent";
-    ctx.lineWidth = 2.5; ctx.strokeStyle = WHITE; ctx.stroke();
-    const rr = r * 0.5, end = Math.PI * 1.45;
-    ctx.beginPath(); ctx.arc(0, 0, rr, -Math.PI * 0.15, end);
-    ctx.lineWidth = 2; ctx.lineCap = "round"; ctx.strokeStyle = WHITE; ctx.stroke();
-    const ex = Math.cos(end) * rr, ey = Math.sin(end) * rr, tx = -Math.sin(end), ty = Math.cos(end), nx = Math.cos(end), ny = Math.sin(end);
-    ctx.beginPath();
-    ctx.moveTo(ex + tx * 4.2, ey + ty * 4.2);
-    ctx.lineTo(ex + nx * 3.4, ey + ny * 3.4);
-    ctx.lineTo(ex - nx * 3.4, ey - ny * 3.4);
-    ctx.closePath(); ctx.fillStyle = WHITE; ctx.fill();
+    ctx.lineWidth = 1.5; ctx.strokeStyle = "#c6c9d3"; ctx.stroke();
+  }
+  // Icon set (24 x 24 line icons, drawn centred). Paths are cached once.
+  const ICONS = {
+    rotate: ["M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8", "M21 3v5h-5"],
+    move:   ["M5 9l-3 3 3 3", "M9 5l3-3 3 3", "M15 19l-3 3-3-3", "M19 9l3 3-3 3", "M2 12h20", "M12 2v20"],
+    copy:   ["M8 10a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-9a2 2 0 0 1-2-2z", "M5 16a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2"],
+    trash:  ["M3 6h18", "M19 6l-.9 13.2a2 2 0 0 1-2 1.8H7.9a2 2 0 0 1-2-1.8L5 6", "M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2", "M10 11v6", "M14 11v6"]
+  };
+  const ICON_PATHS = {};
+  function drawIcon(ctx, name, size){
+    const list = ICON_PATHS[name] || (ICON_PATHS[name] = ICONS[name].map(d => new Path2D(d)));
+    const sc = size / 24;
+    ctx.save();
+    ctx.scale(sc, sc); ctx.translate(-12, -12);
+    ctx.lineWidth = 1.8 / sc; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = INK;
+    list.forEach(pt => ctx.stroke(pt));
     ctx.restore();
   }
 
-  // Round action buttons (Duplicate / Delete)
-  function actionRenderer(kind){
+  // Rotate button: white disc, circular arrow
+  function renderRotate(ctx, left, top, style, obj){
+    place(ctx, left, top, obj, false);
+    disc(ctx, RM());
+    drawIcon(ctx, "rotate", RM() * 1.15);
+    ctx.restore();
+  }
+  // Move button: white disc, four-way arrow
+  function renderMove(ctx, left, top, style, obj){
+    place(ctx, left, top, obj, false);
+    disc(ctx, RM());
+    drawIcon(ctx, "move", RM() * 1.2);
+    ctx.restore();
+  }
+
+  // Toolbar buttons. The white pill behind all three is drawn by the first one (Duplicate).
+  function toolRenderer(kind){
     return function(ctx, left, top, style, obj){
       place(ctx, left, top, obj, false);
-      const r = R + 5;
-      shadow(ctx);
-      ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2);
-      ctx.fillStyle = kind === "del" ? RED : "#1c2340"; ctx.fill();
-      ctx.shadowColor = "transparent";
-      ctx.lineWidth = 2; ctx.strokeStyle = WHITE; ctx.stroke();
-      ctx.lineWidth = 1.9; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = WHITE;
-      if (kind === "del"){
-        ctx.beginPath(); ctx.moveTo(-4, -4); ctx.lineTo(4, 4); ctx.moveTo(4, -4); ctx.lineTo(-4, 4); ctx.stroke();
-      } else {
-        roundRect(ctx, -5.5, -5.5, 8, 8, 1.5); ctx.stroke();
-        roundRect(ctx, -2.5, -2.5, 8, 8, 1.5); ctx.stroke();
+      const s = S();
+      if (kind === "dup"){
+        const w = s * 3 + 8, h = s;
+        shadow(ctx);
+        roundRect(ctx, s - w / 2, -h / 2, w, h, h / 2);
+        ctx.fillStyle = WHITE; ctx.fill();
+        ctx.shadowColor = "transparent";
+        ctx.lineWidth = 1.2; ctx.strokeStyle = "#d3d6df"; ctx.stroke();
+      }
+      const ic = s * 0.5;
+      if (kind === "dup") drawIcon(ctx, "copy", ic);
+      else if (kind === "del") drawIcon(ctx, "trash", ic);
+      else {
+        ctx.fillStyle = INK;
+        [-5.5, 0, 5.5].forEach(x => { ctx.beginPath(); ctx.arc(x * s / 32, 0, 1.9 * s / 32 + 0.4, 0, Math.PI * 2); ctx.fill(); });
       }
       ctx.restore();
     };
   }
 
   const C = O.controls;
-  ["tl", "tr", "bl", "br"].forEach(k => { if (C[k]) C[k].render = renderCorner; });
+  [ "tl", "tr", "bl", "br"].forEach(k => { if (C[k]) C[k].render = renderCorner; });
   ["mt", "mb"].forEach(k => { if (C[k]) C[k].render = renderSide(false); });
   ["ml", "mr"].forEach(k => { if (C[k]) C[k].render = renderSide(true); });
   if (C.mtr){
     C.mtr.render = renderRotate;
-    C.mtr.withConnection = true;
+    C.mtr.withConnection = false;
+    C.mtr.positionHandler = posRm(-1);
     C.mtr.cursorStyleHandler = () => "grab";
   }
 
@@ -1273,54 +1333,25 @@ function setupStudioControls(){
       return true;
     };
   }
-  // "Edit" button under the selected layer: blue gradient pill, white outline,
-  // soft shadow, pencil icon + label. Opens the Edit / Properties panel.
-  function renderEditPill(ctx, left, top, style, obj){
-    place(ctx, left, top, obj, false);
-    const w = editW(), h = R * 2 + 10, r = h / 2;
-    shadow(ctx);
-    roundRect(ctx, -w / 2, -h / 2, w, h, r);
-    const g = ctx.createLinearGradient(0, -h / 2, 0, h / 2);
-    g.addColorStop(0, "#4a68ff"); g.addColorStop(1, "#1f3ad6");
-    ctx.fillStyle = g; ctx.fill();
-    ctx.shadowColor = "transparent";
-    ctx.lineWidth = 2.2; ctx.strokeStyle = WHITE; ctx.stroke();
-    // glossy top highlight
-    ctx.save();
-    roundRect(ctx, -w / 2 + 3, -h / 2 + 3, w - 6, h / 2 - 3, r - 3);
-    ctx.fillStyle = "rgba(255,255,255,0.14)"; ctx.fill();
-    ctx.restore();
-    // pencil icon
-    ctx.save();
-    ctx.translate(-w / 2 + r + 1, 0);
-    ctx.rotate(Math.PI / 4);
-    ctx.fillStyle = WHITE;
-    roundRect(ctx, -2.8, -7.5, 5.6, 10.5, 1.2); ctx.fill();               // body
-    ctx.fillStyle = "rgba(31,58,214,0.45)";
-    ctx.fillRect(-2.8, -5.2, 5.6, 1.2);                                    // ferrule line
-    ctx.fillStyle = WHITE;
-    ctx.beginPath(); ctx.moveTo(-2.8, 3.6); ctx.lineTo(2.8, 3.6); ctx.lineTo(0, 8.4); ctx.closePath(); ctx.fill(); // tip
-    ctx.restore();
-    // label
-    ctx.fillStyle = WHITE;
-    ctx.font = "700 " + (touch ? 14 : 12.5) + "px 'IBM Plex Sans', sans-serif";
-    ctx.textAlign = "left"; ctx.textBaseline = "middle";
-    ctx.fillText("Edit", -w / 2 + r + 15, 0.5);
-    ctx.restore();
-  }
-  C.edit = new fabric.Control({
-    x: 0, y: 0.5, offsetX: 0, offsetY: 0, cursorStyle: "pointer",
-    mouseUpHandler: function(){ document.dispatchEvent(new CustomEvent("studio:edit-requested")); return true; },
-    render: renderEditPill
-  });
-  C.edit.getVisibility = () => small();   // Edit button only on phones/tablets
   C.dup = new fabric.Control({
-    x: 0, y: 0.5, offsetX: -dupOff(), offsetY: 0, cursorStyle: "copy",
-    mouseUpHandler: clickButton("prop-duplicate"), render: actionRenderer("dup")
+    x: 0, y: 0, cursorStyle: "pointer", positionHandler: posTb(-1),
+    mouseUpHandler: clickButton("prop-duplicate"), render: toolRenderer("dup")
   });
   C.del = new fabric.Control({
-    x: 0, y: 0.5, offsetX: dupOff(), offsetY: 0, cursorStyle: "pointer",
-    mouseUpHandler: clickButton("prop-delete"), render: actionRenderer("del")
+    x: 0, y: 0, cursorStyle: "pointer", positionHandler: posTb(0),
+    mouseUpHandler: clickButton("prop-delete"), render: toolRenderer("del")
+  });
+  // "..." opens the Edit / Properties panel (text, colours, layers and more)
+  C.more = new fabric.Control({
+    x: 0, y: 0, cursorStyle: "pointer", positionHandler: posTb(1),
+    mouseUpHandler: function(){ document.dispatchEvent(new CustomEvent("studio:edit-requested")); return true; },
+    render: toolRenderer("more")
+  });
+  // Move button: drag it to move the layer (handy when the layer is small)
+  C.mov = new fabric.Control({
+    x: 0, y: 0, cursorStyle: "move", actionName: "drag",
+    actionHandler: fabric.controlsUtils.dragHandler, positionHandler: posRm(1),
+    render: renderMove
   });
 
   // Keeps handle size, hit area and the offsets in step with how big the canvas looks on screen
@@ -1332,14 +1363,11 @@ function setupStudioControls(){
     O.touchCornerSize = (touch ? 46 : 30) * k;
     O.padding = 5 * k;
     O.borderScaleFactor = 2 * Math.max(1, k * 0.9);
-    C.mtr.offsetY = -(touch ? 52 : 44) * k;
-    C.dup.offsetX = -dupOff() * k;  C.del.offsetX = dupOff() * k;
-    C.dup.offsetY = C.del.offsetY = C.edit.offsetY = (R * 2 + 18) * k;
-    C.edit.sizeX = C.edit.touchSizeX = editW() * k;
-    C.edit.sizeY = C.edit.touchSizeY = (R * 2 + 16) * k * (touch ? 1.3 : 1);
-    [C.dup, C.del, C.mtr].forEach(c => {
-      c.sizeX = c.sizeY = (R * 2 + 6) * k;
-      c.touchSizeX = c.touchSizeY = (touch ? 40 : 30) * k;
+    [C.dup, C.del, C.more].forEach(c => {
+      c.sizeX = c.sizeY = c.touchSizeX = c.touchSizeY = S() * k;
+    });
+    [C.mtr, C.mov].forEach(c => {
+      c.sizeX = c.sizeY = c.touchSizeX = c.touchSizeY = RM() * 2 * k;
     });
     const a = designCanvas && designCanvas.getActiveObject();
     if (a) a.setCoords();
@@ -1409,6 +1437,18 @@ function bindStudioHandles(){
     ctx.restore();
   });
   window.addEventListener("resize", () => { studioApplyHandleScale(); designCanvas.requestRenderAll(); });
+  // The canvas can change size without a window resize (a sheet closes, the zoom changes, the
+  // layout settles after the first layer is added). Re-measure then, so handles are never stale/oversized.
+  if (window.ResizeObserver && designCanvas.upperCanvasEl){
+    let raf = 0;
+    new ResizeObserver(() => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => { studioApplyHandleScale(); designCanvas.requestRenderAll(); });
+    }).observe(designCanvas.upperCanvasEl);
+  }
+  document.addEventListener("studio:selection", () => {
+    requestAnimationFrame(() => { studioApplyHandleScale(); designCanvas.requestRenderAll(); setTimeout(() => { studioApplyHandleScale(); designCanvas.requestRenderAll(); }, 260); });
+  });
 }
 
 function initDesignStudio(product){
@@ -1427,6 +1467,30 @@ function initDesignStudio(product){
   });
 
   bindStudioHandles();
+
+  // Phones/tablets: double tap on a text layer opens text editing (keyboard bar).
+  (function(){
+    let lastT = 0, lastObj = null, lastX = 0, lastY = 0, pending = null;
+    designCanvas.on("mouse:down", (opt) => {
+      if (!window.matchMedia("(max-width: 900px)").matches) return;
+      const t = opt && opt.target;
+      if (!t || t.type !== "i-text" || opt.transform && opt.transform.corner) { lastObj = null; return; }
+      const e = opt.e || {}, pt = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]) || e;
+      const x = pt.clientX || 0, y = pt.clientY || 0, now = Date.now();
+      if (lastObj === t && now - lastT < 380 && Math.abs(x - lastX) < 30 && Math.abs(y - lastY) < 30){
+        lastObj = null; pending = t;
+        return;
+      }
+      lastObj = t; lastT = now; lastX = x; lastY = y;
+    });
+    // Open on finger-up so the keyboard is allowed to show
+    designCanvas.on("mouse:up", () => {
+      if (!pending) return;
+      const t = pending; pending = null;
+      designCanvas.setActiveObject(t);
+      document.dispatchEvent(new CustomEvent("studio:edit-requested"));
+    });
+  })();
   designCanvas.on("selection:created", onDesignSelectionChange);
   designCanvas.on("selection:updated", onDesignSelectionChange);
   designCanvas.on("selection:cleared", onDesignSelectionCleared);

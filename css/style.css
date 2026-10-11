@@ -2781,8 +2781,10 @@ body.bgr-open{ overflow:hidden; }
 .app-drawer-grip{ display:none; }
 @media (max-width:900px){
   .app-drawer::before{ display:none; }
-  .app-drawer-grip{ display:flex; justify-content:center; align-items:flex-start; position:sticky; top:0; z-index:3;
-    height:30px; margin:-22px calc(var(--space-4) * -1) -8px; padding-top:8px; cursor:grab; touch-action:none; -webkit-user-select:none; user-select:none; }
+  .app-drawer-grip{ display:flex; justify-content:center; align-items:flex-start; position:sticky; top:-22px; z-index:3;   /* -22px = the sheet's top padding, so the handle pins to the very top edge */
+    height:30px; margin:-22px calc(var(--space-4) * -1) -8px; padding-top:8px; cursor:grab; touch-action:none; -webkit-user-select:none; user-select:none;
+    /* Solid background so content scrolling under the handle is hidden, not drawn through it */
+    background: var(--paper-raised); border-radius:18px 18px 0 0; box-shadow:0 8px 8px -6px var(--paper-raised); }
   .app-drawer-grip span{ display:block; width:44px; height:5px; border-radius:999px; background: var(--line-strong); }
   .app-drawer-grip:active span{ background: var(--ink-soft); }
   .app-drawer-close{ z-index:4; }
@@ -2992,6 +2994,11 @@ body.bgr-open{ overflow:hidden; }
   .tr-fx{ flex:0 0 auto; width:74px; display:flex; flex-direction:column; align-items:center; gap:4px; padding:8px 4px; border:1.5px solid var(--line-strong, #d9dbe3); border-radius:12px; background:#fff; color: var(--ink, #15171b); font:inherit; font-size:.75rem; font-weight:600; cursor:pointer; }
   .tr-fx b{ font-size:1.5rem; line-height:1.1; }
   .tr-fx.on b{ text-shadow:none !important; -webkit-text-stroke:0 !important; color:#fff !important; }
+  .tr-labw{ flex:0 0 84px; }
+  .tr-cin{ flex:0 0 auto; width:52px; height:34px; padding:2px; border:1.5px solid var(--line-strong, #d9dbe3); border-radius:10px; background:#fff; cursor:pointer; }
+  .tr-tabs{ margin-top:4px; }
+  .tr-tg.tr-wide{ flex:1; flex-direction:row; gap:8px; font-size:.9rem; min-height:44px; }
+  .tr-tg.on{ background: var(--cobalt); border-color: var(--cobalt); color:#fff; }
   .tr-note{ margin:8px 0 0; font-size:.75rem; color: var(--ink-soft); }
   .tr-num{ display:flex; flex-direction:column; gap:3px; font-size:.7rem; font-weight:700; color: var(--ink-soft); }
   .tr-num input{ width:100%; min-width:0; height:40px; padding:0 8px; border:1.5px solid var(--line-strong, #d9dbe3); border-radius:10px; font:inherit; font-size:.95rem; font-weight:700; color: var(--ink, #15171b); box-sizing:border-box; }

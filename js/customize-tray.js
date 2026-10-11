@@ -508,12 +508,123 @@
       });
     }};
 
+    /* ---------- IMAGE tools: drive the same hidden controls as the Properties panel ---------- */
+    const IMAGE_ONLY = new Set(["filters", "imglayout", "crop", "imgfx"]);
+    const hid = (id) => $(id);
+    const sl = (label, id, suffix) => '<div class="tr-row tr-split"><label class="tr-lab tr-labw" for="t-' + id + '">' + label +
+      '</label><input type="range" class="tr-range" id="t-' + id + '" data-h="' + id + '" data-sfx="' + (suffix || "") + '"><output></output></div>';
+    // Link every slider in the tray to its hidden twin: live "input" while dragging, "change" on release
+    function wireSliders(){
+      body.querySelectorAll("input[data-h]").forEach(r => {
+        const h = hid(r.dataset.h); if (!h) return;
+        const out = r.parentNode.querySelector("output"), sfx = r.dataset.sfx;
+        r.min = h.min; r.max = h.max; r.step = h.step || 1; r.value = h.value;
+        const show = () => { out.textContent = r.value + sfx; };
+        show();
+        r.addEventListener("input", () => { h.value = r.value; show(); fire(h, ["input"]); });
+        r.addEventListener("change", () => { h.value = r.value; fire(h, ["change"]); });
+      });
+    }
+    function wireColour(inpId, hidId){
+      const c = body.querySelector("#" + inpId), h = hid(hidId); if (!c || !h) return;
+      c.value = h.value;
+      c.addEventListener("input", () => { h.value = c.value; fire(h, ["input"]); });
+      c.addEventListener("change", () => { h.value = c.value; fire(h, ["change"]); });
+    }
+    function tabbed(tabs, startKey, draw){
+      let tab = startKey;
+      body.innerHTML = '<div class="tr-row tr-seg tr-tabs" id="im-t">' + tabs.map(t => '<button type="button" data-p="' + t[0] + '">' + t[1] + '</button>').join("") + '</div><div id="im-b"></div>';
+      const tb = body.querySelector("#im-t"), pb = body.querySelector("#im-b");
+      function go(){
+        tb.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.p === tab));
+        pb.innerHTML = ""; draw(tab, pb); measure();
+      }
+      tb.addEventListener("click", (e) => { const b = e.target.closest("[data-p]"); if (!b) return; tab = b.dataset.p; go(); });
+      go();
+    }
+    // wireSliders / wireColour look inside `body`, which also holds the tab panel, so they work for tab content too
+
+    /* FILTERS: presets, adjust sliders, clean-up */
+    TOOLS.filters = { title: "Filters", render(){
+      tabbed([["presets", "Presets"], ["adjust", "Adjust"], ["clean", "Clean-up"]], "presets", (tab, pb) => {
+        if (tab === "presets"){
+          const chips = Array.from(document.querySelectorAll("#img-presets .pp-chip"));
+          pb.innerHTML = '<div class="tr-row tr-scroll">' + chips.map((c, i) =>
+            '<button type="button" class="tr-fx' + (c.classList.contains("on") ? " on" : "") + '" data-i="' + i + '"><b style="font-size:1.1rem;filter:' + esc((c.querySelector(".ip-sample") || {style:{}}).style.filter || "none") + '">&#9632;</b>' +
+            esc((c.querySelector("span") || {}).textContent || "") + '</button>').join("") + '</div>';
+          pb.querySelector(".tr-scroll").addEventListener("click", (e) => {
+            const b = e.target.closest("[data-i]"); if (!b) return;
+            chips[Number(b.dataset.i)].click();
+            pb.querySelectorAll(".tr-fx").forEach(x => x.classList.toggle("on", x === b));
+          });
+        } else if (tab === "adjust"){
+          pb.innerHTML = sl("Brightness", "img-brightness") + sl("Contrast", "img-contrast") + sl("Saturation", "img-saturation") + sl("Blur", "img-blur");
+          wireSliders();
+        } else {
+          const cb = hid("img-rmwhite");
+          pb.innerHTML = '<div class="tr-row"><button type="button" class="tr-tg tr-wide' + (cb && cb.checked ? " on" : "") + '" id="t-rmw">Remove white background</button></div>' + sl("Tolerance", "img-rmwhite-tol", "%");
+          wireSliders();
+          pb.querySelector("#t-rmw").addEventListener("click", (e) => {
+            if (!cb) return; cb.checked = !cb.checked; fire(cb, ["change"]);
+            e.currentTarget.classList.toggle("on", cb.checked);
+          });
+        }
+      });
+    }};
+
+    /* LAYOUT: fit / fill / turn / flip, then shapes */
+    const IC = {
+      fit: '<rect x="4" y="6" width="16" height="12" rx="1.5"/><path d="M8 10h8v4H8z"/>',
+      fill: '<rect x="4" y="6" width="16" height="12" rx="1.5"/><path d="M4 6l16 12M20 6 4 18"/>',
+      rot: '<path d="M4 9a8 8 0 0 1 14-3l2 2"/><path d="M20 4v4h-4"/><path d="M20 15a8 8 0 0 1-14 3l-2-2"/><path d="M4 20v-4h4"/>',
+      fh: '<path d="M12 3v18"/><path d="M8 7 3 12l5 5z"/><path d="M16 7l5 5-5 5z"/>',
+      fv: '<path d="M3 12h18"/><path d="M7 8l5-5 5 5z"/><path d="M7 16l5 5 5-5z"/>'
+    };
+    TOOLS.imglayout = { title: "Layout", render(){
+      const shapes = Array.from(document.querySelectorAll("#img-shapes .pp-chip"));
+      const acts = [["img-fit", "Fit", IC.fit], ["img-fill", "Fill", IC.fill], ["img-rot90", "Rotate", IC.rot], ["fh", "Flip", IC.fh], ["img-flipv", "Flip V", IC.fv]];
+      body.innerHTML = '<div class="tr-row tr-grid5 tr-acts">' + acts.map(a =>
+        '<button type="button" class="tr-tg" data-a="' + a[0] + '">' + I(a[2], 20) + '<span>' + a[1] + '</span></button>').join("") + '</div>' +
+        '<div class="tr-row tr-scroll tr-shapes">' + shapes.map((c, i) =>
+          '<button type="button" class="tr-pill' + (c.classList.contains("on") ? " on" : "") + '" data-s="' + i + '">' + esc((c.querySelector("span") || {}).textContent || "") + '</button>').join("") + '</div>';
+      body.querySelector(".tr-acts").addEventListener("click", (e) => {
+        const b = e.target.closest("[data-a]"); if (!b) return;
+        const a = b.dataset.a, o = active();
+        if (a === "fh"){ if (o){ o.set("flipX", !o.flipX); o.setCoords(); redraw(); commit(); } }
+        else { const el = hid(a); if (el) el.click(); }
+      });
+      body.querySelector(".tr-shapes").addEventListener("click", (e) => {
+        const b = e.target.closest("[data-s]"); if (!b) return;
+        shapes[Number(b.dataset.s)].click();
+        body.querySelectorAll(".tr-shapes .tr-pill").forEach(x => x.classList.toggle("on", x === b));
+      });
+    }};
+
+    /* CROP: four edges */
+    TOOLS.crop = { title: "Crop", render(){
+      body.innerHTML = sl("Left", "img-crop-l", "%") + sl("Right", "img-crop-r", "%") + sl("Top", "img-crop-t", "%") + sl("Bottom", "img-crop-b", "%");
+      wireSliders();
+    }};
+
+    /* IMAGE EFFECTS: border, shadow, reset */
+    TOOLS.imgfx = { title: "Effects", render(){
+      body.innerHTML =
+        sl("Border", "img-border", "px") +
+        '<div class="tr-row"><label class="tr-lab tr-labw" for="t-bc">Border colour</label><input type="color" class="tr-cin" id="t-bc"></div>' +
+        sl("Shadow", "img-shadow") +
+        '<div class="tr-row"><label class="tr-lab tr-labw" for="t-sc">Shadow colour</label><input type="color" class="tr-cin" id="t-sc"></div>' +
+        '<div class="tr-row"><button type="button" class="tr-tg tr-wide" id="t-reset">Reset all effects</button></div>';
+      wireSliders(); wireColour("t-bc", "img-border-color"); wireColour("t-sc", "img-shadow-color");
+      body.querySelector("#t-reset").addEventListener("click", () => { const r = hid("img-reset"); if (r) r.click(); TOOLS.imgfx.render(); measure(); });
+    }};
+
     /* ---------- open / switch ---------- */
     function openTray(name, kind){
       const t = TOOLS[name]; if (!t || !small()) return;
       if (current === name){ closeTray(); return; }
       const o = active(); if (!o) return;
       if (TEXT_ONLY.has(name) && !isText(o)) return;
+      if (IMAGE_ONLY.has(name) && o.type !== "image") return;
       current = name;
       title.textContent = t.title;
       body.innerHTML = "";
@@ -530,6 +641,7 @@
       if (!kind || !small()){ closeTray(); return; }
       if (!current) return;
       if (TEXT_ONLY.has(current) && kind !== "text"){ closeTray(); return; }
+      if (IMAGE_ONLY.has(current) && kind !== "image"){ closeTray(); return; }
       const name = current; current = ""; root.hidden = true; // re-render for the newly selected layer
       openTray(name);
     });

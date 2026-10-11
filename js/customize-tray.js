@@ -544,22 +544,58 @@
     }
     // wireSliders / wireColour look inside `body`, which also holds the tab panel, so they work for tab content too
 
-    /* FILTERS: presets, adjust sliders, clean-up */
+    /* FILTERS: looks (live thumbnails of the real picture), adjust, clean-up */
+    const LOOKS = [
+      { n: "Original", chip: "", v: [0, 0, 0], css: "none" },
+      { n: "Vivid", chip: "", v: [0, 18, 45], css: "contrast(1.18) saturate(1.45)" },
+      { n: "Bright", chip: "", v: [18, 8, 10], css: "brightness(1.18) contrast(1.08) saturate(1.1)" },
+      { n: "Fade", chip: "", v: [10, -22, -25], css: "brightness(1.1) contrast(.8) saturate(.75)" },
+      { n: "Drama", chip: "", v: [-10, 38, 12], css: "brightness(.9) contrast(1.38) saturate(1.12)" },
+      { n: "B&W", chip: "Grayscale", v: [0, 0, 0], css: "grayscale(1)" },
+      { n: "Noir", chip: "Grayscale", v: [-8, 40, 0], css: "grayscale(1) contrast(1.4) brightness(.92)" },
+      { n: "Sepia", chip: "Sepia", v: [0, 0, 0], css: "sepia(1)" },
+      { n: "Invert", chip: "Invert", v: [0, 0, 0], css: "invert(1)" }
+    ];
+    const ADJ = [
+      ["img-brightness", "Brightness", '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'],
+      ["img-contrast", "Contrast", '<circle cx="12" cy="12" r="9"/><path d="M12 3v18" /><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/>'],
+      ["img-saturation", "Saturation", '<path d="M12 3s6 6.2 6 10.5A6 6 0 0 1 6 13.5C6 9.2 12 3 12 3z"/>'],
+      ["img-blur", "Blur", '<circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="7" stroke-dasharray="2 3"/><circle cx="12" cy="12" r="10" stroke-dasharray="1 4"/>']
+    ];
+    const imgSrc = (o) => { try { return (o && (o.getSrc ? o.getSrc() : (o._element && o._element.src))) || ""; } catch (_) { return ""; } };
+    const hv = (id) => { const e = hid(id); return e ? Number(e.value) || 0 : 0; };
+    const curChip = () => { const c = document.querySelector("#img-presets .pp-chip.on"); return c ? (c.dataset.preset || "") : ""; };
+    function applyLook(L){
+      const chip = Array.from(document.querySelectorAll("#img-presets .pp-chip")).find(c => (c.dataset.preset || "") === L.chip);
+      if (chip) chip.click();
+      ["img-brightness", "img-contrast", "img-saturation"].forEach((id, i) => { const e = hid(id); if (e){ e.value = L.v[i]; fire(e, ["input"]); } });
+      const e = hid("img-contrast"); if (e) fire(e, ["change"]);
+    }
     TOOLS.filters = { title: "Filters", render(){
-      tabbed([["presets", "Presets"], ["adjust", "Adjust"], ["clean", "Clean-up"]], "presets", (tab, pb) => {
-        if (tab === "presets"){
-          const chips = Array.from(document.querySelectorAll("#img-presets .pp-chip"));
-          pb.innerHTML = '<div class="tr-row tr-scroll">' + chips.map((c, i) =>
-            '<button type="button" class="tr-fx' + (c.classList.contains("on") ? " on" : "") + '" data-i="' + i + '"><b style="font-size:1.1rem;filter:' + esc((c.querySelector(".ip-sample") || {style:{}}).style.filter || "none") + '">&#9632;</b>' +
-            esc((c.querySelector("span") || {}).textContent || "") + '</button>').join("") + '</div>';
-          pb.querySelector(".tr-scroll").addEventListener("click", (e) => {
+      tabbed([["looks", "Looks"], ["adjust", "Adjust"], ["clean", "Clean-up"]], "looks", (tab, pb) => {
+        if (tab === "looks"){
+          const src = imgSrc(active());
+          const same = (L) => L.chip === curChip() && L.v[0] === hv("img-brightness") && L.v[1] === hv("img-contrast") && L.v[2] === hv("img-saturation");
+          pb.innerHTML = '<div class="tr-row tr-scroll tr-looks">' + LOOKS.map((L, i) =>
+            '<button type="button" class="tr-look' + (same(L) ? " on" : "") + '" data-i="' + i + '"><span class="tr-lk"><img alt="" style="filter:' + L.css + '"></span><em>' + esc(L.n) + '</em></button>').join("") + '</div>';
+          pb.querySelectorAll(".tr-lk img").forEach(im => { if (src) im.src = src; });
+          pb.querySelector(".tr-looks").addEventListener("click", (e) => {
             const b = e.target.closest("[data-i]"); if (!b) return;
-            chips[Number(b.dataset.i)].click();
-            pb.querySelectorAll(".tr-fx").forEach(x => x.classList.toggle("on", x === b));
+            applyLook(LOOKS[Number(b.dataset.i)]);
+            pb.querySelectorAll(".tr-look").forEach(x => x.classList.toggle("on", x === b));
           });
+          const on = pb.querySelector(".tr-look.on"); if (on && on.scrollIntoView) on.scrollIntoView({ inline: "center", block: "nearest" });
         } else if (tab === "adjust"){
-          pb.innerHTML = sl("Brightness", "img-brightness") + sl("Contrast", "img-contrast") + sl("Saturation", "img-saturation") + sl("Blur", "img-blur");
+          pb.innerHTML = ADJ.map(a =>
+            '<div class="tr-row tr-split tr-adj"><span class="tr-ai">' + I(a[2], 18) + '</span><label class="tr-lab tr-labw" for="t-' + a[0] + '">' + a[1] + '</label>' +
+            '<input type="range" class="tr-range" id="t-' + a[0] + '" data-h="' + a[0] + '"><output></output></div>').join("") +
+            '<div class="tr-row"><button type="button" class="tr-tg tr-wide" id="t-adj-reset">Reset adjustments</button></div>';
           wireSliders();
+          pb.querySelector("#t-adj-reset").addEventListener("click", () => {
+            ADJ.forEach(a => { const e = hid(a[0]); if (e){ e.value = 0; fire(e, ["input"]); } });
+            const e = hid("img-blur"); if (e) fire(e, ["change"]);
+            pb.querySelectorAll("input[data-h]").forEach(r => { r.value = 0; const o = r.parentNode.querySelector("output"); if (o) o.textContent = "0"; });
+          });
         } else {
           const cb = hid("img-rmwhite");
           pb.innerHTML = '<div class="tr-row"><button type="button" class="tr-tg tr-wide' + (cb && cb.checked ? " on" : "") + '" id="t-rmw">Remove white background</button></div>' + sl("Tolerance", "img-rmwhite-tol", "%");
@@ -600,22 +636,79 @@
       });
     }};
 
-    /* CROP: four edges */
+    /* CROP: ratio presets (centred) + fine-tune edges */
+    const RATIOS = [["Free", 0], ["Original", -1], ["1:1", 1], ["4:5", 4 / 5], ["3:4", 3 / 4], ["16:9", 16 / 9], ["9:16", 9 / 16]];
+    function cropToRatio(r){
+      const o = active(); if (!o || typeof imgNat !== "function") return;
+      const set = (id, v) => { const e = hid(id); if (e) e.value = Math.max(0, Math.min(45, Math.round(v))); };
+      let L = 0, T = 0;
+      if (r > 0){
+        const n = imgNat(o), nr = n.w / n.h;
+        if (r < nr) L = (1 - r / nr) / 2 * 100; else T = (1 - nr / r) / 2 * 100;
+      }
+      set("img-crop-l", L); set("img-crop-r", L); set("img-crop-t", T); set("img-crop-b", T);
+      ["img-crop-l", "img-crop-r", "img-crop-t", "img-crop-b"].forEach(id => fire(hid(id), ["input"]));
+      fire(hid("img-crop-l"), ["change"]);
+    }
     TOOLS.crop = { title: "Crop", render(){
-      body.innerHTML = sl("Left", "img-crop-l", "%") + sl("Right", "img-crop-r", "%") + sl("Top", "img-crop-t", "%") + sl("Bottom", "img-crop-b", "%");
-      wireSliders();
+      tabbed([["ratio", "Ratio"], ["edges", "Edges"]], "ratio", (tab, pb) => {
+        if (tab === "ratio"){
+          pb.innerHTML = '<div class="tr-row tr-scroll tr-ratios">' + RATIOS.map((q, i) => {
+            const w = q[1] > 0 ? (q[1] >= 1 ? 26 : 26 * q[1]) : 22, h = q[1] > 0 ? (q[1] >= 1 ? 26 / q[1] : 26) : 22;
+            return '<button type="button" class="tr-ratio" data-i="' + i + '"><i style="width:' + w.toFixed(0) + 'px;height:' + h.toFixed(0) + 'px"></i><span>' + q[0] + '</span></button>';
+          }).join("") + '</div>';
+          pb.querySelector(".tr-ratios").addEventListener("click", (e) => {
+            const b = e.target.closest("[data-i]"); if (!b) return;
+            const q = RATIOS[Number(b.dataset.i)];
+            cropToRatio(q[1] === -1 ? 0 : q[1]);
+            pb.querySelectorAll(".tr-ratio").forEach(x => x.classList.toggle("on", x === b));
+          });
+        } else {
+          pb.innerHTML = sl("Left", "img-crop-l", "%") + sl("Right", "img-crop-r", "%") + sl("Top", "img-crop-t", "%") + sl("Bottom", "img-crop-b", "%");
+          wireSliders();
+        }
+      });
     }};
 
-    /* IMAGE EFFECTS: border, shadow, reset */
+    /* IMAGE EFFECTS: border and shadow with colour swatches */
+    const SWATCHES = ["#ffffff", "#000000", "#ef4444", "#f59e0b", "#22c55e", "#2447F0", "#8B3DFF", "#ec4899"];
+    function swatchRow(hidId){
+      return '<div class="tr-row tr-scroll tr-sws" data-c="' + hidId + '">' + SWATCHES.map(c =>
+        '<button type="button" class="tr-sw" data-v="' + c + '" style="--c:' + c + '" aria-label="' + c + '"></button>').join("") +
+        '<input type="color" class="tr-cin" aria-label="Custom colour"></div>';
+    }
+    function wireSwatches(root){
+      root.querySelectorAll(".tr-sws").forEach(row => {
+        const h = hid(row.dataset.c); if (!h) return;
+        const mark = () => row.querySelectorAll(".tr-sw").forEach(b => b.classList.toggle("on", b.dataset.v.toLowerCase() === String(h.value).toLowerCase()));
+        const inp = row.querySelector(".tr-cin"); inp.value = h.value; mark();
+        row.addEventListener("click", (e) => { const b = e.target.closest(".tr-sw"); if (!b) return; h.value = b.dataset.v; inp.value = b.dataset.v; fire(h, ["input", "change"]); mark(); });
+        inp.addEventListener("input", () => { h.value = inp.value; fire(h, ["input"]); mark(); });
+        inp.addEventListener("change", () => { h.value = inp.value; fire(h, ["change"]); });
+      });
+    }
     TOOLS.imgfx = { title: "Effects", render(){
-      body.innerHTML =
-        sl("Border", "img-border", "px") +
-        '<div class="tr-row"><label class="tr-lab tr-labw" for="t-bc">Border colour</label><input type="color" class="tr-cin" id="t-bc"></div>' +
-        sl("Shadow", "img-shadow") +
-        '<div class="tr-row"><label class="tr-lab tr-labw" for="t-sc">Shadow colour</label><input type="color" class="tr-cin" id="t-sc"></div>' +
-        '<div class="tr-row"><button type="button" class="tr-tg tr-wide" id="t-reset">Reset all effects</button></div>';
-      wireSliders(); wireColour("t-bc", "img-border-color"); wireColour("t-sc", "img-shadow-color");
-      body.querySelector("#t-reset").addEventListener("click", () => { const r = hid("img-reset"); if (r) r.click(); TOOLS.imgfx.render(); measure(); });
+      tabbed([["border", "Border"], ["shadow", "Shadow"]], "border", (tab, pb) => {
+        if (tab === "border"){
+          pb.innerHTML = sl("Thickness", "img-border", "px") + swatchRow("img-border-color") +
+            '<div class="tr-row"><button type="button" class="tr-tg tr-wide" id="t-off">Remove border</button></div>';
+          wireSliders(); wireSwatches(pb);
+          pb.querySelector("#t-off").addEventListener("click", () => {
+            const h = hid("img-border"); if (!h) return; h.value = 0; fire(h, ["input", "change"]);
+            const r = pb.querySelector('input[data-h="img-border"]'); if (r){ r.value = 0; r.parentNode.querySelector("output").textContent = "0px"; }
+          });
+        } else {
+          pb.innerHTML = '<div class="tr-row tr-scroll tr-shq">' + [["None", 0], ["Soft", 8], ["Medium", 16], ["Strong", 26]].map(q =>
+            '<button type="button" class="tr-pill" data-v="' + q[1] + '">' + q[0] + '</button>').join("") + '</div>' +
+            sl("Softness", "img-shadow") + swatchRow("img-shadow-color");
+          wireSliders(); wireSwatches(pb);
+          pb.querySelector(".tr-shq").addEventListener("click", (e) => {
+            const b = e.target.closest("[data-v]"); if (!b) return;
+            const h = hid("img-shadow"); if (!h) return; h.value = b.dataset.v; fire(h, ["input", "change"]);
+            const r = pb.querySelector('input[data-h="img-shadow"]'); if (r){ r.value = h.value; r.parentNode.querySelector("output").textContent = h.value; }
+          });
+        }
+      });
     }};
 
     /* ---------- open / switch ---------- */

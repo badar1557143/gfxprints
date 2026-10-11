@@ -1125,7 +1125,9 @@ function studioHandleScale(){
   const w = el ? el.getBoundingClientRect().width : 0;
   if (!w) return 1;
   // Handles shrink on small canvases (phones) so they never swamp the design
-  const fit = Math.min(1, Math.max(0.62, w / 520));
+  const coarse = !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+  // Touch screens keep full-size, finger-friendly handles; mouse screens may shrink them a little
+  const fit = coarse ? Math.min(1.15, Math.max(0.95, w / 400)) : Math.min(1, Math.max(0.62, w / 520));
   return Math.min(2.4, Math.max(0.5, designCanvas.getWidth() / w * fit));
 }
 
@@ -1136,7 +1138,7 @@ function setupStudioControls(){
   const PURPLE = "#8B3DFF", GRAY = "#9097A6", INK = "#1c1f2a", WHITE = "#ffffff";
   const touch = !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
   const small = () => window.matchMedia("(max-width: 900px)").matches;   // phones + tablets
-  const R = touch ? 9 : 7;                 // corner handle radius (screen px)
+  const R = touch ? 13 : 7;                // corner handle radius (screen px)
   const O = fabric.Object.prototype;
 
   const baseToObject = O.toObject;
@@ -1202,7 +1204,7 @@ function setupStudioControls(){
       place(ctx, left, top, obj, true);
       if (vertical) ctx.rotate(Math.PI / 2);
       shadow(ctx);
-      const w = R * 2.6, h = R * 1.05;
+      const w = R * 2.6, h = R * (touch ? 1.3 : 1.05);
       roundRect(ctx, -w / 2, -h / 2, w, h, h / 2);
       ctx.fillStyle = WHITE; ctx.fill();
       ctx.shadowColor = "transparent";
@@ -1213,13 +1215,13 @@ function setupStudioControls(){
 
   // ---- Canva-style selection: floating toolbar above (duplicate, delete, more),
   // ---- rotate + move buttons below (they turn with the layer).
-  const S = () => touch ? 38 : 32;            // toolbar button pitch (screen px)
-  const RM = () => touch ? 18 : 14;           // rotate / move button radius (screen px)
+  const S = () => touch ? 42 : 32;            // toolbar button pitch (screen px)
+  const RM = () => touch ? 20 : 14;           // rotate / move button radius (screen px)
   function layout(obj){
     const k = studioHandleK || 1;
     const bb = obj.getBoundingRect(false, true);
     const cv = obj.canvas, W = cv ? cv.getWidth() : 1e9, H = cv ? cv.getHeight() : 1e9;
-    const rowOff = (touch ? 42 : 36) * k, need = rowOff + 26 * k, half = 26 * k;
+    const rowOff = (touch ? 46 : 36) * k, need = rowOff + 26 * k, half = 26 * k;
     const top = bb.top, bottom = bb.top + bb.height;
     const below = top < need && H - bottom >= need;          // no room above: toolbar goes under the layer
     const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), Math.max(lo, hi));
@@ -1237,7 +1239,7 @@ function setupStudioControls(){
   const posRm = (n) => function(dim, m, obj){
     const k = studioHandleK || 1, L = layout(obj), cv = obj.canvas;
     const W = cv ? cv.getWidth() : 1e9, H = cv ? cv.getHeight() : 1e9, half = 26 * k;
-    const row = (touch ? 40 : 34) * k, st = (touch ? 44 : 38) * k, dx = n * (RM() + 2) * k;
+    const row = (touch ? 44 : 34) * k, st = (touch ? 48 : 38) * k, dx = n * (RM() + 2) * k;
     const opts = [0.5 * dim.y + row + (L.tbBelow ? st : 0), -0.5 * dim.y - (row + (L.tbBelow ? 0 : st))];
     const at = (oy, x) => fabric.util.transformPoint({ x: x, y: oy }, m);
     const fits = (p) => p.x >= half && p.x <= W - half && p.y >= half && p.y <= H - half;
@@ -1360,7 +1362,7 @@ function setupStudioControls(){
     if (Math.abs(k - studioHandleK) < 0.02 && O.cornerSize && small() === studioHandleSmall) return;
     studioHandleK = k;  studioHandleSmall = small();
     O.cornerSize = (R * 2 + 4) * k;
-    O.touchCornerSize = (touch ? 46 : 30) * k;
+    O.touchCornerSize = (touch ? 60 : 30) * k;
     O.padding = 5 * k;
     O.borderScaleFactor = 2 * Math.max(1, k * 0.9);
     [C.dup, C.del, C.more].forEach(c => {
@@ -1390,9 +1392,9 @@ function setupStudioControls(){
     if (!a) return;
     const k = studioHandleK || 1;
     const inner = Math.min(a.getScaledWidth(), a.getScaledHeight()) / k;      // on-screen px
-    const cap = Math.max(10, inner * 0.28);
+    const cap = touch ? Math.max(34, inner * 0.45) : Math.max(10, inner * 0.28);
     const cs = Math.min(R * 2 + 4, cap) * k;
-    const ts = Math.min(touch ? 46 : 30, cap) * k;
+    const ts = Math.min(touch ? 60 : 30, cap) * k;
     if (Math.abs(a.cornerSize - cs) > 0.01 || Math.abs(a.touchCornerSize - ts) > 0.01){
       a.cornerSize = cs;  a.touchCornerSize = ts;
       a.setCoords();

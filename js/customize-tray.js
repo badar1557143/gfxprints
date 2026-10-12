@@ -713,7 +713,7 @@
 
     /* ---------- open / switch ---------- */
     function openTray(name, kind){
-      const t = TOOLS[name]; if (!t || !small()) return;
+      const t = TOOLS[name]; if (!t) return;
       if (current === name){ closeTray(); return; }
       const o = active(); if (!o) return;
       if (TEXT_ONLY.has(name) && !isText(o)) return;
@@ -731,14 +731,14 @@
     document.addEventListener("studio:kb-open", closeTray);
     document.addEventListener("studio:selection", (e) => {
       const kind = e.detail && e.detail.kind;
-      if (!kind || !small()){ closeTray(); return; }
+      if (!kind){ closeTray(); return; }
       if (!current) return;
       if (TEXT_ONLY.has(current) && kind !== "text"){ closeTray(); return; }
       if (IMAGE_ONLY.has(current) && kind !== "image"){ closeTray(); return; }
       const name = current; current = ""; root.hidden = true; // re-render for the newly selected layer
       openTray(name);
     });
-    window.addEventListener("resize", () => { if (!small()) closeTray(); else measure(); });
+    window.addEventListener("resize", () => { if (small()) measure(); });
     // Tapping the empty page area (outside tray / bars / canvas) leaves the tray open on purpose:
     // it closes with the X, by re-tapping its tool, or when the layer is deselected.
   });

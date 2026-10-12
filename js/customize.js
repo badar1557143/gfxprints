@@ -531,6 +531,10 @@ function sideCardHTML(s){
         </span>
         ${s.sublabel ? `<span class="side-sub">${escapeHtml(s.sublabel)}</span>` : ""}
         ${s.dims ? `<span class="side-dims">${escapeHtml(s.dims)}</span>` : ""}
+        <span class="side-copy" role="button" tabindex="0" data-copy="${s.id}" hidden aria-label="Copy the current design to ${escapeHtml(s.label)}">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg>
+          Copy design here
+        </span>
       </span>
     </button>`;
 }
@@ -578,7 +582,15 @@ function renderSidesPanel(){
 
   list.innerHTML = bothSidesBannerHTML() + currentSides.map(sideCardHTML).join("");
   list.querySelectorAll(".side-card:not(.both-sides-card)").forEach(card => {
-    card.addEventListener("click", () => switchSide(card.dataset.side));
+    card.addEventListener("click", (e) => {
+      const cp = e.target.closest && e.target.closest(".side-copy");
+      if (cp){ e.stopPropagation(); copyDesignToSide(cp.dataset.copy); return; }
+      switchSide(card.dataset.side);
+    });
+    card.addEventListener("keydown", (e) => {
+      const cp = e.target.closest && e.target.closest(".side-copy");
+      if (cp && (e.key === "Enter" || e.key === " ")){ e.preventDefault(); e.stopPropagation(); copyDesignToSide(cp.dataset.copy); }
+    });
   });
   const bothBtn = document.getElementById("both-sides-card");
   if (bothBtn) bothBtn.addEventListener("click", activateBothSides);
@@ -619,6 +631,11 @@ function updateSidesPanelUI(){
     card.classList.toggle("active", id === activeSideId);
     card.classList.toggle("added", st.hasContent);
     card.setAttribute("aria-pressed", id === activeSideId ? "true" : "false");
+    const cpEl = card.querySelector(".side-copy");
+    if (cpEl){
+      const src = sidesState[activeSideId];
+      cpEl.hidden = !(id !== activeSideId && src && src.hasContent);
+    }
     const priceEl = card.querySelector(".side-price");
     if (priceEl) priceEl.textContent = !s.price ? "Included" : (st.hasContent ? "Added" : `+${formatPrice(s.price)}`);
     const img = card.querySelector(".side-thumb img");
@@ -677,6 +694,74 @@ function switchSide(id){
   updateStudioHint();
   if (designCanvas) loadSideIntoCanvas(id);
   else updateSidesPanelUI();
+}
+
+/* ---- Copy the design on the current side onto another side ---- */
+function sidePrintRect(sideId){
+  const W = designCanvas.getWidth(), H = designCanvas.getHeight();
+  const def = currentSides.find(x => x.id === sideId);
+  const v = String((def && def.printArea) || "").trim().split(/\s+/).map(parseFloat);
+  if (v.length === 4 && v.every(n => isFinite(n))){
+    const x = W * v[3] / 100, y = H * v[0] / 100;
+    return { x: x, y: y, w: Math.max(10, W * (1 - (v[1] + v[3]) / 100)), h: Math.max(10, H * (1 - (v[0] + v[2]) / 100)) };
+  }
+  return { x: 0, y: 0, w: W, h: H };
+}
+
+function askCopyMode(label, cb){
+  const old = document.getElementById("copy-dlg"); if (old) old.remove();
+  const d = document.createElement("div");
+  d.id = "copy-dlg"; d.className = "copy-dlg";
+  d.innerHTML = '<div class="copy-card" role="dialog" aria-modal="true" aria-label="Copy design">' +
+    '<h3>' + escapeHtml(label) + ' already has a design</h3><p>What should we do with the copy?</p>' +
+    '<button type="button" class="btn btn-primary" data-m="replace">Replace it</button>' +
+    '<button type="button" class="btn btn-outline" data-m="add">Add on top of it</button>' +
+    '<button type="button" class="copy-cancel" data-m="">Cancel</button></div>';
+  document.body.appendChild(d);
+  d.addEventListener("click", (e) => {
+    if (e.target === d || e.target.closest("[data-m]")){
+      const b = e.target.closest("[data-m]"), m = b ? b.dataset.m : "";
+      d.remove(); if (m) cb(m);
+    }
+  });
+  const first = d.querySelector("button"); if (first) first.focus();
+}
+
+function copyDesignToSide(targetId){
+  if (!designCanvas || !sidesState[targetId] || targetId === activeSideId) return;
+  const src = sidesState[activeSideId];
+  if (!src || !designCanvas.getObjects().length){ showToast("Add something to this side first"); return; }
+  const tDef = currentSides.find(x => x.id === targetId), label = (tDef && tDef.label) || "That side";
+  const tSt = sidesState[targetId];
+  if (tSt.hasContent) askCopyMode(label, (mode) => doCopyDesign(targetId, mode));
+  else doCopyDesign(targetId, "replace");
+}
+
+function doCopyDesign(targetId, mode){
+  designCanvas.discardActiveObject();
+  commitDesignHistory();
+  const json = designCanvas.toJSON();
+  const a = sidePrintRect(activeSideId), b = sidePrintRect(targetId);
+  const sc = Math.min(b.w / a.w, b.h / a.h);
+  const ac = { x: a.x + a.w / 2, y: a.y + a.h / 2 }, bc = { x: b.x + b.w / 2, y: b.y + b.h / 2 };
+  // Similarity transform: scale about the old print-area centre, then move to the new one
+  (json.objects || []).forEach(o => {
+    o.left = bc.x + sc * ((o.left || 0) - ac.x);
+    o.top = bc.y + sc * ((o.top || 0) - ac.y);
+    o.scaleX = (o.scaleX || 1) * sc;
+    o.scaleY = (o.scaleY || 1) * sc;
+  });
+  const st = sidesState[targetId];
+  let base = null;
+  if (st.history.length && st.historyIndex >= 0){ try { base = JSON.parse(st.history[st.historyIndex]); } catch (e){ base = null; } }
+  if (mode === "add" && base && base.objects) json.objects = base.objects.concat(json.objects || []);
+  if (!st.history.length) st.history = [JSON.stringify({ version: json.version, objects: [] })], st.historyIndex = 0;
+  st.history = st.history.slice(0, st.historyIndex + 1);
+  st.history.push(JSON.stringify(json));
+  st.historyIndex = st.history.length - 1;
+  st.hasContent = (json.objects || []).length > 0;
+  switchSide(targetId);
+  showToast("Design copied to " + (((currentSides.find(x => x.id === targetId) || {}).label) || "that side"));
 }
 
 // Rebuilds Print Sides state for a (newly selected) product. carryJson, when given,

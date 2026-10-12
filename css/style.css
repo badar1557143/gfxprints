@@ -2929,16 +2929,29 @@ body.bgr-open{ overflow:hidden; }
 
 /* ---------- Tool trays (phones/tablets): small floating dock above the tool bar ---------- */
 .tr{ display:none; }
-@media (max-width:900px){
-  .tr:not([hidden]){
-    position:fixed; left:8px; right:8px; bottom: calc(var(--rail-h) + 8px); z-index:35;
-    display:flex; flex-direction:column; max-height:58dvh;
-    background: var(--paper-raised, #fff); border:1px solid var(--line-strong, #d9dbe3); border-radius:20px;
-    box-shadow:0 16px 40px -14px rgba(21,23,27,.5), 0 2px 0 rgba(36,56,224,.9) inset;
-    padding:8px 12px 12px;
+@media all{
+  @media (max-width:900px){
+    .tr:not([hidden]){
+      position:fixed; left:8px; right:8px; bottom: calc(var(--rail-h) + 8px); z-index:35;
+      display:flex; flex-direction:column; max-height:58dvh;
+      background: var(--paper-raised, #fff); border:1px solid var(--line-strong, #d9dbe3); border-radius:20px;
+      box-shadow:0 16px 40px -14px rgba(21,23,27,.5), 0 2px 0 rgba(36,56,224,.9) inset;
+      padding:8px 12px 12px;
+    }
+    body.tray-open{ --reserve: calc(var(--rail-h) + var(--tray-h, 0px)); }
+    body.kb-editing .tr{ display:none !important; }
   }
-  body.tray-open{ --reserve: calc(var(--rail-h) + var(--tray-h, 0px)); }
-  body.kb-editing .tr{ display:none !important; }
+  /* Big screens: the same tools open as a pop-up under the tool bar button (placed by customize-desktop.js) */
+  @media (min-width:901px){
+    .tr:not([hidden]){
+      position:fixed; z-index:60; top:120px; left:320px; width:360px;
+      display:flex; flex-direction:column; max-height:min(72vh, 560px);
+      background:#fff; border:1px solid var(--line-strong, #d9dbe3); border-radius:16px;
+      box-shadow:0 22px 50px -16px rgba(21,23,27,.45), 0 2px 8px rgba(21,23,27,.1);
+      padding:8px 14px 14px;
+    }
+    .tr-scroll{ scrollbar-width:thin; }
+  }
   .app-ctx-btn.on{ background:#EEF0FD; color: var(--cobalt); }
   .tr-head{ display:flex; align-items:center; justify-content:space-between; min-height:30px; }
   .tr-title{ font-size:.7rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color: var(--cobalt); }
@@ -3028,4 +3041,181 @@ body.bgr-open{ overflow:hidden; }
   .tr-ln{ flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:600; font-size:.9rem; }
   .tr-ib{ flex:0 0 36px; height:36px; border:0; border-radius:50%; background:none; color: var(--ink-soft); display:grid; place-items:center; cursor:pointer; }
   .tr-ib.tr-bad{ color:#C62828; }
+}
+
+
+/* ---- Copy design to another print side ---- */
+.side-copy{ display:inline-flex; align-items:center; gap:5px; align-self:flex-start; margin-top:6px; padding:5px 10px; border-radius:999px; background:var(--cobalt, #2447F0); color:#fff; font-size:.72rem; font-weight:700; line-height:1.2; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.side-copy[hidden]{ display:none; }
+.side-copy:hover{ filter:brightness(1.08); }
+.side-copy:focus-visible{ outline:2px solid #15171b; outline-offset:2px; }
+.copy-dlg{ position:fixed; inset:0; z-index:9999; display:grid; place-items:center; padding:20px; background:rgba(21,23,27,.5); }
+.copy-card{ width:min(340px,100%); display:flex; flex-direction:column; gap:10px; padding:22px 20px 16px; border-radius:18px; background:#fff; box-shadow:0 20px 50px rgba(0,0,0,.3); }
+.copy-card h3{ margin:0; font-size:1.05rem; }
+.copy-card p{ margin:0 0 4px; color:#5b6070; font-size:.9rem; }
+.copy-card .btn{ width:100%; justify-content:center; min-height:46px; }
+.copy-cancel{ border:0; background:none; padding:10px; font:inherit; font-weight:600; color:#5b6070; cursor:pointer; }
+
+/* ---- Desktop / big-screen layer tool bar (js/customize-desktop.js) ---- */
+.dt-bar{ display:none; }
+@media (min-width:901px){
+  .dt-bar:not([hidden]){
+    position:absolute; top:14px; left:50%; transform:translateX(-50%); z-index:20;
+    display:flex; align-items:center; gap:2px; max-width:calc(100% - 28px); overflow-x:auto; scrollbar-width:none;
+    padding:6px 8px; background:#fff; border:1px solid var(--line-strong, #d9dbe3); border-radius:16px;
+    box-shadow:0 12px 32px -14px rgba(21,23,27,.35), 0 2px 6px rgba(21,23,27,.08);
+  }
+  .dt-bar::-webkit-scrollbar{ display:none; }
+  body.dt-has-bar .app-canvas-area{ padding-top:84px; }
+  .dt-b{ flex:0 0 auto; min-width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:0 8px;
+    border:0; border-radius:10px; background:transparent; color: var(--ink, #15171b); font:inherit; font-size:.82rem; font-weight:600; cursor:pointer; }
+  .dt-b:hover{ background:#F0F1F6; }
+  .dt-b:focus-visible, .dt-size button:focus-visible, .dt-font select:focus-visible{ outline:2px solid var(--cobalt); outline-offset:1px; }
+  .dt-b.on{ background:#EEF0FD; color: var(--cobalt); }
+  .dt-fmt{ font-size:1rem; min-width:34px; padding:0; }
+  .dt-danger:hover{ background:#FDECEC; color:#D92D2D; }
+  .dt-sep{ flex:0 0 1px; width:1px; height:22px; margin:0 6px; background: var(--line-strong, #d9dbe3); }
+  .dt-font select{ width:150px; height:36px; padding:0 8px; border:1.5px solid var(--line-strong, #d9dbe3); border-radius:10px; background:#fff; font:inherit; font-size:.85rem; color: var(--ink, #15171b); cursor:pointer; }
+  .dt-size{ flex:0 0 auto; display:inline-flex; align-items:center; height:36px; margin-left:4px; border:1.5px solid var(--line-strong, #d9dbe3); border-radius:10px; overflow:hidden; background:#fff; }
+  .dt-size button{ width:30px; height:100%; border:0; background:none; font-size:1.15rem; color: var(--ink-soft); cursor:pointer; }
+  .dt-size button:hover{ background:#F0F1F6; }
+  .dt-size input{ width:44px; height:100%; border:0; text-align:center; font:inherit; font-weight:700; font-size:.9rem; -moz-appearance:textfield; background:transparent; }
+  .dt-size input::-webkit-outer-spin-button, .dt-size input::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+  .dt-color{ position:relative; flex:0 0 auto; width:36px; height:36px; display:grid; place-items:center; border-radius:10px; cursor:pointer; margin-left:2px; }
+  .dt-color:hover{ background:#F0F1F6; }
+  .dt-a{ font-weight:800; font-size:1.15rem; line-height:1; padding-bottom:2px; border-bottom:4px solid var(--ink, #15171b); }
+  .dt-color input{ position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; }
+}
+
+/* ---- Desktop bottom bar: docked full-width, like Canva (undo / redo / layers left, view tools right) ---- */
+.vb-left{ display:none; }
+@media (min-width:901px){
+  .app-zoom-bar.vbar{
+    left:0; right:0; bottom:0; transform:none; width:auto; height:52px; padding:0 16px; gap:2px;
+    justify-content:flex-end; border:0; border-top:1px solid var(--line-strong, #d9dbe3); border-radius:0;
+    background:#F4F5F9; box-shadow:none; z-index:25;
+  }
+  .vbar input[type=range]{ width:160px; }
+  .vb-left{ display:flex; align-items:center; gap:2px; margin-right:auto; }
+  .vb-txt{ gap:7px; padding:0 10px; font-weight:600; }
+  .vb-txt:disabled{ opacity:.4; cursor:default; pointer-events:none; }
+  .vb-txt em{ font-style:normal; min-width:18px; height:18px; padding:0 5px; border-radius:9px; background: var(--cobalt); color:#fff; font-size:.68rem; font-weight:800; display:inline-grid; place-items:center; }
+  .vb-txt em[hidden]{ display:none; }
+  .app-canvas-area .studio-hint{ margin-bottom:62px; }
+  .vb-menu{ bottom:calc(100% + 12px); }
+}
+
+/* =====================================================================
+   DESKTOP STUDIO - fluid, fully responsive layout (901px and up)
+   Columns scale with the window; the canvas fills whatever room is left
+   (container units), and every tool bar shrinks gracefully.
+   ===================================================================== */
+@media (min-width:901px){
+  .app-rail{ width:clamp(68px, 5.2vw, 92px); }
+  .app-drawer{ width:clamp(268px, 22vw, 400px); max-width:none; }
+  .app-sides-panel{ width:clamp(196px, 15vw, 300px); max-width:none; }
+
+  /* The canvas area is a size container: the stage is sized from the room it has */
+  .app-canvas-area{
+    container-type:size; container-name:studio;
+    padding:70px 24px 64px;
+  }
+  body.dt-has-bar .app-canvas-area{ padding-top:70px; }
+  .app-canvas-area .studio-stage-outer{ padding:24px; }
+  .app-canvas-area .studio-stage{
+    width:min(calc(100cqw - 48px), calc((100cqh - 130px) * 0.75), 880px);
+    max-width:none;
+  }
+  .app-canvas-area .studio-hint{ margin:0; max-width:min(520px, 90cqw); font-size:clamp(.72rem, .9vw, .82rem); }
+  @media (max-height:800px){
+    .app-canvas-area .studio-hint{ display:none; }
+    .app-canvas-area .studio-stage{ width:min(calc(100cqw - 48px), calc((100cqh - 56px) * 0.75), 880px); }
+  }
+
+  /* Print sides: roomy cards on wide screens, compact tiles when space is tight */
+  .app-sides-panel{ padding:var(--space-4) var(--space-3); }
+  .vbar input[type=range]{ width:clamp(80px, 9vw, 160px); }
+  .dt-font select{ width:clamp(112px, 11vw, 160px); }
+  .tr:not([hidden]){ width:min(360px, calc(100vw - 16px)); }
+}
+@media (min-width:901px) and (max-width:1280px){
+  .app-sides-panel{ width:clamp(120px, 12vw, 148px); padding:var(--space-3) var(--space-2); }
+  .sides-panel-title, .sides-footnote{ display:none; }
+  .side-card{ flex-direction:column; align-items:center; text-align:center; gap:6px; padding:var(--space-2); }
+  .side-top-row{ flex-direction:column; align-items:center; gap:0; }
+  .side-sub, .side-dims{ display:none; }
+  .side-thumb{ width:56px; height:56px; }
+  .side-copy{ align-self:center; font-size:.66rem; padding:4px 8px; }
+  .vb-txt span{ display:none; }
+  .vb-txt{ padding:0 8px; }
+  .dt-wide span{ display:none; }
+  .dt-wide{ padding:0 8px; }
+  .app-topbar .btn-sm{ padding:8px 12px; }
+}
+@media (min-width:901px) and (max-width:1100px){
+  .app-title{ max-width:22vw; }
+  .app-topbar{ padding:0 var(--space-3); gap:var(--space-2); }
+  .app-total-label{ display:none; }
+  .vb-sep{ display:none; }
+}
+@media (min-width:1700px){
+  .app-drawer{ font-size:1.02rem; }
+  .app-canvas-area .studio-stage{ width:min(calc(100cqw - 48px), calc((100cqh - 130px) * 0.75), 980px); }
+}
+
+/* ---- Desktop polish: wrap the layer bar when the canvas is narrow, tighter bottom bar, icon-only copy buttons ---- */
+@media (min-width:901px) and (max-width:1380px){
+  .dt-bar:not([hidden]){ flex-wrap:wrap; justify-content:center; overflow:visible; row-gap:2px; width:max-content; }
+  .app-canvas-area, body.dt-has-bar .app-canvas-area{ padding-top:118px; }
+}
+@media (min-width:901px) and (max-width:1100px){
+  .app-zoom-bar.vbar{ padding:0 8px; }
+  .vbar input[type=range]{ width:clamp(56px, 7vw, 160px); }
+  #vc-fit{ display:none; }
+}
+@media (max-width:1280px){
+  .side-copy{ font-size:0; gap:0; width:30px; height:30px; padding:0; justify-content:center; border-radius:50%; align-self:center; }
+  .side-copy svg{ width:15px; height:15px; }
+}
+
+/* ---- Desktop: tools that live in the layer tool bar are not repeated in the Properties panel ---- */
+@media (min-width:901px){
+  body.dt-has-bar #props-text > .pp-card[data-sec="font"],
+  body.dt-has-bar #props-text > .pp-card[data-sec="styles"],
+  body.dt-has-bar #props-text > .pp-card[data-sec="size"],
+  body.dt-has-bar #props-text > .pp-card[data-sec="format"],
+  body.dt-has-bar #props-text > .pp-card[data-sec="color"],
+  body.dt-has-bar #props-text > .pp-acc[data-sec="advanced"],
+  body.dt-has-bar #props-text > .pp-acc[data-sec="effects"],
+  body.dt-has-bar #props-text > .pp-acc[data-sec="transparency"],
+  body.dt-has-bar #props-image .ip-hero,
+  body.dt-has-bar #props-image .ip-tabs,
+  body.dt-has-bar #img-replace-lbl,
+  body.dt-has-bar #props-shared-actions{ display:none !important; }
+  body.dt-has-bar #props-text::after,
+  body.dt-has-bar #props-image::after{
+    display:block; margin-top:var(--space-4); padding:var(--space-3) var(--space-4); border-radius:var(--radius-m);
+    background:#EEF0FD; color:var(--cobalt-dark, #1B2FB0); font-size:.82rem; font-weight:600; line-height:1.4;
+  }
+  body.dt-has-bar #props-text::after{ content:"Font, size, colour, spacing, effects and position are in the tool bar above the canvas."; }
+  body.dt-has-bar #props-image::after{ content:"Replace, filters, crop, layout, effects and position are in the tool bar above the canvas."; }
+}
+
+/* Keep the layer tool bar on one row on typical laptop widths */
+@media (min-width:901px) and (max-width:1500px){
+  .dt-bar:not([hidden]){ padding:5px 6px; }
+  .dt-b{ min-width:32px; padding:0 6px; gap:5px; font-size:.8rem; }
+  .dt-fmt{ min-width:30px; padding:0; }
+  .dt-sep{ margin:0 3px; }
+  .dt-font select{ width:clamp(104px, 8.5vw, 130px); }
+  .dt-size button{ width:26px; }
+  .dt-size input{ width:38px; }
+}
+@media (min-width:901px) and (max-width:1380px){
+  .dt-bar:not([hidden]){ width:auto; max-width:calc(100% - 20px); }
+}
+
+/* Centre the layer bar without shrinking it (left:50% would cap its width at half the canvas area) */
+@media (min-width:901px){
+  .dt-bar:not([hidden]){ left:0; right:0; margin-inline:auto; transform:none; width:max-content; max-width:calc(100% - 28px); }
 }

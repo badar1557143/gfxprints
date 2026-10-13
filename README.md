@@ -222,3 +222,11 @@ The pages load `css/style.min.css` and `js/*.min.js`. Edit the normal files (`cs
 3. Canonical links and share-preview tags are built from the live address by `initSeoTags()` in `js/main.js`, so they stay correct on `github.io` or on a custom domain.
 4. After editing `css/style.css` or any `js/*.js` file, run `sh tools/build.sh` and upload the rebuilt `.min` files too.
 5. Optional once the final address is known: add a `sitemap.xml` with absolute URLs and a `Sitemap:` line in `robots.txt`.
+
+## Order intake (Google Apps Script)
+`google-apps-script/Code.gs` receives checkout orders (details to a Sheet, print files to Drive). See
+`SETUP-GUIDE.md` to deploy it and rotate the token. The token in `js/main.js` is public by design; the
+script itself enforces file-type, size and rate limits.
+
+## Other pages
+`privacy.html`, `terms.html` (policies), `wishlist.html` (saved products, stored in the browser only, `js/wishlist.js`).

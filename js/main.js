@@ -18,8 +18,10 @@ const WHATSAPP_NUMBER = "923222920135";
 
 /* Online order saving (Google Drive + Google Sheets, via Apps Script).
    After you deploy google-apps-script/Code.gs (see SETUP-GUIDE.md), paste the web app URL
-   (ends in /exec) and the ORDER_TOKEN that setup() printed. While ORDER_ENDPOINT is empty the
-   site keeps using the old WhatsApp-only flow. */
+   (ends in /exec) and the ORDER_TOKEN that setup() / rotateToken() printed. While ORDER_ENDPOINT is
+   empty the site keeps using the old WhatsApp-only flow.
+   NOTE: everything in this file is public. The token only deters casual misuse; the real limits
+   (file types, sizes, rate limits) are enforced inside google-apps-script/Code.gs. */
 const ORDER_ENDPOINT = "https://script.google.com/macros/s/AKfycbx3pOeyIc6qiTSrYaOMl6mZB2HCGzRg2Ej5kJA0C1Ui7r9QJMXUQ_Lpi6kQJqwfI5deIg/exec";
 const ORDER_TOKEN = "82fd6ca49f3b42769ae19b62d7f24b84";
 
@@ -311,23 +313,6 @@ function initMobileNav(){
   });
 }
 
-/* ---------- Newsletter ---------- */
-function initNewsletter(){
-  const form = document.querySelector(".newsletter-form");
-  if (!form) return;
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const input = form.querySelector("input[type=email]");
-    const msg = document.querySelector(".form-msg");
-    if (input && input.value){
-      msg.textContent = "You're subscribed. Watch your inbox for new designs and offers.";
-      form.reset();
-    } else {
-      msg.textContent = "Please enter a valid email address.";
-    }
-  });
-}
-
 /* ---------- Reveal-on-scroll (shared observer, safe to call after any re-render) ---------- */
 let revealObserver = null;
 function getRevealObserver(){
@@ -513,6 +498,7 @@ function initShopPage(){
   const priceRange = document.getElementById("price-range");
   const priceLabel = document.getElementById("price-range-label");
   const searchInput = document.getElementById("shop-search");
+  if (searchInput && location.hash === "#shop-search") setTimeout(() => searchInput.focus(), 60);
   const catWrap = document.getElementById("category-filters");
   // "Gifts" is a catch-all category: it lists every product in the shop.
   const cats = [...new Set(PRODUCTS.map(p => p.category)), "Gifts"];
@@ -822,7 +808,6 @@ function renderShop(){
 document.addEventListener("DOMContentLoaded", () => {
   updateCartBadge();
   initMobileNav();
-  initNewsletter();
   renderHomepage();
   initShopPage();
   initReveal();

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Terms & Conditions | GfxPrints</title>
+<meta property="og:image" content="https://badar1557143.github.io/gfxprints/assets/brand/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://badar1557143.github.io/gfxprints/assets/brand/og-image.png">
+<meta name="description" content="The terms for ordering custom printed products from GfxPrints: orders, payment, artwork, delivery and returns.">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png">
+<link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
+<meta name="theme-color" content="#2438E0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"></noscript>
+<link rel="stylesheet" href="css/style.min.css?v=20261026">
+<style>
+/* About page: "press sheet" design. All rules scoped under .ab- so the shared stylesheet is untouched. */
+.ab-wrap{ max-width: var(--container); margin: 0 auto; padding: 0 var(--space-5); }
+.ab-btn-light{ background:#fff; color: var(--cobalt-dark); }
+.ab-btn-light:hover{ background: var(--paper-dark); }
+.ab-wrap a:focus-visible, .ab-cta a:focus-visible{ outline: 3px solid var(--stamp); outline-offset: 3px; }
+
+/* Hero */
+.ab-hero{ padding: var(--space-7) 0 var(--space-9); border-bottom: 1px solid var(--line); overflow: hidden; }
+.ab-hero-grid{ display:grid; grid-template-columns: minmax(0,1.05fr) minmax(0,1fr); gap: var(--space-8); align-items:center; }
+.ab-crumb{ font-size:.85rem; color: var(--grey); margin-bottom: var(--space-5); }
+.ab-crumb a:hover{ color: var(--cobalt); }
+.ab-hero h1{ font-size: clamp(2.3rem, 4.6vw, 4rem); line-height: 1.04; font-weight: 800; letter-spacing: -0.025em; max-width: 14ch; }
+.ab-hero p{ font-size: 1.1rem; color: var(--ink-soft); max-width: 52ch; margin: var(--space-5) 0 0; }
+.ab-hero p + p{ margin-top: var(--space-4); }
+.ab-hero .btn{ margin-top: var(--space-6); }
+
+/* The press sheet */
+.ab-sheet{ position: relative; background: var(--paper-raised); border: 1px solid var(--line-strong); padding: 56px 44px 40px; transform: rotate(-1.6deg); box-shadow: 0 1px 0 var(--line-strong), 0 22px 40px -28px rgba(21,23,27,.55); }
+.ab-bar{ position:absolute; top: 14px; left: 44px; display:flex; gap: 0; }
+.ab-bar i{ display:block; width: 22px; height: 14px; }
+.ab-bar i:nth-child(1){ background:#00AEEF; } .ab-bar i:nth-child(2){ background:#EC008C; }
+.ab-bar i:nth-child(3){ background:#FFF200; } .ab-bar i:nth-child(4){ background:#15171B; }
+.ab-bar i:nth-child(5){ background:#00AEEF; opacity:.45; } .ab-bar i:nth-child(6){ background:#EC008C; opacity:.45; }
+.ab-bar i:nth-child(7){ background:#FFF200; opacity:.6; } .ab-bar i:nth-child(8){ background:#15171B; opacity:.45; }
+.ab-reg{ position:absolute; top: 6px; right: 18px; width: 30px; height: 30px; color: var(--ink); }
+.ab-cm{ position:absolute; width: 16px; height: 16px; border-color: var(--ink); border-style: solid; border-width: 0; }
+.ab-cm.tl{ top: 20px; left: 20px; border-top-width:1.5px; border-left-width:1.5px; }
+.ab-cm.bl{ bottom: 12px; left: 20px; border-bottom-width:1.5px; border-left-width:1.5px; }
+.ab-cm.br{ bottom: 12px; right: 20px; border-bottom-width:1.5px; border-right-width:1.5px; }
+.ab-pair{ display:grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items:start; }
+.ab-pair figure{ margin:0; }
+.ab-pair figure:nth-child(2){ margin-top: 28px; }
+.ab-pair img{ width:100%; height:auto; aspect-ratio: 1/1; object-fit: cover; border: 1px solid var(--line); background: var(--paper-dark); }
+.ab-pair figcaption{ font-size:.82rem; color: var(--ink-soft); margin-top: 8px; }
+
+/* Shared section frame */
+.ab-sec{ padding: var(--space-9) 0; }
+.ab-sec h2{ font-size: clamp(1.6rem, 2.6vw, 2.3rem); line-height:1.12; letter-spacing:-0.02em; }
+.ab-sec p{ color: var(--ink-soft); font-size: 1.05rem; max-width: 56ch; margin: var(--space-4) 0 0; }
+.ab-sec .ab-head + p{ margin-top: var(--space-5); }
+
+/* Gifts */
+.ab-gifts{ background: var(--paper-raised); border-bottom: 1px solid var(--line); }
+.ab-gifts-grid{ display:grid; grid-template-columns: minmax(0,.9fr) minmax(0,1.1fr); gap: var(--space-8); align-items:center; }
+.ab-tiles{ display:grid; grid-template-columns: 1.15fr 1fr; grid-template-rows: auto auto; gap: 14px; }
+.ab-tile{ margin:0; display:flex; flex-direction:column; justify-content:space-between; padding: 14px 14px 12px; border-radius: var(--radius-m); min-height: 220px; }
+.ab-tile img{ width:100%; height:100%; max-height: 240px; object-fit: contain; }
+.ab-tile figcaption{ font-size:.85rem; font-weight:600; color: var(--ink); margin-top: 10px; }
+.ab-tile.mug{ background:#E1E6FA; grid-row: span 2; }
+.ab-tile.mug img{ max-height: 380px; }
+.ab-tile.frame{ background:#E9E6DD; }
+.ab-tile.tee{ background:#F5DDD6; }
+
+/* Brand */
+.ab-brand{ background: var(--ink); color: var(--paper); }
+.ab-brand h2{ color: var(--paper); }
+.ab-brand p{ color: #C9C7BF; }
+.ab-brand-grid{ display:grid; grid-template-columns: minmax(0,1.1fr) minmax(0,.9fr); gap: var(--space-8); align-items:center; }
+.ab-brand-imgs{ position:relative; padding-bottom: 40px; }
+.ab-brand-imgs .hood{ width: 78%; aspect-ratio:1/1; object-fit:cover; border-radius: var(--radius-m); }
+.ab-brand-imgs .tote{ position:absolute; right: 0; bottom: 0; width: 44%; aspect-ratio: 4/5; object-fit:cover; border-radius: var(--radius-m); border: 6px solid var(--ink); }
+
+/* Mission */
+.ab-mission{ border-bottom: 1px solid var(--line); }
+.ab-mission-grid{ display:grid; grid-template-columns: minmax(0,.55fr) minmax(0,1.45fr); gap: var(--space-7); }
+.ab-mission .big{ font-family: var(--font-display); font-weight:700; font-size: clamp(1.5rem, 3vw, 2.5rem); line-height:1.2; letter-spacing:-0.02em; color: var(--ink); max-width: 26ch; margin:0; padding-left: var(--space-5); border-left: 4px solid var(--cobalt); }
+
+/* FAQ spacing (uses the existing accordion styles) */
+.ab-faq{ border-bottom: 1px solid var(--line); }
+
+/* CTA */
+.ab-cta-wrap{ padding: var(--space-9) 0; }
+.ab-cta{ position:relative; background: var(--cobalt); color:#fff; padding: var(--space-8) var(--space-7); border-radius: var(--radius-s); display:flex; justify-content:space-between; align-items:center; gap: var(--space-6); flex-wrap:wrap; }
+.ab-cta h2{ color:#fff; font-size: clamp(1.7rem, 3vw, 2.6rem); line-height:1.1; letter-spacing:-0.02em; max-width: 16ch; }
+.ab-cta p{ color:#DDE1FA; max-width: 46ch; margin: var(--space-4) 0 0; font-size:1.05rem; }
+.ab-cta .ab-cm{ border-color: rgba(255,255,255,.7); }
+.ab-cta .ab-cm.tl{ top:14px; left:14px; } .ab-cta .ab-cm.bl{ bottom:14px; left:14px; } .ab-cta .ab-cm.br{ bottom:14px; right:14px; }
+.ab-cta .ab-cm.tr{ top:14px; right:14px; border-top-width:1.5px; border-right-width:1.5px; }
+
+@media (max-width: 900px){
+  .ab-hero{ padding: var(--space-6) 0 var(--space-8); }
+  .ab-hero-grid, .ab-gifts-grid, .ab-brand-grid, .ab-mission-grid{ grid-template-columns: minmax(0,1fr); gap: var(--space-7); }
+  .ab-sec{ padding: var(--space-8) 0; }
+  .ab-sheet{ transform:none; padding: 52px 24px 36px; }
+  .ab-bar{ left: 24px; }
+  .ab-cta{ padding: var(--space-7) var(--space-5); }
+  .ab-cta-wrap{ padding: var(--space-8) 0; }
+  .ab-tile{ min-height: 180px; }
+  .ab-tile.mug img{ max-height: 300px; }
+}
+@media (max-width: 520px){
+  .ab-tiles{ grid-template-columns: 1fr; }
+  .ab-tile.mug{ grid-row:auto; }
+  .ab-pair{ gap: 10px; }
+}
+</style>
+<style>
+.doc{max-width:760px;margin:0 auto;padding:56px 20px 72px}
+.doc h1{font-size:clamp(1.7rem,4vw,2.3rem);margin:0 0 6px}
+.doc .doc-date{color:var(--ink-soft,#4A4B4E);font-size:.9rem;margin:0 0 28px}
+.doc h2{font-size:1.15rem;margin:30px 0 8px}
+.doc p,.doc li{line-height:1.65;color:var(--ink-soft,#33353a)}
+.doc ul{padding-left:20px;margin:8px 0}
+.doc .doc-note{background:#EEF0FD;border-radius:12px;padding:14px 16px;margin:0 0 24px;font-size:.92rem}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a href="index.html" class="logo"><img src="assets/brand/logo-gfxprints.webp" alt="GfxPrints" class="logo-img" width="240" height="123"></a>
+    <nav class="main-nav" aria-label="Primary">
+      <a href="index.html">Home</a>
+      <a href="shop.html">Shop</a>
+      <a href="customize.html">Customization</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <div class="header-actions">
+      <a class="icon-btn" href="cart.html" aria-label="Shopping bag">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2l1.5 4h9L18 2"/><rect x="4" y="6" width="16" height="15" rx="2"/><path d="M9 10a3 3 0 0 0 6 0"/></svg>
+        <span class="badge js-cart-count" style="display:none">0</span>
+      </a>
+      <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+  <nav id="mobile-nav" aria-label="Mobile">
+    <a href="index.html">Home</a>
+    <a href="shop.html">Shop</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <a href="cart.html">Cart</a>
+    <a href="wishlist.html">Wishlist</a>
+  </nav>
+</header>
+
+<main id="main">
+<article class="doc">
+  <h1>Terms &amp; Conditions</h1>
+  <p class="doc-date">Last updated: 13 October 2026</p>
+  <p class="doc-note">GfxPrints is a custom-printing shop. Most items are made specially for you, so please read these terms before ordering.</p>
+
+  <h2>1. Orders</h2>
+  <p>Sending an order or a request through the website or WhatsApp is an offer to buy. It becomes an order only when GfxPrints confirms it to you. We may decline or cancel an order, for example if an item is unavailable, the artwork cannot be printed, or payment cannot be confirmed, and we will refund anything you have paid for it.</p>
+
+  <h2>2. Prices and payment</h2>
+  <p>Prices are shown in Pakistani rupees (Rs.) and may change before your order is confirmed. Delivery is added at checkout. You can pay by cash on delivery, or by bank transfer or mobile wallet (such as Easypaisa or JazzCash) as shown at checkout. For wallet payments we confirm the transaction before we start printing. The website does not take card payments.</p>
+
+  <h2>3. Your artwork</h2>
+  <ul>
+    <li>You must own the artwork, photos and text you upload, or have permission to use them. You are responsible for any claim that they infringe someone else's rights.</li>
+    <li>We may refuse artwork that is unlawful, hateful, or infringes trademarks or copyright, and we will refund an order we refuse.</li>
+    <li>The preview in the design studio is a close guide only. Colours can differ slightly between screens and printed products, and our team confirms final placement before production.</li>
+    <li>Low-resolution images print blurry. The studio warns you when a picture looks too small; printing it anyway is at your own risk.</li>
+  </ul>
+
+  <h2>4. Production and delivery</h2>
+  <p>Production and delivery times are estimates, not guarantees. Delays can happen with printing, couriers or public holidays. Please check your address and phone number carefully, as the courier uses them to reach you.</p>
+
+  <h2>5. Returns and refunds</h2>
+  <p>Because items are personalised, we do not accept returns or exchanges for change of mind or ordering the wrong size or colour. If your order arrives damaged, defective, or different from what you ordered, tell us within 3 days of delivery with clear photos, and we will reprint or refund it. Nothing in these terms limits any rights you have under the law that cannot be limited.</p>
+
+  <h2>6. Order requests sent through WhatsApp</h2>
+  <p>If your browser cannot attach files automatically, the site opens WhatsApp and downloads your print files so you can attach them yourself. Your request is not complete until you have sent the message and the files, and GfxPrints has confirmed it.</p>
+
+  <h2>7. Liability</h2>
+  <p>To the extent the law allows, our responsibility for any order is limited to the price you paid for it.</p>
+
+  <h2>8. Privacy</h2>
+  <p>How we handle your information is explained in our <a href="privacy.html">Privacy Policy</a>.</p>
+
+  <h2>9. Changes</h2>
+  <p>We may update these terms. The version on this page when you place your order applies to that order.</p>
+
+  <h2>Contact</h2>
+  <p>Questions: <a href="contact.html">contact us</a>.</p>
+</article>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="logo"><img src="assets/brand/logo-gfxprints.webp" alt="GfxPrints" class="logo-img" width="240" height="123"></a>
+        <p>Make it yours. Personalized products, printed to order.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Shop</h4>
+        <ul>
+          <li><a href="shop.html?category=T-Shirts">T-Shirts</a></li>
+          <li><a href="shop.html?category=Mugs">Mugs</a></li>
+          <li><a href="shop.html?category=Gifts">Gifts</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Help</h4>
+        <ul>
+          <li><a href="contact.html">Contact Us</a></li>
+          <li><a href="about.html#faq">FAQ</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="privacy.html">Privacy Policy</a></li>
+          <li><a href="terms.html">Terms &amp; Conditions</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 GfxPrints. All rights reserved.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/products.min.js?v=20261015" defer></script>
+<script src="js/main.min.js?v=20261060" defer></script>
+</body>
+</html>

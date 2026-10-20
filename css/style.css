@@ -3295,3 +3295,16 @@ body.bgr-open{ overflow:hidden; }
 .hero-lime .hero-actions .btn.btn-explore:focus-visible{ outline:3px solid #14150F; outline-offset:3px; }
 @media (max-width:600px){ .hero-lime .hero-actions .btn.btn-explore{ padding:6px 6px 6px 24px; font-size:1.02rem; } }
 @media (prefers-reduced-motion:reduce){ .hero-lime .hero-actions .btn.btn-explore, .hero-lime .hero-actions .btn.btn-explore .explore-arrow{ transition:none; } }
+
+/* Product cards: price and Design Now stay on one line whenever the card is wide enough */
+.pc-body{ container-type:inline-size; }
+@container (min-width:230px){
+  .pc-footer{ flex-wrap:nowrap; }
+  .pc-footer .pc-price{ flex:1 1 auto; min-width:0; white-space:nowrap; }
+  .pc-footer .btn{ flex:none; white-space:nowrap; }
+}
+@container (min-width:230px) and (max-width:340px){
+  .pc-footer{ gap:10px; }
+  .pc-footer .pc-price{ font-size:.92rem; }
+  .pc-footer .btn.btn-design.btn-design-sm.btn-design-noarrow{ padding:9px 16px; font-size:.84rem; }
+}

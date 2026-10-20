@@ -349,7 +349,7 @@ function productCardHTML(p){
   const isWishlisted = getWishlist().includes(p.id);
   const priceHTML = p.oldPrice
     ? `<span class="old">${formatPrice(p.oldPrice)}</span>${formatPrice(p.price)}`
-    : (p.variantPrices ? "From " : "") + formatPrice(p.price);
+    : formatPrice(p.price);
   return `
     <article class="product-card reveal">
       <div class="pc-media">
@@ -370,7 +370,7 @@ function productCardHTML(p){
           <span class="pc-price">${priceHTML}</span>
           ${p.customizable === false
             ? `<a href="product.html?id=${p.id}" class="btn btn-outline btn-sm">View</a>`
-            : `<a href="${customizeURL(p.id)}" class="btn btn-design btn-design-sm btn-design-noarrow">Design Now</a>`}
+            : `<a href="${customizeURL(p.id)}" target="_blank" rel="noopener" class="btn btn-design btn-design-sm btn-design-noarrow">Design Now</a>`}
         </div>
       </div>
     </article>`;

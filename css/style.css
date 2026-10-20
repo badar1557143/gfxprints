@@ -267,12 +267,10 @@ p{ margin: 0; }
     height: calc(100% + var(--space-7) + var(--space-8));
   }
 }
-/* halftone dot field + soft cobalt glow behind the products */
+/* soft cobalt glow behind the products (dot pattern removed) */
 .hero-waterfall::before{
   content:""; position:absolute; inset:0; pointer-events:none;
-  background:
-    radial-gradient(circle at 50% 46%, rgba(36,56,224,0.10), transparent 60%),
-    radial-gradient(circle, rgba(36,56,224,0.30) 1.3px, transparent 1.8px) 0 0 / 15px 15px;
+  background: radial-gradient(circle at 50% 46%, rgba(36,56,224,0.10), transparent 60%);
   -webkit-mask-image: radial-gradient(ellipse 62% 52% at 50% 47%, #000 8%, transparent 78%);
           mask-image: radial-gradient(ellipse 62% 52% at 50% 47%, #000 8%, transparent 78%);
 }
@@ -3219,3 +3217,81 @@ body.bgr-open{ overflow:hidden; }
 @media (min-width:901px){
   .dt-bar:not([hidden]){ left:0; right:0; margin-inline:auto; transform:none; width:max-content; max-width:calc(100% - 28px); }
 }
+
+
+/* ---------- "Design Now" button (replaces the old Customize buttons) ---------- */
+.btn.btn-design{
+  position:relative; color:#fff; border:0; border-radius:999px;
+  padding:10px 10px 10px 32px; gap:20px; min-width:220px; justify-content:space-between;
+  background-color:#ee1a78;
+  background-image:linear-gradient(100deg,#ee1a78 0%,#ff6a2b 45%,#f5a000 70%,#ff4f9a 100%);
+  background-size:180% 100%; background-position:0 50%;
+  font-family:'Poppins','Inter',system-ui,sans-serif; font-weight:600; font-size:1.08rem; letter-spacing:.2px;
+  text-shadow:0 1px 2px rgba(120,0,50,.25);
+  box-shadow:0 10px 22px rgba(238,26,120,.30), inset 0 1px 0 rgba(255,255,255,.35);
+  transition:transform .18s ease, box-shadow .18s ease, background-position .45s ease;
+}
+.btn.btn-design:hover{ color:#fff; background-position:100% 50%; transform:translateY(-2px); box-shadow:0 14px 28px rgba(238,26,120,.40), inset 0 1px 0 rgba(255,255,255,.35); }
+.btn.btn-design:active{ transform:translateY(1px); box-shadow:0 4px 10px rgba(238,26,120,.3); }
+.btn.btn-design:focus-visible{ outline:3px solid #14150F; outline-offset:3px; }
+.btn.btn-design .design-chevron{
+  flex:none; width:40px; height:40px; box-sizing:border-box; padding:10px;
+  background:#fff; color:#ee1a78; border-radius:50%; text-shadow:none;
+  box-shadow:0 2px 6px rgba(120,0,50,.2); transition:transform .2s ease;
+}
+.btn.btn-design:hover .design-chevron{ transform:translateX(4px) scale(1.06); }
+.btn.btn-design .design-chevron path:first-child{ transition:d .2s ease; }
+@media (max-width:600px){ .btn.btn-design{ min-width:0; padding:8px 8px 8px 26px; font-size:1.02rem; } }
+@media (prefers-reduced-motion:reduce){ .btn.btn-design, .btn.btn-design .design-chevron{ transition:none; } }
+
+/* Design Now without the arrow circle (everywhere except the hero) */
+.btn.btn-design.btn-design-noarrow{ min-width:0; padding:14px 34px; justify-content:center; }
+.btn.btn-design.btn-design-sm.btn-design-noarrow{ flex:none; padding:10px 22px; font-size:.9rem; min-height:0; box-shadow:0 6px 14px rgba(238,26,120,.25), inset 0 1px 0 rgba(255,255,255,.35); }
+
+
+/* ---------- Hero text: navy Manrope headline + colored check badges ---------- */
+.hero-lime h1{
+  font-family:'Manrope','Inter',system-ui,sans-serif; font-weight:500; color:#0a1172;
+  letter-spacing:-0.025em; line-height:1.12;
+}
+.hero-lime .h1-rainbow{ font-weight:600; }
+.hero-lime p.lede{
+  font-family:'Manrope','Inter',system-ui,sans-serif; font-weight:400; color:#3b4278;
+  font-size:1.1rem; line-height:1.65; letter-spacing:0;
+}
+.hero-lime .trust-line{
+  border-top:0; padding-top:0; max-width:none; gap:12px 28px;
+  font-family:'Manrope','Inter',system-ui,sans-serif; font-size:1rem; font-weight:400; color:#1d2340;
+}
+.hero-lime .trust-line li{ gap:10px; }
+.trust-line .tl-ico{
+  width:24px; height:24px; border-radius:50%; flex:none;
+  display:inline-grid; place-items:center; color:#fff; background:#ff9f1a;
+}
+.trust-line .tl-ico svg{ color:#fff; }
+.trust-line li:nth-child(2) .tl-ico{ background:#1a73e8; }
+.trust-line li:nth-child(3) .tl-ico{ background:#2fcfcf; }
+@media (max-width:560px){
+  .hero-lime .trust-line{ gap:0; }
+  .hero-lime .trust-line li{ padding:10px 0; border-top:0; }
+  .hero-lime .trust-line li + li{ border-top:0; }
+}
+
+
+/* ---------- "Explore Products" button: pill outline that pairs with "Design Now" ---------- */
+.hero-lime .hero-actions .btn.btn-explore{
+  border-radius:999px; border:2px solid var(--olive-ink); background:transparent; color:var(--olive-ink);
+  padding:8px 8px 8px 30px; gap:16px; justify-content:space-between; box-shadow:none;
+  font-family:'Poppins','Inter',system-ui,sans-serif; font-weight:600; font-size:1.08rem; letter-spacing:.2px;
+  transition:background .2s ease, color .2s ease, transform .18s ease;
+}
+.hero-lime .hero-actions .btn.btn-explore .explore-arrow{
+  flex:none; width:40px; height:40px; box-sizing:border-box; padding:10px; border-radius:50%;
+  background:var(--olive-ink); color:var(--paper-raised); transition:transform .2s ease, background .2s ease, color .2s ease;
+}
+.hero-lime .hero-actions .btn.btn-explore:hover{ background:var(--olive-ink); color:var(--paper-raised); transform:translateY(-2px); box-shadow:none; }
+.hero-lime .hero-actions .btn.btn-explore:hover .explore-arrow{ background:var(--paper-raised); color:var(--olive-ink); transform:translate(3px,-3px); }
+.hero-lime .hero-actions .btn.btn-explore:active{ transform:translateY(1px); box-shadow:none; }
+.hero-lime .hero-actions .btn.btn-explore:focus-visible{ outline:3px solid #14150F; outline-offset:3px; }
+@media (max-width:600px){ .hero-lime .hero-actions .btn.btn-explore{ padding:6px 6px 6px 24px; font-size:1.02rem; } }
+@media (prefers-reduced-motion:reduce){ .hero-lime .hero-actions .btn.btn-explore, .hero-lime .hero-actions .btn.btn-explore .explore-arrow{ transition:none; } }

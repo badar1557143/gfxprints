@@ -370,7 +370,7 @@ function productCardHTML(p){
           <span class="pc-price">${priceHTML}</span>
           ${p.customizable === false
             ? `<a href="product.html?id=${p.id}" class="btn btn-outline btn-sm">View</a>`
-            : `<a href="${customizeURL(p.id)}" class="btn btn-outline btn-sm">Customize</a>`}
+            : `<a href="${customizeURL(p.id)}" class="btn btn-design btn-design-sm btn-design-noarrow">Design Now</a>`}
         </div>
       </div>
     </article>`;

@@ -591,7 +591,7 @@ function initCheckoutPage(){
       document.getElementById("checkout-form-wrap").style.display = "none";
       document.getElementById("checkout-confirmation").style.display = "block";
       localStorage.removeItem(STORAGE_CART);
-      if (window.GfxFiles) GfxFiles.clear();
+      if (window.GfxFiles) GfxFiles.clear(); try { indexedDB.deleteDatabase("gfxprints-draft"); Object.keys(localStorage).forEach(k => { if (k.indexOf("gfxprints_draft_") === 0) localStorage.removeItem(k); }); } catch (e){}  /* order placed: the saved studio design is no longer needed */
       updateCartBadge();
     };
 

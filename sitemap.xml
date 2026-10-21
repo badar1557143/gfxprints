@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://badar1557143.github.io/gfxprints/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
-  <url><loc>https://badar1557143.github.io/gfxprints/shop.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
-  <url><loc>https://badar1557143.github.io/gfxprints/about.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://badar1557143.github.io/gfxprints/contact.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://badar1557143.github.io/gfxprints/customize.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://badar1557143.github.io/gfxprints/product.html?id=1</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://badar1557143.github.io/gfxprints/product.html?id=2</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://badar1557143.github.io/gfxprints/product.html?id=4</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://badar1557143.github.io/gfxprints/product.html?id=5</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://badar1557143.github.io/gfxprints/product.html?id=6</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://badar1557143.github.io/gfxprints/privacy.html</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
-  <url><loc>https://badar1557143.github.io/gfxprints/terms.html</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://gfxprints.com/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://gfxprints.com/shop.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://gfxprints.com/about.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://gfxprints.com/contact.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://gfxprints.com/customize.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://gfxprints.com/product.html?id=1</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://gfxprints.com/product.html?id=2</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://gfxprints.com/product.html?id=4</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://gfxprints.com/product.html?id=5</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://gfxprints.com/product.html?id=6</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://gfxprints.com/privacy.html</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://gfxprints.com/terms.html</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
 </urlset>

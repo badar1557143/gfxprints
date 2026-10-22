@@ -223,6 +223,17 @@ The pages load `css/style.min.css` and `js/*.min.js`. Edit the normal files (`cs
 4. After editing `css/style.css` or any `js/*.js` file, run `sh tools/build.sh` and upload the rebuilt `.min` files too.
 5. Optional once the final address is known: add a `sitemap.xml` with absolute URLs and a `Sitemap:` line in `robots.txt`.
 
+## Templates (ready-made designs)
+
+`js/templates.js` adds a **Templates** tool to the Design Studio rail: a searchable grid of ready-made
+designs. Tapping one puts it on the product as separate, editable layers (real text plus vector artwork).
+Colours marked `@ink` turn white on dark products. The thumbnails are drawn from the same data, so there
+are no image files to export.
+
+To add a template, copy one entry in the `TEMPLATES` array and change it. The notes at the top of the file
+explain `T()` (text), `C()` (a Clipart drawing) and `S()` (your own SVG). Add the category name to `CATS`
+if it is new, then run `sh tools/build.sh` to refresh `js/templates.min.js`.
+
 ## Order intake (Google Apps Script)
 `google-apps-script/Code.gs` receives checkout orders (details to a Sheet, print files to Drive). See
 `SETUP-GUIDE.md` to deploy it and rotate the token. The token in `js/main.js` is public by design; the

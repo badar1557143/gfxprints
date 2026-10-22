@@ -52,6 +52,10 @@
     const railUploads = document.getElementById("rail-uploads");
     if (railUploads) railUploads.addEventListener("click", () => toggle("uploads"));
 
+    // Rail: Templates (ready-made designs)
+    const railTemplates = document.getElementById("rail-templates");
+    if (railTemplates) railTemplates.addEventListener("click", () => toggle("templates"));
+
     // Rail: Clipart & Stickers library panel
     const railClipart = document.getElementById("rail-clipart");
     if (railClipart) railClipart.addEventListener("click", () => toggle("clipart"));
@@ -605,9 +609,35 @@ const add = (o) => {
     const zoomVal = document.getElementById("zoom-val");
     const stageWrap = document.getElementById("stage-zoom-wrap");
 
+    /* Crisp canvas. The design is drawn on a small canvas (about 420 px wide) that the page stretches
+       to fit the screen and the zoom. Left alone, zooming in just enlarges the same pixels and the
+       design goes soft. So draw it with as many pixels as it is actually shown with (capped), and
+       redo that when the zoom or the window size changes. The print file is made separately at
+       300 DPI and is not affected. */
+    function sharpenCanvas(){
+      if (typeof designCanvas === "undefined" || !designCanvas || typeof fabric === "undefined") return;
+      if (designCanvas._currentTransform) return;                       // not in the middle of a drag
+      const act = designCanvas.getActiveObject && designCanvas.getActiveObject();
+      if (act && act.isEditing) return;                                  // nor while typing
+      const el = designCanvas.upperCanvasEl;
+      const cssW = el ? el.getBoundingClientRect().width : 0;
+      const w = designCanvas.getWidth(), h = designCanvas.getHeight();
+      if (!cssW || !w || !h) return;
+      const dpr = window.devicePixelRatio || 1;
+      let r = Math.ceil((cssW * dpr / w) * 2) / 2;                       // screen pixels per canvas pixel, in half steps
+      r = Math.max(1, Math.min(4, r, Math.sqrt(6e6 / (w * h))));         // never more than about 6 megapixels
+      if (Math.abs(r - (fabric.devicePixelRatio || 1)) < 0.01) return;
+      fabric.devicePixelRatio = r;
+      designCanvas.setDimensions({ width: w, height: h });
+      designCanvas.requestRenderAll();
+    }
+    setInterval(sharpenCanvas, 1200);
+    window.addEventListener("resize", () => setTimeout(sharpenCanvas, 150));
+
     function applyZoom(v){
       v = Math.max(25, Math.min(300, Math.round(Number(v) / 5) * 5));
       if (stageWrap) stageWrap.style.transform = `scale(${v / 100})`;
+      setTimeout(sharpenCanvas, 200);
       if (zoomVal) zoomVal.textContent = v + "%";
       if (zoomSlider) zoomSlider.value = v;
     }

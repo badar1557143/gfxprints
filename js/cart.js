@@ -579,7 +579,7 @@ function initCheckoutPage(){
       }
       if (saved){
         if (heading) heading.textContent = "Order received";
-        if (body) body.innerHTML = `Your order <strong>${orderRef}</strong>${hasDesigns ? " and design file(s) are" : " is"} saved with us. WhatsApp should have opened with your order message. Please press <strong>Send</strong> there so we can confirm the total, delivery, and payment with you. If it did not open, use the button below.`;
+        if (body) body.innerHTML = `Your order <strong>${orderRef}</strong>${hasDesigns ? " and design file(s) are" : " is"} saved with us. WhatsApp should have opened with your order message. Please press <strong>Send</strong> there so we can confirm the total, delivery, and payment with you. If it did not open, use the button below.${cloud && cloud.emailed && cloud.emailed.customer ? " A confirmation email is on its way to you too (check Spam if you do not see it)." : ""}`;
       } else if (viaShare){
         if (heading) heading.textContent = "Order shared";
         if (body) body.innerHTML = `Your order and design file(s) were shared as one attachment, ref <strong>${orderRef}</strong>. Our team will confirm the total, delivery, and payment with you on WhatsApp.`;

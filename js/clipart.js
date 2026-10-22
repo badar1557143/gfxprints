@@ -64,6 +64,12 @@
     ["arrow","Arrow","Icons","right direction",1,`<path d="M10 50h72M58 26l26 24-26 24" ${st("currentColor",9)}/>`]
   ].map(a => ({ id: a[0], name: a[1], cat: a[2], tags: a[3], mono: !!a[4], svg: a[5] }));
 
+  // Lets other Design Studio tools (Templates) reuse these drawings. Returns the artwork markup for a 100x100 viewBox.
+  window.GfxClipart = {
+    has: (id) => ITEMS.some(i => i.id === id),
+    inner: (id, color) => { const i = ITEMS.find(x => x.id === id); return i ? (i.mono ? i.svg.replace(/currentColor/g, color || "#15171b") : i.svg) : ""; }
+  };
+
   const CATS = ["All", "Stickers", "Love", "Nature", "Fun", "Shapes", "Icons"];
   const state = { cat: "All", q: "", outline: "", color: "#15171b" };
   const $ = (id) => document.getElementById(id);

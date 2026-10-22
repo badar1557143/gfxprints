@@ -1,6 +1,7 @@
 /**
  * GfxPrints - order intake (Google Apps Script web app)
- * Saves each order's details to a Google Sheet and its print files to a Google Drive folder.
+ * Saves each order's details to a Google Sheet and its print files to a Google Drive folder,
+ * and emails you the new order (and, if they typed an email, a confirmation to the customer).
  *
  * IMPORTANT: the ORDER_TOKEN is sent from public website code, so anyone can read it. It only
  * stops casual misuse. The real protection is everything below: strict size / type / length
@@ -23,6 +24,16 @@ var LIMITS = {
 var ALLOWED_MIME = {
   'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp',
   'application/pdf': 'pdf'
+};
+
+/* ---------- Order emails ---------- */
+var MAIL = {
+  ownerEmail: 'gfxprints.com@gmail.com',  // this inbox gets a "New order" email for every order. Change it here any time.
+  notifyOwner: true,
+  confirmCustomer: true,                  // also send the customer a "we received your order" email (only if they typed one)
+  fromName: 'GfxPrints',
+  whatsapp: '+92 322 2920135',            // shown to the customer in their email
+  keepForOwner: 20                        // never use the last N emails of the daily Google quota on customers
 };
 
 /* ---------- One-time setup. Prints the new token in the Logs: paste it into js/main.js ---------- */
@@ -131,7 +142,13 @@ function doPost(e) {
     ss.appendRow([new Date(), ref, contact.name, contact.phone, contact.email, contact.address, contact.city,
       contact.postal, contact.country, clean_(data.payment, 80), num_(data.subtotal, 0, 1e8), num_(data.shipping, 0, 1e8),
       num_(data.total, 0, 1e8), itemsText, folder.getUrl()].map(sheetSafe_));
-    return json_({ ok: true, folderUrl: folder.getUrl(), files: count });
+
+    // ---- emails (never allowed to stop the order from being saved) ----
+    var order = { ref: ref, contact: contact, itemsText: itemsText, payment: clean_(data.payment, 80),
+      subtotal: num_(data.subtotal, 0, 1e8), shipping: num_(data.shipping, 0, 1e8), total: num_(data.total, 0, 1e8),
+      folderUrl: folder.getUrl(), files: count };
+    var emailed = sendOrderEmails_(order);
+    return json_({ ok: true, folderUrl: folder.getUrl(), files: count, emailed: emailed });
   } catch (err) {
     console.error(err);
     return json_({ ok: false, error: 'Server error' });
@@ -162,4 +179,60 @@ function hit_(cache, key, limit) {
   if (n >= limit) return false;
   cache.put(k, String(n + 1), 3700);
   return true;
+}
+
+/* ---------- emails ---------- */
+// Run this once from the editor (select testEmail, press Run, press Allow). It sends a test email to MAIL.ownerEmail.
+function testEmail() {
+  MailApp.sendEmail({
+    to: MAIL.ownerEmail, name: MAIL.fromName, subject: 'GfxPrints test email',
+    body: 'This is a test. If you can read this, order emails are working.\n\nEmails left today: ' + MailApp.getRemainingDailyQuota()
+  });
+  Logger.log('Test email sent to ' + MAIL.ownerEmail + '. Emails left today: ' + MailApp.getRemainingDailyQuota());
+}
+
+function money_(n) { return 'Rs. ' + Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+function esc_(v) { return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+function sendOrderEmails_(o) {
+  var sent = { owner: false, customer: false };
+  var c = o.contact;
+  var totals = 'Subtotal: ' + money_(o.subtotal) + '\nShipping: ' + money_(o.shipping) + '\nTotal: ' + money_(o.total);
+
+  if (MAIL.notifyOwner && MAIL.ownerEmail) {
+    try {
+      var body = 'New order ' + o.ref + '\n\n' +
+        'CUSTOMER\nName: ' + c.name + '\nPhone: ' + (c.phone || '-') + '\nEmail: ' + (c.email || '-') + '\n' +
+        'Address: ' + [c.address, c.city, c.postal, c.country].filter(String).join(', ') + '\n\n' +
+        'ITEMS\n' + o.itemsText + '\n\n' +
+        'Payment: ' + (o.payment || '-') + '\n' + totals + '\n\n' +
+        'Print files (' + o.files + '): ' + o.folderUrl + '\n';
+      var opts = { to: MAIL.ownerEmail, name: MAIL.fromName, subject: 'New order ' + o.ref + ' - ' + c.name + ' - ' + money_(o.total), body: body };
+      if (c.email) opts.replyTo = c.email;
+      MailApp.sendEmail(opts);
+      sent.owner = true;
+    } catch (err) { console.error('Owner email failed', err); }
+  }
+
+  if (MAIL.confirmCustomer && c.email) {
+    try {
+      if (MailApp.getRemainingDailyQuota() > MAIL.keepForOwner) {
+        var lines = o.itemsText.split('\n');
+        var text = 'Hi ' + c.name + ',\n\nThank you for your order. We have received it.\n\n' +
+          'Order reference: ' + o.ref + '\n\nITEMS\n' + o.itemsText + '\n\n' + totals + '\nPayment: ' + (o.payment || '-') + '\n\n' +
+          'We will confirm the total, delivery and payment with you on WhatsApp shortly (' + MAIL.whatsapp + ').\n' +
+          'If anything looks wrong, just reply to this email.\n\n' + MAIL.fromName;
+        var html = '<div style="font-family:Arial,sans-serif;font-size:15px;line-height:1.5;color:#15171b;max-width:520px">' +
+          '<p>Hi ' + esc_(c.name) + ',</p><p>Thank you for your order. We have received it.</p>' +
+          '<p><strong>Order reference: ' + esc_(o.ref) + '</strong></p>' +
+          '<ul style="padding-left:18px">' + lines.map(function (l) { return '<li>' + esc_(l) + '</li>'; }).join('') + '</ul>' +
+          '<p>Subtotal: ' + money_(o.subtotal) + '<br>Shipping: ' + money_(o.shipping) + '<br><strong>Total: ' + money_(o.total) + '</strong><br>Payment: ' + esc_(o.payment || '-') + '</p>' +
+          '<p>We will confirm the total, delivery and payment with you on WhatsApp shortly (' + esc_(MAIL.whatsapp) + '). If anything looks wrong, just reply to this email.</p>' +
+          '<p>' + esc_(MAIL.fromName) + '</p></div>';
+        MailApp.sendEmail({ to: c.email, name: MAIL.fromName, replyTo: MAIL.ownerEmail, subject: 'We received your order ' + o.ref, body: text, htmlBody: html });
+        sent.customer = true;
+      }
+    } catch (err) { console.error('Customer email failed', err); }
+  }
+  return sent;
 }

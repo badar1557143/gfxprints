@@ -21,6 +21,24 @@ the details in a Google Sheet and the files in a Drive folder.
 Run `rotateToken` in the editor, paste the new token into `js/main.js`, rebuild and publish. The old token stops
 working immediately; no new deployment is needed.
 
+## C. Order emails (new)
+
+The script now emails you every new order, and sends the customer a "we received your order" email when they typed an email address.
+Orders are still saved to the Sheet and Drive first; if an email fails the order is not lost.
+
+Turn it on (the web app URL and token stay the same, so `js/main.js` does not change):
+
+1. In the Apps Script project, replace the code with the new `google-apps-script/Code.gs`.
+2. At the top, check `MAIL.ownerEmail` is the inbox you want the "New order" emails in.
+3. Select `testEmail` in the function list and press **Run**. Press **Allow** when Google asks for permission to send email. A test email arrives within a minute (check Spam).
+4. **Deploy -> Manage deployments** -> the pencil next to the web app -> **Version: New version** -> **Deploy**. This step is needed or the website keeps using the old code.
+5. Place a test order and check the inbox.
+
+Notes:
+- A free Gmail account can send about 100 emails a day. The last 20 are always kept for your own "New order" emails.
+- Emails come from the Google account that owns the script. Customer replies go to `MAIL.ownerEmail`.
+- To stop customer emails but keep yours, set `confirmCustomer: false`.
+
 ## What the script protects against
 
 Because the token is in public code, treat it as a "please don't" sign, not a lock. The script therefore also:

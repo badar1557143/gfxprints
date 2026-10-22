@@ -30,7 +30,7 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=Caveat:wght@600&display=swap"></noscript>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Amiri:wght@400;700&family=Anton&family=Bangers&family=Bebas+Neue&family=Dancing+Script:wght@400;700&family=Great+Vibes&family=Lateef:wght@400;700&family=Lobster&family=Montserrat:wght@400;700&family=Noto+Nastaliq+Urdu:wght@400;700&family=Oswald:wght@400;700&family=Pacifico&family=Permanent+Marker&family=Playfair+Display:wght@400;700&family=Poppins:wght@400;700&family=Righteous&family=Satisfy&display=swap" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Amiri:wght@400;700&family=Anton&family=Bangers&family=Bebas+Neue&family=Dancing+Script:wght@400;700&family=Great+Vibes&family=Lateef:wght@400;700&family=Lobster&family=Montserrat:wght@400;700&family=Noto+Nastaliq+Urdu:wght@400;700&family=Oswald:wght@400;700&family=Pacifico&family=Permanent+Marker&family=Playfair+Display:wght@400;700&family=Poppins:wght@400;700&family=Righteous&family=Satisfy&display=swap"></noscript>
-<link rel="stylesheet" href="css/style.min.css?v=20261101">
+<link rel="stylesheet" href="css/style.min.css?v=20261102">
 </head>
 <body class="app-page">
 <a class="skip-link" href="#main">Skip to content</a>
@@ -94,6 +94,11 @@
       <button type="button" class="app-rail-btn" id="rail-product" data-opens="product">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4 4 7v3h3v10h10V10h3V7l-4-3h-2a2 2 0 0 1-4 0z"/></svg>
         <span>Product</span>
+      </button>
+
+      <button type="button" class="app-rail-btn" id="rail-templates" data-opens="templates">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+        <span>Templates</span>
       </button>
 
       <button type="button" class="app-rail-btn" id="tool-add-text" data-opens="text">
@@ -251,6 +256,16 @@
           <summary><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>Saved on this device only</summary>
           <p>Your uploads stay in this browser, not on our server. They disappear if you switch phones or browsers, or clear your browser data. We keep your latest 40 and remove the oldest to make room.</p>
         </details>
+      </div>
+
+      <!-- TEMPLATES PANEL -->
+      <div class="app-drawer-panel" id="panel-templates" hidden>
+        <h2 class="app-drawer-title">Templates</h2>
+        <input type="search" id="tpl-search" class="clip-search" placeholder="Search coffee, birthday, love..." aria-label="Search templates" autocomplete="off">
+        <div class="clip-cats" id="tpl-cats" role="group" aria-label="Template categories"></div>
+        <p class="hint-sm">Tap a template to put it on your product. Then tap any text to change it.</p>
+        <div class="tpl-grid" id="tpl-grid"></div>
+        <p class="props-empty" id="tpl-empty" hidden>No templates match that search.</p>
       </div>
 
       <!-- CLIPART & STICKERS PANEL -->
@@ -597,12 +612,13 @@
 <script src="js/bgremove.min.js?v=20261015" defer></script>
 <script src="js/upscale.min.js?v=20261015" defer></script>
 <script src="js/customize.min.js?v=20261059" defer></script>
-<script src="js/customize-ui.min.js?v=20261059" defer></script>
+<script src="js/customize-ui.min.js?v=20261103" defer></script>
 <script src="js/customize-tray.min.js?v=20261059" defer></script>
 <script src="js/customize-desktop.min.js?v=20261059" defer></script>
 <script src="js/draft.min.js?v=20261101" defer></script>
 <script src="js/shortcuts.min.js?v=20261022" defer></script>
 <script src="js/view.min.js?v=20261015" defer></script>
-<script src="js/clipart.min.js?v=20261015" defer></script>
+<script src="js/clipart.min.js?v=20261102" defer></script>
+<script src="js/templates.min.js?v=20261103" defer></script>
 </body>
 </html>

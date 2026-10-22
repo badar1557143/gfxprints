@@ -147,7 +147,8 @@ function doPost(e) {
     // ---- emails (never allowed to stop the order from being saved) ----
     var order = { ref: ref, contact: contact, itemsText: itemsText, payment: clean_(data.payment, 80),
       subtotal: num_(data.subtotal, 0, 1e8), shipping: num_(data.shipping, 0, 1e8), total: num_(data.total, 0, 1e8),
-      folderUrl: folder.getUrl(), files: count };
+      folderUrl: folder.getUrl(), files: count,
+      sheetUrl: ss.getParent().getUrl() + '#gid=' + ss.getSheetId() + '&range=A' + ss.getLastRow() };
     var emailed = sendOrderEmails_(order);
     try {                                   // write what happened in the last Sheet column, so a failure is easy to see
       if (!ss.getRange(1, 16).getValue()) ss.getRange(1, 16).setValue('Email status');
@@ -213,7 +214,8 @@ function sendOrderEmails_(o) {
         'Address: ' + [c.address, c.city, c.postal, c.country].filter(String).join(', ') + '\n\n' +
         'ITEMS\n' + o.itemsText + '\n\n' +
         'Payment: ' + (o.payment || '-') + '\n' + totals + '\n\n' +
-        'Print files (' + o.files + '): ' + o.folderUrl + '\n';
+        'Print files (' + o.files + '): ' + o.folderUrl + '\n' +
+        'Order row in Sheet: ' + o.sheetUrl + '\n';
       var opts = { to: MAIL.ownerEmail, name: MAIL.fromName, subject: 'New order ' + o.ref + ' - ' + c.name + ' - ' + money_(o.total), body: body };
       if (c.email) opts.replyTo = c.email;
       MailApp.sendEmail(opts);

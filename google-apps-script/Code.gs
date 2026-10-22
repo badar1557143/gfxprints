@@ -60,7 +60,8 @@ function rotateToken() {
   Logger.log('NEW ORDER_TOKEN = ' + token + '  (paste it into js/main.js, then publish the site)');
 }
 
-function doGet() { return json_({ ok: false, error: 'Not found' }); }
+// Open the web app address in a browser: it shows which version of this script is live.
+function doGet() { return json_({ ok: true, service: 'GfxPrints orders', build: 'order-emails-2026-10-22' }); }
 
 function doPost(e) {
   var lock = LockService.getScriptLock();
@@ -148,7 +149,11 @@ function doPost(e) {
       subtotal: num_(data.subtotal, 0, 1e8), shipping: num_(data.shipping, 0, 1e8), total: num_(data.total, 0, 1e8),
       folderUrl: folder.getUrl(), files: count };
     var emailed = sendOrderEmails_(order);
-    return json_({ ok: true, folderUrl: folder.getUrl(), files: count, emailed: emailed });
+    try {                                   // write what happened in the last Sheet column, so a failure is easy to see
+      if (!ss.getRange(1, 16).getValue()) ss.getRange(1, 16).setValue('Email status');
+      ss.getRange(ss.getLastRow(), 16).setValue(emailed.status);
+    } catch (err2) { console.error('Could not write email status', err2); }
+    return json_({ ok: true, folderUrl: folder.getUrl(), files: count, emailed: { owner: emailed.owner, customer: emailed.customer } });
   } catch (err) {
     console.error(err);
     return json_({ ok: false, error: 'Server error' });
@@ -191,11 +196,13 @@ function testEmail() {
   Logger.log('Test email sent to ' + MAIL.ownerEmail + '. Emails left today: ' + MailApp.getRemainingDailyQuota());
 }
 
+function errText_(err) { return String(err && err.message ? err.message : err).slice(0, 160); }
 function money_(n) { return 'Rs. ' + Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
 function esc_(v) { return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 
 function sendOrderEmails_(o) {
-  var sent = { owner: false, customer: false };
+  var sent = { owner: false, customer: false, status: '' };
+  var notes = [];
   var c = o.contact;
   var totals = 'Subtotal: ' + money_(o.subtotal) + '\nShipping: ' + money_(o.shipping) + '\nTotal: ' + money_(o.total);
 
@@ -211,8 +218,9 @@ function sendOrderEmails_(o) {
       if (c.email) opts.replyTo = c.email;
       MailApp.sendEmail(opts);
       sent.owner = true;
-    } catch (err) { console.error('Owner email failed', err); }
-  }
+      notes.push('owner: sent');
+    } catch (err) { console.error('Owner email failed', err); notes.push('owner: ERROR ' + errText_(err)); }
+  } else { notes.push('owner: off'); }
 
   if (MAIL.confirmCustomer && c.email) {
     try {
@@ -231,8 +239,10 @@ function sendOrderEmails_(o) {
           '<p>' + esc_(MAIL.fromName) + '</p></div>';
         MailApp.sendEmail({ to: c.email, name: MAIL.fromName, replyTo: MAIL.ownerEmail, subject: 'We received your order ' + o.ref, body: text, htmlBody: html });
         sent.customer = true;
-      }
-    } catch (err) { console.error('Customer email failed', err); }
-  }
+        notes.push('customer: sent');
+      } else { notes.push('customer: skipped (daily email limit)'); }
+    } catch (err) { console.error('Customer email failed', err); notes.push('customer: ERROR ' + errText_(err)); }
+  } else { notes.push(c.email ? 'customer: off' : 'customer: no email given'); }
+  sent.status = notes.join(' | ');
   return sent;
 }

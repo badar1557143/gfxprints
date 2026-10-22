@@ -23,7 +23,7 @@ const WHATSAPP_NUMBER = "923222920135";
    NOTE: everything in this file is public. The token only deters casual misuse; the real limits
    (file types, sizes, rate limits) are enforced inside google-apps-script/Code.gs. */
 const ORDER_ENDPOINT = "https://script.google.com/macros/s/AKfycbwSUtr-YGMstMn1DwH4LW2ECTTjxXU-D-WK-IaV9d5GIhqE3nJu5isurFbtaU3tQ8S-/exec";
-const ORDER_TOKEN = "c585f94316e7429c994c3f728b901693";
+const ORDER_TOKEN = "dc632a937df842dbb5d2dc56b7bdabcc";
 
 /* Easypaisa / JazzCash manual payment.
    Put your real wallet account numbers and account names here. The customer sends the money

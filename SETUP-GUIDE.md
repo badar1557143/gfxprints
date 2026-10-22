@@ -35,6 +35,12 @@ Turn it on (the web app URL and token stay the same, so `js/main.js` does not ch
 5. Place a test order and check the inbox.
 
 Notes:
+If you get the test email but not the order email:
+1. Open the web app address (the `/exec` link) in a browser. It must show `"build":"order-emails-..."`. If it still shows `Not found`, the old version is live: repeat step 4 (Deploy, Manage deployments, pencil, New version, Deploy).
+2. Place an order, then open the new **Email status** column (last column of the Orders Sheet). It says `owner: sent`, or the exact error if sending failed.
+3. In the Apps Script editor open **Executions** (left menu). If no `doPost` run appears after your order, the order never reached the script (check `ORDER_ENDPOINT` in `js/main.js`).
+4. Check Spam, and that `MAIL.ownerEmail` is correct.
+
 - A free Gmail account can send about 100 emails a day. The last 20 are always kept for your own "New order" emails.
 - Emails come from the Google account that owns the script. Customer replies go to `MAIL.ownerEmail`.
 - To stop customer emails but keep yours, set `confirmCustomer: false`.

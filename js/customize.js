@@ -45,12 +45,17 @@ function initCustomizePage(){
   const requested = getProductById(getURLParam("id"));
   const start = requested && requested.customizable !== false ? requested : choices[0];
 
+  // Options chosen on a ready-made design's product page (read before selectProduct rewrites the address bar)
+  let wanted = null;
+  try { const sp = new URLSearchParams(window.location.search); wanted = { color: sp.get("color"), size: sp.get("size"), orientation: sp.get("orientation"), packaging: sp.get("packaging") }; } catch (e){ wanted = null; }
+
   renderProductPicker(choices);
   initPickerArrows();
   bindOptionControls();
   selectProduct(start, { initial: true });
   initDesignStudio();
   renderUploadLibrary();
+  if (wanted) applyRequestedOptions(wanted);
 
   document.getElementById("add-to-cart-btn").addEventListener("click", () => handleAddToCart(false));
   document.getElementById("buy-now-btn").addEventListener("click", () => handleAddToCart(true));
@@ -58,6 +63,19 @@ function initCustomizePage(){
   if (downloadBtn){
     initDownloadButton(downloadBtn, downloadBtn.parentElement);
   }
+}
+
+// Clicks the matching colour / size / orientation / packaging control, so the studio opens with the customer's earlier choices
+function applyRequestedOptions(w){
+  const pick = (selector, attr, value) => {
+    if (!value) return;
+    const el = Array.prototype.find.call(document.querySelectorAll(selector), (e) => e.dataset[attr] === value);
+    if (el && !el.classList.contains("selected") && !el.classList.contains("unavailable") && !el.disabled) el.click();
+  };
+  pick("#pd-colors .swatch", "color", w.color);
+  pick("#pd-sizes .pill", "size", w.size);
+  pick("#pd-orientation .pill", "orientation", w.orientation);
+  pick("#pd-packaging .pill", "packaging", w.packaging);
 }
 
 // Lets the customer save their design as a PNG print file (about 300 DPI) so they can attach it

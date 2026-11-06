@@ -1379,8 +1379,8 @@ input, select, textarea{ max-width: 100%; }
    9. Touch devices - nothing important hides behind :hover
    ========================================================= */
 @media (hover: none){
-  /* No hover to reveal it, so the quick-view chip simply stays put */
-  .pc-quick{ bottom: 10px; }
+  /* No hover to reveal it, and the whole card photo already opens the product, so the quick-view chip is hidden on touch screens */
+  .pc-quick{ display: none; }
   .category-card:hover img,
   .product-card:hover .pc-media img{ transform: none; }
   .btn-arrow:hover svg{ transform: none; }
@@ -3511,3 +3511,34 @@ body.bgr-open{ overflow:hidden; }
 .hm-type-more{ margin:var(--space-4) 0 0; text-align:center; font-weight:700; }
 .hm-type-more a{ color:var(--cobalt); }
 .hm-type-more a:hover{ text-decoration:underline; }
+
+/* =========================================================
+   Phone product cards: smaller, more compact 2-up cards (shop, home, gallery)
+   ========================================================= */
+@media (max-width:560px){
+  .product-grid{ gap:10px; }
+  .pc-media{ aspect-ratio: 1 / .92; }
+  .pc-wishlist{ width:32px; height:32px; top:6px; right:6px; }
+  .pc-wishlist svg{ width:15px; height:15px; }
+  .pc-type{ left:6px; top:6px; font-size:.6rem; padding:2px 7px; }
+  .pc-body{ padding:10px; gap:3px; }
+  .pc-cat{ font-size:.64rem; }
+  .pc-name{ font-size:.84rem; line-height:1.25; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .pc-footer{ padding-top:6px; gap:8px; }
+  .pc-footer.pc-footer-range{ gap:8px; }
+  .pc-price.pc-price-range{ display:grid; grid-template-columns:1fr 1fr; gap:6px; padding:6px 8px; border-radius:9px; }
+  .pcr-end{ gap:0; }
+  .pcr-max{ text-align:right; align-items:flex-end; padding-top:0; border-top:0; }
+  .pcr-tag{ font-size:.56rem; letter-spacing:.06em; }
+  .pcr-amt{ font-size:.86rem; }
+  .pcr-sub{ display:none; }
+  .pc-price .pc-amt{ font-size:1rem; }
+  .pc-footer .btn,
+  .pc-footer.pc-footer-range .btn,
+  .pc-footer .btn.btn-design.btn-design-sm.btn-design-noarrow{ padding:8px 10px; font-size:.78rem; min-height:36px; }
+}
+@media (max-width:359px){
+  .product-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+  .pcr-amt{ font-size:.8rem; }
+  .pc-body{ padding:8px; }
+}

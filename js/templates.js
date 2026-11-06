@@ -342,10 +342,10 @@
 
     /* ---- Islamic & Ramadan: Hajj and Umrah (picture artwork + editable text) ---- */
     { id: "umrah-mubarak-watercolor", name: "Umrah Mubarak Watercolor", cat: "Islamic & Ramadan", desc: "Kaaba, mosque and lanterns in golden watercolor with Umrah Mubarak calligraphy.", tags: "umrah mubarak kaaba makkah mecca mosque lantern watercolor greeting islamic gift pilgrimage arabic calligraphy", products: LIGHT, added: "2026-11-05", layers: [
-      R("assets/templates/umrah-mubarak-watercolor.webp", 50, 50, 100, 0.692)
+      R("assets/templates/umrah-mubarak-watercolor.webp", 50, 50, 100, 0.692, { thumb: "assets/templates/umrah-mubarak-watercolor-thumb.webp" })
     ] },
     { id: "hajj-mubarak-kaaba-name", name: "Hajj Mubarak with Name", cat: "Islamic & Ramadan", desc: "Kaaba and Hajj Mubarak calligraphy with your own name. Tap BABA to change it.", tags: "hajj mubarak kaaba makkah mecca name baba mama dada gift pilgrimage arabic calligraphy islamic lantern may allah accept", products: LIGHT, added: "2026-11-05", layers: [
-      R("assets/templates/hajj-mubarak-kaaba.webp", 50, 50, 100, 0.722),
+      R("assets/templates/hajj-mubarak-kaaba.webp", 50, 50, 100, 0.722, { thumb: "assets/templates/hajj-mubarak-kaaba-thumb.webp" }),
       T("BABA", 50.46, 65.26, 12.5, F.mont, "@ink", { bold: true, sp: 30 })
     ] }
   ];
@@ -384,7 +384,7 @@
     }
     if (l.k === "r"){
       const rw = l.w, rh = l.w * l.ar;
-      return `<image href="${esc(l.src)}" x="${(l.x - rw / 2).toFixed(2)}" y="${(l.y - rh / 2).toFixed(2)}" width="${rw}" height="${rh.toFixed(2)}" preserveAspectRatio="xMidYMid meet"${l.op ? ` opacity="${l.op}"` : ""}/>`;
+      return `<image href="${esc(l.thumb || l.src)}" x="${(l.x - rw / 2).toFixed(2)}" y="${(l.y - rh / 2).toFixed(2)}" width="${rw}" height="${rh.toFixed(2)}" preserveAspectRatio="xMidYMid meet"${l.op ? ` opacity="${l.op}"` : ""}/>`;
     }
     const w = l.w, h = l.w * l.vbH / l.vbW;
     const rot = l.angle ? ` transform="rotate(${l.angle} ${l.x} ${l.y})"` : "";

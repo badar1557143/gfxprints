@@ -137,6 +137,7 @@ function initProductPage(){
     } else {
       customizeBtn.href = customizeURL(p.id);
       customizeBtn.textContent = p.productType === "design" ? "Customize This Design" : "Upload & Customize Your Design";
+      if (p.productType === "design") initDesignChoices(customizeBtn);
     }
   }
 
@@ -484,3 +485,30 @@ function injectProductSchema(p, seo, metaDesc){
 }
 
 document.addEventListener("DOMContentLoaded", initProductPage);
+
+
+/* Ready-made design products: the colour / size / orientation / packaging chosen on this page open
+   pre-selected in the Design Studio (customize.html?...&color=...&size=...). */
+function initDesignChoices(btn){
+  const p = currentProduct;
+  const routes = document.getElementById("pd-routes");
+  if (routes && !document.getElementById("pd-design-choices-note")){
+    const note = document.createElement("p");
+    note.id = "pd-design-choices-note";
+    note.className = "pd-routes-note";
+    note.textContent = "Choose your colour, size and options above. They open ready in the Design Studio, where you can still change the design and name.";
+    routes.insertBefore(note, routes.firstChild);
+  }
+  const sync = () => {
+    const q = new URLSearchParams();
+    if (selectedColor) q.set("color", selectedColor);
+    if (selectedSize) q.set("size", selectedSize);
+    if (selectedOrientation) q.set("orientation", selectedOrientation);
+    if (selectedPackaging) q.set("packaging", selectedPackaging);
+    btn.href = customizeURL(currentProduct.id) + "&" + q.toString();
+  };
+  document.addEventListener("click", (e) => {
+    if (e.target.closest("#pd-colors, #pd-sizes, #pd-orientation, #pd-packaging")) setTimeout(sync, 0);
+  });
+  sync();
+}

@@ -590,7 +590,9 @@ DESIGN_PRODUCTS.forEach(d => {
     })
   });
   if (d.kind === "Mug"){
-    product.colors = ["White"];          // the artwork is shown on the all-white mug; other colours are still available in the Design Studio
+    // All mug colours stay available. The listing keeps showing the finished design photo (the blank
+    // coloured-mug photos have no artwork on them); the chosen colour opens pre-selected in the Design Studio.
+    product.colorImages = null;
     product.gallery = [base.gallery[0]];
   }
   if (d.kind === "Photo Frame"){

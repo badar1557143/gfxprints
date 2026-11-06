@@ -49,7 +49,7 @@ const PRODUCTS = [
       materials: "100% cotton, 150–160 GSM, pre-shrunk fabric. Blank T-shirt sourced from Pakistan.",
       faq: [
         { q: "What material is this T-shirt made from?", a: "It is made from 100% cotton with a fabric weight of 150–160 GSM." },
-        { q: "Can I add my own design or logo?", a: "Yes. You can personalise your T-shirt with artwork, text, or a logo using the available customisation options." },
+        { q: "Can I add my own design or logo?", a: "Yes. You can personalise your T-shirt with artwork, text, or a logo using the available customization options." },
         { q: "Which colours are available?", a: "Black, Navy, White, Mustard, Beige, Brown, and Sky Blue. Availability depends on your selected size." },
         { q: "Is this T-shirt made to order?", a: "Yes. Your T-shirt is prepared after you place your order, so please allow time for production before dispatch." }
       ]
@@ -151,9 +151,9 @@ const PRODUCTS = [
         "<h4 style=\"margin:14px 0 6px;font-size:0.95rem;color:var(--ink);\">Print Sides</h4>" +
         "<table style=\"width:100%;border-collapse:collapse;margin:0 0 6px;font-size:0.9rem;\">" +
         "<tr><th style=\"text-align:left;padding:5px 8px 5px 0;border-bottom:1px solid var(--line);\">Option</th><th style=\"text-align:left;padding:5px 0;border-bottom:1px solid var(--line);\">Price</th></tr>" +
-        "<tr><td style=\"padding:5px 8px 5px 0;border-bottom:1px solid var(--line);\">Front</td><td style=\"padding:5px 0;border-bottom:1px solid var(--line);\">Rs. 200</td></tr>" +
-        "<tr><td style=\"padding:5px 8px 5px 0;border-bottom:1px solid var(--line);\">Left</td><td style=\"padding:5px 0;border-bottom:1px solid var(--line);\">Rs. 200</td></tr>" +
-        "<tr><td style=\"padding:5px 8px 5px 0;\">Right</td><td style=\"padding:5px 0;\">Rs. 200</td></tr>" +
+        "<tr><td style=\"padding:5px 8px 5px 0;border-bottom:1px solid var(--line);\">Front</td><td style=\"padding:5px 0;border-bottom:1px solid var(--line);\">Rs. 220</td></tr>" +
+        "<tr><td style=\"padding:5px 8px 5px 0;border-bottom:1px solid var(--line);\">Left</td><td style=\"padding:5px 0;border-bottom:1px solid var(--line);\">Rs. 220</td></tr>" +
+        "<tr><td style=\"padding:5px 8px 5px 0;\">Right</td><td style=\"padding:5px 0;\">Rs. 220</td></tr>" +
         "</table>" +
         "<p style=\"margin:0 0 10px;\">A side is only charged when you add a design to it.</p>" +
         "<h4 style=\"margin:14px 0 6px;font-size:0.95rem;color:var(--ink);\">Mug Price</h4>" +
@@ -178,7 +178,7 @@ const PRODUCTS = [
         "<tr><td style=\"padding:5px 8px 5px 0;border-bottom:1px solid var(--line);font-weight:600;\">Height</td><td style=\"padding:5px 0;border-bottom:1px solid var(--line);\">4\u2033</td></tr>" +
         "<tr><td style=\"padding:5px 8px 5px 0;border-bottom:1px solid var(--line);font-weight:600;\">Diameter</td><td style=\"padding:5px 0;border-bottom:1px solid var(--line);\">4\u2033</td></tr>" +
         "<tr><td style=\"padding:5px 8px 5px 0;border-bottom:1px solid var(--line);font-weight:600;\">Weight</td><td style=\"padding:5px 0;border-bottom:1px solid var(--line);\">0.5 kg</td></tr>" +
-        "<tr><td style=\"padding:5px 8px 5px 0;border-bottom:1px solid var(--line);font-weight:600;\">Dimensions</td><td style=\"padding:5px 0;border-bottom:1px solid var(--line);\">47 \u00d7 31 \u00d7 2 cm</td></tr>" +
+        "" +
         "<tr><td style=\"padding:5px 8px 5px 0;border-bottom:1px solid var(--line);font-weight:600;\">Packaging</td><td style=\"padding:5px 0;border-bottom:1px solid var(--line);\">Bubble Wrap, Premium Packaging</td></tr>" +
         "<tr><td style=\"padding:5px 8px 5px 0;font-weight:600;\">Print Area</td><td style=\"padding:5px 0;\">White, all around the mug</td></tr>" +
         "</table>",
@@ -187,7 +187,7 @@ const PRODUCTS = [
         { q: "What size is the mug?", a: "It is an 11 oz ceramic mug, 4\u2033 in height and 4\u2033 in diameter." },
         { q: "Where can my design be printed?", a: "The mug has a white print area all around, so your design can wrap around the mug." },
         { q: "What color options are there?", a: "The rim, inside, and handle come in vibrant colors: Red, Orange, Light Blue, Royal Blue, Pink, Purple, Light Green, and Black. You can also choose the all-white mug." },
-        { q: "Can I print on more than one side?", a: "Yes. You can add a design to the Front, Left, or Right of the mug (Rs. 200 each). You only pay for the sides you use." },
+        { q: "Can I print on more than one side?", a: "Yes. You can add a design to the Front, Left, or Right of the mug (Rs. 220 each). You only pay for the sides you use." },
         { q: "What packaging options are available?", a: "You can choose Bubble Wrap or Premium Packaging. The price depends on the color and packaging you pick." },
         { q: "Is there a minimum order?", a: "No. This product is made on demand, with no minimums." }
       ]
@@ -220,8 +220,8 @@ const PRODUCTS = [
       "Black|Bubble Wrap": 600,
       "Black|Premium Packaging": 750
     },
-    rating: 4.9,
-    reviews: 356,
+    rating: null,
+    reviews: 0,
     image: "assets/products/mug-valentine-mockup.webp",
     // One photo per color: the customize + product pages swap the preview when a color is picked.
     // "White" is the all-white mug; every other color is the handle + inside of the mug.
@@ -278,10 +278,11 @@ const PRODUCTS = [
     },
     // Print Sides - the Design Studio shows one card per side. The price is added only once a
     // design is placed on that side.
+    // Print sides: customer price = supplier cost 200 + 10% = 220 per side.
     sides: [
-      { id: "front", label: "Front", sublabel: "Front side design", price: 200, view: "garment", printArea: "28.8% 25.8% 27.8% 25.6%" },
-      { id: "left", label: "Left", price: 200, view: "garment", printArea: "28.8% 11.9% 27.8% 47.5%" },
-      { id: "right", label: "Right", price: 200, view: "garment", printArea: "28.8% 47.7% 27.8% 11.9%" }
+      { id: "front", label: "Front", sublabel: "Front side design", price: 220, view: "garment", printArea: "28.8% 25.8% 27.8% 25.6%" },
+      { id: "left", label: "Left", price: 220, view: "garment", printArea: "28.8% 11.9% 27.8% 47.5%" },
+      { id: "right", label: "Right", price: 220, view: "garment", printArea: "28.8% 47.7% 27.8% 11.9%" }
     ],
     gallery: [
       "assets/products/mug-white.webp",
@@ -324,7 +325,7 @@ const PRODUCTS = [
         "<h4 style=\"margin:14px 0 6px;font-size:0.95rem;color:var(--ink);\">Choose Your Options</h4>" +
         "<p style=\"margin:0 0 10px;\"><strong>Orientation:</strong> Portrait or Landscape<br><strong>Packaging:</strong> Bubble Wrap Sheet or Premium Box<br><strong>Frame Color:</strong> Dark Brown Wood</p>" +
         "<h4 style=\"margin:14px 0 6px;font-size:0.95rem;color:var(--ink);\">Pricing</h4>" +
-        "<table style=\"width:100%;border-collapse:collapse;margin:0 0 10px;font-size:0.9rem;\"><tr><th style=\"text-align:left;padding:5px 8px 5px 0;border-bottom:1px solid var(--line);\">Size</th><th style=\"text-align:left;padding:5px 8px;border-bottom:1px solid var(--line);\">Bubble Wrap</th><th style=\"text-align:left;padding:5px 0;border-bottom:1px solid var(--line);\">Premium Box</th></tr><tr><td style=\"padding:5px 8px 5px 0;border-bottom:1px solid var(--line);\">A6 - 9.5 × 15 cm</td><td style=\"padding:5px 8px;border-bottom:1px solid var(--line);\">Rs. 500</td><td style=\"padding:5px 0;border-bottom:1px solid var(--line);\">Rs. 700</td></tr><tr><td style=\"padding:5px 8px 5px 0;border-bottom:1px solid var(--line);\">A5 - 12 × 17.5 cm</td><td style=\"padding:5px 8px;border-bottom:1px solid var(--line);\">Rs. 550</td><td style=\"padding:5px 0;border-bottom:1px solid var(--line);\">Rs. 750</td></tr><tr><td style=\"padding:5px 8px 5px 0;border-bottom:1px solid var(--line);\">A4 - 21 × 30 cm</td><td style=\"padding:5px 8px;border-bottom:1px solid var(--line);\">Rs. 750</td><td style=\"padding:5px 0;border-bottom:1px solid var(--line);\">N/A</td></tr><tr><td style=\"padding:5px 8px 5px 0;\">A3 - 29.7 × 42 cm</td><td style=\"padding:5px 8px;\">Rs. 1,300</td><td style=\"padding:5px 0;\">N/A</td></tr></table>" +
+        "<table style=\"width:100%;border-collapse:collapse;margin:0 0 10px;font-size:0.9rem;\"><tr><th style=\"text-align:left;padding:5px 8px 5px 0;border-bottom:1px solid var(--line);\">Size</th><th style=\"text-align:left;padding:5px 8px;border-bottom:1px solid var(--line);\">Bubble Wrap</th><th style=\"text-align:left;padding:5px 0;border-bottom:1px solid var(--line);\">Premium Box</th></tr><tr><td style=\"padding:5px 8px 5px 0;border-bottom:1px solid var(--line);\">A6 - 9.5 × 15 cm</td><td style=\"padding:5px 8px;border-bottom:1px solid var(--line);\">Rs. 550</td><td style=\"padding:5px 0;border-bottom:1px solid var(--line);\">Rs. 770</td></tr><tr><td style=\"padding:5px 8px 5px 0;border-bottom:1px solid var(--line);\">A5 - 12 × 17.5 cm</td><td style=\"padding:5px 8px;border-bottom:1px solid var(--line);\">Rs. 605</td><td style=\"padding:5px 0;border-bottom:1px solid var(--line);\">Rs. 825</td></tr><tr><td style=\"padding:5px 8px 5px 0;border-bottom:1px solid var(--line);\">A4 - 21 × 30 cm</td><td style=\"padding:5px 8px;border-bottom:1px solid var(--line);\">Rs. 825</td><td style=\"padding:5px 0;border-bottom:1px solid var(--line);\">N/A</td></tr><tr><td style=\"padding:5px 8px 5px 0;\">A3 - 29.7 × 42 cm</td><td style=\"padding:5px 8px;\">Rs. 1,430</td><td style=\"padding:5px 0;\">N/A</td></tr></table>" +
         "<p style=\"margin:0 0 10px;\">Premium Box packaging is available for A6 and A5 only.</p>" +
         "<h4 style=\"margin:14px 0 6px;font-size:0.95rem;color:var(--ink);\">How to Customize</h4>" +
         "<ol style=\"margin:0 0 10px;padding-left:18px;\"><li>Choose your <strong>frame size</strong>.</li><li>Select <strong>Portrait or Landscape</strong>.</li><li>Choose your preferred <strong>packaging</strong>.</li><li>Upload your photo or design.</li><li>Place your order.</li></ol>" +
@@ -374,8 +375,8 @@ const PRODUCTS = [
     },
     orientations: ["Portrait", "Landscape"],
     colorLabel: "Frame Color",
-    rating: 4.9,
-    reviews: 189,
+    rating: null,
+    reviews: 0,
     image: "assets/products/photo-frame-mockup.webp",
     gallery: [
       "assets/products/photo-frame-mockup.webp"
@@ -401,12 +402,12 @@ const PRODUCTS = [
       suggestedURL: "/custom-printed-unisex-hoodie/",
       ogImage: "assets/products/hoodie-front-black.webp",
       imageAlt: "Custom printed unisex hoodie in Pakistan – GfxPrints",
-      featuresHTML: '<p style="margin:0 0 10px;">Create a hoodie that’s uniquely yours. Our Custom Printed Unisex Hoodie combines everyday comfort, warmth, and personalized style. Add your own logo, artwork, text, photo, or creative design and turn a classic hoodie into something made just for you.</p><p style="margin:0 0 10px;">Perfect for personal wear, custom gifts, brands, teams, events, businesses, and merchandise.</p><h4 style="margin:14px 0 6px;font-size:0.95rem;color:var(--ink);">Product Features</h4><ul style="margin:0 0 10px;padding-left:18px;"><li>40% cotton, 60% polyester</li><li>240 GSM fabric weight</li><li>Soft and comfortable fabric</li><li>Classic unisex fit</li><li>Spacious front pouch pocket</li><li>Warm 3-panel hood</li><li>Matching flat drawstrings</li><li>Self-fabric patch on the back</li><li>Suitable for custom printing</li><li>Blank hoodie sourced from Pakistan</li><li>Available in multiple colors and sizes</li></ul><h4 style="margin:14px 0 6px;font-size:0.95rem;color:var(--ink);">Available Sizes</h4><p style="margin:0 0 10px;">S, M, L, XL and XXL. Availability may vary depending on the selected color.</p><h4 style="margin:14px 0 6px;font-size:0.95rem;color:var(--ink);">Available Colors</h4><p style="margin:0 0 10px;">Black, White, Beige, Maroon, Navy, Purple, Royal Blue, Heather Grey, Light Pink, Red, and Charcoal Grey.</p><h4 style="margin:14px 0 6px;font-size:0.95rem;color:var(--ink);">Hoodie Base Price</h4><table style="width:100%;border-collapse:collapse;margin:0 0 10px;font-size:0.9rem;"><tr><th style="text-align:left;padding:5px 8px 5px 0;border-bottom:1px solid var(--line);">Size</th><th style="text-align:left;padding:5px 0;border-bottom:1px solid var(--line);">Price</th></tr><tr><td style="padding:5px 8px 5px 0;border-bottom:1px solid var(--line);">S</td><td style="padding:5px 0;border-bottom:1px solid var(--line);">Rs. 1,250</td></tr><tr><td style="padding:5px 8px 5px 0;border-bottom:1px solid var(--line);">M</td><td style="padding:5px 0;border-bottom:1px solid var(--line);">Rs. 1,250</td></tr><tr><td style="padding:5px 8px 5px 0;border-bottom:1px solid var(--line);">L</td><td style="padding:5px 0;border-bottom:1px solid var(--line);">Rs. 1,250</td></tr><tr><td style="padding:5px 8px 5px 0;border-bottom:1px solid var(--line);">XL</td><td style="padding:5px 0;border-bottom:1px solid var(--line);">Rs. 1,300*</td></tr><tr><td style="padding:5px 8px 5px 0;">XXL</td><td style="padding:5px 0;">Rs. 1,400</td></tr></table><p style="margin:0 0 10px;">*Some colors may have a different XL price. The final price is shown after you select a color and size.</p><h4 style="margin:14px 0 6px;font-size:0.95rem;color:var(--ink);">Custom Printing Prices</h4><table style="width:100%;border-collapse:collapse;margin:0 0 10px;font-size:0.9rem;"><tr><th style="text-align:left;padding:5px 8px 5px 0;border-bottom:1px solid var(--line);">Printing Option</th><th style="text-align:left;padding:5px 0;border-bottom:1px solid var(--line);">Price</th></tr><tr><td style="padding:5px 8px 5px 0;border-bottom:1px solid var(--line);">Front Print</td><td style="padding:5px 0;border-bottom:1px solid var(--line);">Rs. 200</td></tr><tr><td style="padding:5px 8px 5px 0;border-bottom:1px solid var(--line);">Back Print</td><td style="padding:5px 0;border-bottom:1px solid var(--line);">Rs. 200</td></tr><tr><td style="padding:5px 8px 5px 0;border-bottom:1px solid var(--line);">Inside Tag</td><td style="padding:5px 0;border-bottom:1px solid var(--line);">Rs. 100</td></tr><tr><td style="padding:5px 8px 5px 0;border-bottom:1px solid var(--line);">Left Sleeve</td><td style="padding:5px 0;border-bottom:1px solid var(--line);">Rs. 75</td></tr><tr><td style="padding:5px 8px 5px 0;border-bottom:1px solid var(--line);">Right Sleeve</td><td style="padding:5px 0;border-bottom:1px solid var(--line);">Rs. 75</td></tr><tr><td style="padding:5px 8px 5px 0;">Custom Packaging</td><td style="padding:5px 0;">Rs. 100</td></tr></table><p style="margin:0 0 10px;">Printing charges are added according to the customization options you select.</p><h4 style="margin:14px 0 6px;font-size:0.95rem;color:var(--ink);">Made to Order</h4><p style="margin:0 0 10px;">Every custom hoodie is prepared after you place your order. Made-to-order production allows us to create your selected design specifically for you and helps reduce unnecessary inventory and overproduction. Because your hoodie is customized individually, production may require additional time before shipping.</p><h4 style="margin:14px 0 6px;font-size:0.95rem;color:var(--ink);">Please Note</h4><p style="margin:0 0 10px;">These hoodies may be manufactured using available or leftover fabric materials. Because of this, slight variations in color, texture, appearance, or finishing may occur between batches.</p><h4 style="margin:14px 0 6px;font-size:0.95rem;color:var(--ink);">Product Information</h4><table style="width:100%;border-collapse:collapse;margin:0 0 10px;font-size:0.9rem;"><tr><td style="padding:5px 8px 5px 0;border-bottom:1px solid var(--line);font-weight:600;">Product</td><td style="padding:5px 0;border-bottom:1px solid var(--line);">Custom Printed Unisex Hoodie</td></tr><tr><td style="padding:5px 8px 5px 0;border-bottom:1px solid var(--line);font-weight:600;">Material</td><td style="padding:5px 0;border-bottom:1px solid var(--line);">40% Cotton / 60% Polyester</td></tr><tr><td style="padding:5px 8px 5px 0;border-bottom:1px solid var(--line);font-weight:600;">Fabric Weight</td><td style="padding:5px 0;border-bottom:1px solid var(--line);">240 GSM</td></tr><tr><td style="padding:5px 8px 5px 0;border-bottom:1px solid var(--line);font-weight:600;">Fit</td><td style="padding:5px 0;border-bottom:1px solid var(--line);">Unisex</td></tr><tr><td style="padding:5px 8px 5px 0;border-bottom:1px solid var(--line);font-weight:600;">Pocket</td><td style="padding:5px 0;border-bottom:1px solid var(--line);">Front Pouch Pocket</td></tr><tr><td style="padding:5px 8px 5px 0;border-bottom:1px solid var(--line);font-weight:600;">Hood</td><td style="padding:5px 0;border-bottom:1px solid var(--line);">3-Panel Hood</td></tr><tr><td style="padding:5px 8px 5px 0;border-bottom:1px solid var(--line);font-weight:600;">Product Weight</td><td style="padding:5px 0;border-bottom:1px solid var(--line);">Approx. 0.53 kg</td></tr><tr><td style="padding:5px 8px 5px 0;border-bottom:1px solid var(--line);font-weight:600;">Sizes</td><td style="padding:5px 0;border-bottom:1px solid var(--line);">S–XXL</td></tr><tr><td style="padding:5px 8px 5px 0;border-bottom:1px solid var(--line);font-weight:600;">Customization</td><td style="padding:5px 0;border-bottom:1px solid var(--line);">Front, Back, Inside Tag &amp; Sleeves</td></tr><tr><td style="padding:5px 8px 5px 0;font-weight:600;">Origin</td><td style="padding:5px 0;">Blank product sourced from Pakistan</td></tr></table>',
+      featuresHTML: '<p style="margin:0 0 10px;">Create a hoodie that’s uniquely yours. Our Custom Printed Unisex Hoodie combines everyday comfort, warmth, and personalized style. Add your own logo, artwork, text, photo, or creative design and turn a classic hoodie into something made just for you.</p><p style="margin:0 0 10px;">Perfect for personal wear, custom gifts, brands, teams, events, businesses, and merchandise.</p><h4 style="margin:14px 0 6px;font-size:0.95rem;color:var(--ink);">Product Features</h4><ul style="margin:0 0 10px;padding-left:18px;"><li>40% cotton, 60% polyester</li><li>240 GSM fabric weight</li><li>Soft and comfortable fabric</li><li>Classic unisex fit</li><li>Spacious front pouch pocket</li><li>Warm 3-panel hood</li><li>Matching flat drawstrings</li><li>Self-fabric patch on the back</li><li>Suitable for custom printing</li><li>Blank hoodie sourced from Pakistan</li><li>Available in multiple colors and sizes</li></ul><h4 style="margin:14px 0 6px;font-size:0.95rem;color:var(--ink);">Available Sizes</h4><p style="margin:0 0 10px;">S, M, L, XL and XXL. Availability may vary depending on the selected color.</p><h4 style="margin:14px 0 6px;font-size:0.95rem;color:var(--ink);">Available Colors</h4><p style="margin:0 0 10px;">Black, White, Beige, Maroon, Navy, Purple, Royal Blue, Heather Grey, Light Pink, Red, and Charcoal Grey.</p><h4 style="margin:14px 0 6px;font-size:0.95rem;color:var(--ink);">Hoodie Base Price</h4><table style="width:100%;border-collapse:collapse;margin:0 0 10px;font-size:0.9rem;"><tr><th style="text-align:left;padding:5px 8px 5px 0;border-bottom:1px solid var(--line);">Size</th><th style="text-align:left;padding:5px 0;border-bottom:1px solid var(--line);">Price</th></tr><tr><td style="padding:5px 8px 5px 0;border-bottom:1px solid var(--line);">S</td><td style="padding:5px 0;border-bottom:1px solid var(--line);">Rs. 1,375</td></tr><tr><td style="padding:5px 8px 5px 0;border-bottom:1px solid var(--line);">M</td><td style="padding:5px 0;border-bottom:1px solid var(--line);">Rs. 1,375</td></tr><tr><td style="padding:5px 8px 5px 0;border-bottom:1px solid var(--line);">L</td><td style="padding:5px 0;border-bottom:1px solid var(--line);">Rs. 1,375</td></tr><tr><td style="padding:5px 8px 5px 0;border-bottom:1px solid var(--line);">XL</td><td style="padding:5px 0;border-bottom:1px solid var(--line);">Rs. 1,430*</td></tr><tr><td style="padding:5px 8px 5px 0;">XXL</td><td style="padding:5px 0;">Rs. 1,540</td></tr></table><p style="margin:0 0 10px;">*Some colors may have a different XL price. The final price is shown after you select a color and size.</p><h4 style="margin:14px 0 6px;font-size:0.95rem;color:var(--ink);">Custom Printing Prices</h4><table style="width:100%;border-collapse:collapse;margin:0 0 10px;font-size:0.9rem;"><tr><th style="text-align:left;padding:5px 8px 5px 0;border-bottom:1px solid var(--line);">Printing Option</th><th style="text-align:left;padding:5px 0;border-bottom:1px solid var(--line);">Price</th></tr><tr><td style="padding:5px 8px 5px 0;border-bottom:1px solid var(--line);">Front Print</td><td style="padding:5px 0;border-bottom:1px solid var(--line);">Rs. 220</td></tr><tr><td style="padding:5px 8px 5px 0;border-bottom:1px solid var(--line);">Back Print</td><td style="padding:5px 0;border-bottom:1px solid var(--line);">Rs. 220</td></tr><tr><td style="padding:5px 8px 5px 0;border-bottom:1px solid var(--line);">Inside Tag</td><td style="padding:5px 0;border-bottom:1px solid var(--line);">Rs. 110</td></tr><tr><td style="padding:5px 8px 5px 0;border-bottom:1px solid var(--line);">Left Sleeve</td><td style="padding:5px 0;border-bottom:1px solid var(--line);">Rs. 83</td></tr><tr><td style="padding:5px 8px 5px 0;border-bottom:1px solid var(--line);">Right Sleeve</td><td style="padding:5px 0;border-bottom:1px solid var(--line);">Rs. 83</td></tr><tr><td style="padding:5px 8px 5px 0;">Custom Packaging</td><td style="padding:5px 0;">Rs. 110</td></tr></table><p style="margin:0 0 10px;">Printing charges are added according to the customization options you select.</p><h4 style="margin:14px 0 6px;font-size:0.95rem;color:var(--ink);">Made to Order</h4><p style="margin:0 0 10px;">Every custom hoodie is prepared after you place your order. Made-to-order production allows us to create your selected design specifically for you and helps reduce unnecessary inventory and overproduction. Because your hoodie is customized individually, production may require additional time before shipping.</p><h4 style="margin:14px 0 6px;font-size:0.95rem;color:var(--ink);">Please Note</h4><p style="margin:0 0 10px;">These hoodies may be manufactured using available or leftover fabric materials. Because of this, slight variations in color, texture, appearance, or finishing may occur between batches.</p><h4 style="margin:14px 0 6px;font-size:0.95rem;color:var(--ink);">Product Information</h4><table style="width:100%;border-collapse:collapse;margin:0 0 10px;font-size:0.9rem;"><tr><td style="padding:5px 8px 5px 0;border-bottom:1px solid var(--line);font-weight:600;">Product</td><td style="padding:5px 0;border-bottom:1px solid var(--line);">Custom Printed Unisex Hoodie</td></tr><tr><td style="padding:5px 8px 5px 0;border-bottom:1px solid var(--line);font-weight:600;">Material</td><td style="padding:5px 0;border-bottom:1px solid var(--line);">40% Cotton / 60% Polyester</td></tr><tr><td style="padding:5px 8px 5px 0;border-bottom:1px solid var(--line);font-weight:600;">Fabric Weight</td><td style="padding:5px 0;border-bottom:1px solid var(--line);">240 GSM</td></tr><tr><td style="padding:5px 8px 5px 0;border-bottom:1px solid var(--line);font-weight:600;">Fit</td><td style="padding:5px 0;border-bottom:1px solid var(--line);">Unisex</td></tr><tr><td style="padding:5px 8px 5px 0;border-bottom:1px solid var(--line);font-weight:600;">Pocket</td><td style="padding:5px 0;border-bottom:1px solid var(--line);">Front Pouch Pocket</td></tr><tr><td style="padding:5px 8px 5px 0;border-bottom:1px solid var(--line);font-weight:600;">Hood</td><td style="padding:5px 0;border-bottom:1px solid var(--line);">3-Panel Hood</td></tr><tr><td style="padding:5px 8px 5px 0;border-bottom:1px solid var(--line);font-weight:600;">Product Weight</td><td style="padding:5px 0;border-bottom:1px solid var(--line);">Approx. 0.53 kg</td></tr><tr><td style="padding:5px 8px 5px 0;border-bottom:1px solid var(--line);font-weight:600;">Sizes</td><td style="padding:5px 0;border-bottom:1px solid var(--line);">S–XXL</td></tr><tr><td style="padding:5px 8px 5px 0;border-bottom:1px solid var(--line);font-weight:600;">Customization</td><td style="padding:5px 0;border-bottom:1px solid var(--line);">Front, Back, Inside Tag &amp; Sleeves</td></tr><tr><td style="padding:5px 8px 5px 0;font-weight:600;">Origin</td><td style="padding:5px 0;">Blank product sourced from Pakistan</td></tr></table>',
       materials: "40% cotton, 60% polyester, 240 GSM. Classic unisex fit with front pouch pocket and 3-panel hood. Approx. 0.53 kg. Blank product sourced from Pakistan.",
       faq: [
         { q: "What is the hoodie made of?", a: "40% cotton and 60% polyester at 240 GSM, with a front pouch pocket, 3-panel hood and matching flat drawstrings." },
         { q: "What sizes and colors are available?", a: "Sizes S to XXL in Black, White, Beige, Maroon, Navy, Purple, Royal Blue, Heather Grey, Light Pink, Red and Charcoal Grey. Availability may vary by color." },
-        { q: "How much does printing cost?", a: "Front and back print are Rs. 200 each, inside tag Rs. 100, each sleeve Rs. 75, and custom packaging Rs. 100. You only pay for the options you choose." },
+        { q: "How much does printing cost?", a: "Front and back print are Rs. 220 each, inside tag Rs. 110, each sleeve Rs. 83, and custom packaging Rs. 110. You only pay for the options you choose." },
         { q: "How long does production take?", a: "Every hoodie is made to order, so production takes a little extra time before it ships." },
         { q: "Will the color match the photos exactly?", a: "Hoodies may be made from available or leftover fabric, so slight variations in color, texture or finishing can occur between batches." }
       ]
@@ -418,8 +419,8 @@ const PRODUCTS = [
     price: 1375,
     oldPrice: null,
     variantCosts: { "S|": 1250, "M|": 1250, "L|": 1250, "XL|": 1300, "XXL|": 1400 },
-    rating: 4.8,
-    reviews: 268,
+    rating: null,
+    reviews: 0,
     image: "assets/products/hoodie-main-beige.webp",
     // First photo on the product page (before a color is picked)
     heroImage: "assets/products/hoodie-main-beige.webp",
@@ -435,11 +436,13 @@ const PRODUCTS = [
     tags: ["hoodie", "apparel", "custom", "unisex", "pullover"],
     colors: ["Black", "White", "Beige", "Maroon", "Navy", "Purple", "Royal Blue", "Heather Grey", "Light Pink", "Red", "Charcoal Grey"],
     sizes: ["S", "M", "L", "XL", "XXL"],
+    // Print sides: customer prices = supplier cost + 10% (Front/Back 200 -> 220, sleeves 75 -> 82.5, rounded to 83).
+    // Inside tag (100 -> 110) and custom packaging (100 -> 110) are listed in the details table only.
     sides: [
-      { id: "front", label: "Front", sublabel: "Front side design", price: 200, view: "garment", printArea: "32.2% 28.8% 42.5% 26.6%" },
-      { id: "back", label: "Back", sublabel: "Back design", price: 200, view: "garment", printArea: "36.6% 25.7% 26.7% 24.4%" },
-      { id: "left", label: "Left Sleeve", sublabel: "Left sleeve design", price: 75, view: "garment", printArea: "38.9% 43.8% 22.7% 42.0%" },
-      { id: "right", label: "Right Sleeve", sublabel: "Right sleeve design", price: 75, view: "garment", printArea: "38.4% 44.0% 23.6% 40.9%" }
+      { id: "front", label: "Front", sublabel: "Front side design", price: 220, view: "garment", printArea: "32.2% 28.8% 42.5% 26.6%" },
+      { id: "back", label: "Back", sublabel: "Back design", price: 220, view: "garment", printArea: "36.6% 25.7% 26.7% 24.4%" },
+      { id: "left", label: "Left Sleeve", sublabel: "Left sleeve design", price: 83, view: "garment", printArea: "38.9% 43.8% 22.7% 42.0%" },
+      { id: "right", label: "Right Sleeve", sublabel: "Right sleeve design", price: 83, view: "garment", printArea: "38.4% 44.0% 23.6% 40.9%" }
     ],
     customizable: true
   },
@@ -497,8 +500,8 @@ const PRODUCTS = [
     },
     price: 385,
     oldPrice: null,
-    rating: 4.6,
-    reviews: 97,
+    rating: null,
+    reviews: 0,
     image: "assets/products/tote-front.webp",
     galleryFit: "contain",   // photos have different shapes: show each one whole
     // Design Studio: the blank tote is the canvas (frontColorImages only changes the studio, not the product page).
@@ -506,9 +509,10 @@ const PRODUCTS = [
     // Print Sides: the Design Studio shows a Front and a Back card. printArea = dashed print guide as %
     // insets of the preview (top right bottom left), covering the panel below the handles.
     // price is added only once the customer adds a design to that side.
+    // Print sides: customer price = supplier cost 200 + 10% = 220 per side.
     sides: [
-      { id: "front", label: "Front", sublabel: "Front side design", price: 200, dims: '15" × 15"', view: "garment", printArea: "47% 9% 4% 9%" },
-      { id: "back", label: "Back", sublabel: "Back Design", price: 200, dims: '15" × 15"', view: "garment", printArea: "47% 9% 4% 9%" }
+      { id: "front", label: "Front", sublabel: "Front side design", price: 220, dims: '15" × 15"', view: "garment", printArea: "47% 9% 4% 9%" },
+      { id: "back", label: "Back", sublabel: "Back Design", price: 220, dims: '15" × 15"', view: "garment", printArea: "47% 9% 4% 9%" }
     ],
     gallery: [
       "assets/products/tote-front.webp",
@@ -535,6 +539,76 @@ PRODUCTS.forEach(p => {
   p.price = Math.min(...Object.values(p.variantPrices));
 });
 
+/* Ready-made design products
+   A design product is a finished listing (its own photo, name and page) that sits on top of a blank
+   product. "Customize" opens the Design Studio on the blank product (baseId) with the design already
+   placed (templateId, see js/templates.js), so the customer can still change the name, colour or size.
+   To add another one: make a mockup photo, add a row below. Price, sizes and print sides come from the
+   blank product, so they stay in sync when you change that product's prices. */
+const DESIGN_PRODUCTS = [
+  { id: 101, baseId: 2, templateId: "umrah-mubarak-watercolor", key: "umrah", kind: "Mug",        name: "Umrah Mubarak Watercolor Mug",        image: "assets/products/design-umrah-mug.webp" },
+  { id: 102, baseId: 6, templateId: "umrah-mubarak-watercolor", key: "umrah", kind: "Tote Bag",   name: "Umrah Mubarak Watercolor Tote Bag",   image: "assets/products/design-umrah-tote.webp" },
+  { id: 103, baseId: 4, templateId: "umrah-mubarak-watercolor", key: "umrah", kind: "Photo Frame", name: "Umrah Mubarak Watercolor Photo Frame", image: "assets/products/design-umrah-frame.webp" },
+  { id: 104, baseId: 2, templateId: "hajj-mubarak-kaaba-name",  key: "hajj",  kind: "Mug",        name: "Hajj Mubarak Mug with Name",          image: "assets/products/design-hajj-mug.webp", named: true },
+  { id: 105, baseId: 6, templateId: "hajj-mubarak-kaaba-name",  key: "hajj",  kind: "Tote Bag",   name: "Hajj Mubarak Tote Bag with Name",     image: "assets/products/design-hajj-tote.webp", named: true },
+  { id: 106, baseId: 4, templateId: "hajj-mubarak-kaaba-name",  key: "hajj",  kind: "Photo Frame", name: "Hajj Mubarak Photo Frame with Name",  image: "assets/products/design-hajj-frame.webp", named: true }
+];
+
+DESIGN_PRODUCTS.forEach(d => {
+  const base = PRODUCTS.find(x => x.id === d.baseId);
+  if (!base) return;
+  const isUmrah = d.key === "umrah";
+  const trip = isUmrah ? "Umrah" : "Hajj";
+  const what = d.kind.toLowerCase();
+  const lead = isUmrah
+    ? "A golden watercolor Kaaba, mosque skyline and hanging lanterns with Umrah Mubarak calligraphy."
+    : "The Kaaba and Hajj Mubarak calligraphy with “May Allah Accept”, and your own name in the middle.";
+  const nameLine = d.named ? " Change BABA to any name (Baba, Mama, Dada, Nani, a family name) in the Design Studio." : "";
+  const description = lead + " A ready-made " + trip + " Mubarak gift " + what + " you can order as it is or personalise." + nameLine + " Made on demand.";
+  const seoBase = Object.assign({}, base.seo || {});
+  const product = Object.assign({}, base, {
+    id: d.id,
+    name: d.name,
+    seoTitle: d.name + " | GfxPrints",
+    description: description,
+    tags: [trip.toLowerCase(), "mubarak", "kaaba", "islamic", "gift", what].concat(base.tags || []),
+    image: d.image,
+    heroImage: d.image,
+    designProduct: true,
+    baseId: d.baseId,
+    templateId: d.templateId,
+    seo: Object.assign(seoBase, {
+      h1: d.name,
+      metaTitle: d.name + " | GfxPrints",
+      metaDescription: lead + " Order this " + trip + " Mubarak " + what + " from GfxPrints, made on demand and personalisable.",
+      breadcrumbName: d.name,
+      targetKeyword: trip + " Mubarak " + what,
+      keywords: trip + " mubarak gift, " + trip + " mubarak " + what + ", kaaba " + what + ", islamic gift Pakistan, personalised " + what,
+      ogImage: d.image,
+      imageAltBase: d.name,
+      imageAlt: d.name
+    })
+  });
+  if (d.kind === "Mug"){
+    product.colors = ["White"];          // the artwork is shown on the all-white mug; other colours are still available in the Design Studio
+    product.gallery = [base.gallery[0]];
+  }
+  if (d.kind === "Photo Frame"){
+    product.orientations = ["Landscape", "Portrait"];   // the artwork is wider than tall
+  }
+  PRODUCTS.push(product);
+});
+
+/* Two kinds of product, kept apart everywhere (shop filter, product cards, home page):
+     "upload" = one of the 5 main blank products. The customer uploads or builds their own design.
+     "design" = a ready-made design product (DESIGN_PRODUCTS above). It already has a design; the customer can still change the design, colour and size. */
+const PRODUCT_TYPES = {
+  upload: { label: "Upload Your Design", short: "Your design", cta: "Upload Design", blurb: "Pick a product, then upload your own artwork, logo or photo, or build a design in the studio." },
+  design: { label: "Ready-Made Designs", short: "Ready-made", cta: "Customize", blurb: "Finished designs on real products. Order as it is, or change the name, colours and size." }
+};
+PRODUCTS.forEach(p => { p.productType = p.designProduct ? "design" : "upload"; });
+const getProductsByType = (type) => PRODUCTS.filter(p => p.productType === type);
+
 const CATEGORIES = [
   { name: "T-Shirts", desc: "Wear your personality.", image: "assets/products/tee-lucky-green.webp" },
   { name: "Mugs", desc: "Start your day with something personal.", image: "assets/products/mug-category-mockup.webp" },
@@ -544,11 +618,8 @@ const CATEGORIES = [
   { name: "Gifts", desc: "Make every occasion special.", image: "assets/products/personalized-gift-category.webp" }
 ];
 
-const TESTIMONIALS = [
-  { name: "Sarah M.", rating: 5, text: "Exactly what I imagined. The print looked great and the quality exceeded my expectations." },
-  { name: "Ahmed K.", rating: 5, text: "The customization process was simple and the mug turned out beautifully." },
-  { name: "Fatima R.", rating: 5, text: "Ordered a photo frame as a gift. The print quality and finish were better than I expected." }
-];
+// No customer testimonials are shown until genuine, approved ones are supplied by the owner.
+const TESTIMONIALS = [];
 
 /* Utility: format price stored in cents-free integer (e.g. 1499 = Rs. 1,499) */
 function formatPrice(amount){
@@ -745,6 +816,48 @@ function hasValidVariantPrice(product, color, packaging, size){
 function isVariantOrderable(product, color, packaging, size){
   return isVariantAvailable(product, color, size) && hasValidVariantPrice(product, color, packaging, size);
 }
+/* Lowest and highest price a customer can actually order for this product, taken from the same
+   variant price table the product page, customizer and cart use. Returns null when nothing is orderable. */
+function getPriceRange(product){
+  if (!product) return null;
+  const colors = product.colors && product.colors.length ? product.colors : [null];
+  const sizes = product.sizes && product.sizes.length ? product.sizes : [null];
+  let min = Infinity, max = -Infinity;
+  colors.forEach(c => sizes.forEach(sz => {
+    const packs = (typeof getPackagingsFor === "function" ? getPackagingsFor(product, sz) : null) || [null];
+    (packs.length ? packs : [null]).forEach(pk => {
+      if (!isVariantOrderable(product, c, pk, sz)) return;
+      const v = getVariantPrice(product, c, pk, sz);
+      if (v < min) min = v;
+      if (v > max) max = v;
+    });
+  }));
+  return isFinite(min) ? { min: min, max: max } : null;
+}
+
+/* Price of printing ONE side: the Front side when the product has one, otherwise its first priced side.
+   Returns 0 when printing is already included in the product price (e.g. photo frames). */
+function getOneSidePrintPrice(product){
+  const sides = (product && product.sides || []).filter(s => s.price > 0);
+  if (!sides.length) return 0;
+  const front = sides.find(s => s.id === "front");
+  return (front || sides[0]).price;
+}
+
+/* Price of printing EVERY side the product offers (0 when printing is already included). */
+function getAllSidesPrintPrice(product){
+  return (product && product.sides || []).reduce((sum, s) => sum + (s.price > 0 ? s.price : 0), 0);
+}
+
+/* The two prices shown to customers (cards and product page), from the central price table:
+   min = lowest product price + printing ONE side.
+   max = highest product price + printing ALL sides + Express delivery. */
+function getDisplayPriceRange(product){
+  const r = getPriceRange(product);
+  if (!r) return null;
+  return { min: r.min + getOneSidePrintPrice(product), max: r.max + getAllSidesPrintPrice(product) + SHIPPING_EXPRESS };
+}
+
 /* Shared selector markup (product + customize pages). Products with namedSwatches show the colour
    name next to the swatch (accessible, with a visible selected state); others keep the plain dot. */
 function colorSwatchHTML(product, color, isSelected){
@@ -789,7 +902,7 @@ function colorToHex(name){
 
 /* Products that can be opened in the Design Studio (customize.html) */
 function getCustomizableProducts(){
-  return PRODUCTS.filter(p => p.customizable !== false);
+  return PRODUCTS.filter(p => p.customizable !== false && !p.designProduct);   // design products open on their blank product
 }
 
 /* Print Sides for the Design Studio. Products with their own `sides` array (see the
@@ -803,6 +916,9 @@ function getEffectiveSides(p){
 
 /* Link to the customization page with a product pre-selected */
 function customizeURL(id){
+  const p = getProductById(id);
+  // A ready-made design product opens the Design Studio on its blank product with the design already placed
+  if (p && p.designProduct) return "customize.html?id=" + encodeURIComponent(p.baseId) + "&template=" + encodeURIComponent(p.templateId);
   return "customize.html?id=" + encodeURIComponent(id);
 }
 

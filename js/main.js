@@ -5,6 +5,9 @@
    ========================================================= */
 
 /* ---------- Storage helpers (shared with cart.js / product.js) ---------- */
+// Delivery charges (Pakistan). One place for the product page breakdown, cart and checkout.
+const SHIPPING_STANDARD = 250;
+const SHIPPING_EXPRESS = 650;
 const STORAGE_CART = "gfxprints_cart";
 const STORAGE_WISHLIST = "gfxprints_wishlist";
 
@@ -230,7 +233,8 @@ function addToCart(item){
   // Combine identical variant + product
   const existing = cart.find(c =>
     c.id === item.id && c.color === item.color && c.size === item.size && (c.packaging || null) === (item.packaging || null) && (c.orientation || null) === (item.orientation || null) &&
-    JSON.stringify(c.customDesign || null) === JSON.stringify(item.customDesign || null)
+    JSON.stringify(c.customDesign || null) === JSON.stringify(item.customDesign || null) &&
+    (c.designHelp === true) === (item.designHelp === true)
   );
   if (existing){ existing.qty += item.qty; }
   else { cart.push(item); }
@@ -347,9 +351,26 @@ function initReveal(){
 /* ---------- Product card builder (shared by home + shop) ---------- */
 function productCardHTML(p){
   const isWishlisted = getWishlist().includes(p.id);
-  const priceHTML = p.oldPrice
-    ? `<span class="old">${formatPrice(p.oldPrice)}</span>${formatPrice(p.price)}`
-    : formatPrice(p.price);
+  // "From Rs. X" when the price depends on the options, using the lowest orderable price from the central variant price table
+  // Card price: lowest to highest product price, plus the price of printing one side (central variant table + product side prices)
+  // Card price: lowest price (cheapest option + 1 printed side) to highest price (dearest option + every print side).
+  // Delivery is not included here; it is shown on the product page and at checkout.
+  const base = typeof getPriceRange === "function" ? getPriceRange(p) : null;
+  let priceHTML, hasRange = false;
+  if (base){
+    const lo = base.min + getOneSidePrintPrice(p);
+    const hi = base.max + getAllSidesPrintPrice(p);
+    if (hi > lo){
+      hasRange = true;
+      priceHTML = `<span class="pcr-end"><span class="pcr-tag">Min</span><span class="pcr-amt">${formatPrice(lo)}</span><span class="pcr-sub">1 printed side</span></span>` +
+        `<span class="pcr-line" aria-hidden="true"><i></i></span>` +
+        `<span class="pcr-end pcr-max"><span class="pcr-tag">Max</span><span class="pcr-amt">${formatPrice(hi)}</span><span class="pcr-sub">all sides printed</span></span>`;
+    } else {
+      priceHTML = `<span class="pc-from">Price</span><span class="pc-amt">${formatPrice(lo)}</span><small class="pc-print">${getOneSidePrintPrice(p) > 0 ? "with 1 printed side" : "printing included"}</small>`;
+    }
+  } else {
+    priceHTML = p.oldPrice ? `<span class="old">${formatPrice(p.oldPrice)}</span>${formatPrice(p.price)}` : formatPrice(p.price);
+  }
   return `
     <article class="product-card reveal">
       <div class="pc-media">
@@ -360,17 +381,18 @@ function productCardHTML(p){
           <svg viewBox="0 0 24 24" fill="${isWishlisted ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2"><path d="M12 21s-7.5-4.6-10-9.3C.4 8 2 4.5 5.6 4.1c2-.2 3.7.8 4.9 2.4C11.7 4.9 13.4 3.9 15.4 4.1 19 4.5 20.6 8 20 11.7 17.5 16.4 12 21 12 21z"/></svg>
         </button>
         <a class="pc-quick" href="product.html?id=${p.id}">Quick View</a>
+        <span class="pc-type pc-type-${p.productType}">${PRODUCT_TYPES[p.productType].short}</span>
       </div>
       <div class="pc-body">
         <span class="pc-cat">${p.category}</span>
         <h3 class="pc-name">${p.name}</h3>
         ${p.rating == null ? "" : `<div class="pc-rating"><span class="stars">${starString(p.rating)}</span> ${p.rating} (${p.reviews})</div>`}
         <p class="pc-desc">${p.description}</p>
-        <div class="pc-footer">
-          <span class="pc-price">${priceHTML}</span>
+        <div class="pc-footer${hasRange ? " pc-footer-range" : ""}">
+          <span class="pc-price${hasRange ? " pc-price-range" : ""}">${priceHTML}</span>
           ${p.customizable === false
             ? `<a href="product.html?id=${p.id}" class="btn btn-outline btn-sm">View</a>`
-            : `<a href="${customizeURL(p.id)}" target="_blank" rel="noopener" class="btn btn-design btn-design-sm btn-design-noarrow">Design Now</a>`}
+            : `<a href="${customizeURL(p.id)}" target="_blank" rel="noopener" class="btn btn-design btn-design-sm btn-design-noarrow">${PRODUCT_TYPES[p.productType].cta}</a>`}
         </div>
       </div>
     </article>`;
@@ -451,22 +473,53 @@ function renderHomepage(){
   if (trendRow){
     const byCategory = CATEGORIES.map(c => {
       const inCat = PRODUCTS.filter(p => p.category === c.name);
-      const reviews = inCat.reduce((sum, p) => sum + p.reviews, 0);
-      return { ...c, image: inCat[0] ? inCat[0].image : c.image, searched: reviews * 480 };
-    }).sort((a, b) => b.searched - a.searched).slice(0, 3);
+      return { ...c, image: inCat[0] ? inCat[0].image : c.image };
+    }).filter(c => PRODUCTS.some(p => p.category === c.name)).slice(0, 3);
 
     trendRow.innerHTML = byCategory.map(c => `
       <a href="shop.html?category=${encodeURIComponent(c.name)}" class="trend-card reveal">
         <div class="trend-media"><img src="${c.image}" alt="${c.name}" loading="lazy" decoding="async" width="400" height="400"></div>
         <h3>${c.name}</h3>
-        <p>${formatCount(c.searched)} people searched for this</p>
+        <p>Browse ${c.name}</p>
       </a>`).join("");
   }
 
-  const featured = document.getElementById("featured-grid");
-  if (featured){
-    featured.innerHTML = PRODUCTS.slice(0, 8).map(productCardHTML).join("");
-    bindWishlistButtons(featured);
+  // Main products: the customer uploads their own design
+  const upGrid = document.getElementById("upload-grid");
+  if (upGrid){
+    upGrid.innerHTML = getProductsByType("upload").map(productCardHTML).join("");
+    bindWishlistButtons(upGrid);
+    observeReveal(upGrid);
+  }
+
+  // Ready-made design products, with category chips (only categories that have designs)
+  const dsGrid = document.getElementById("design-grid");
+  const dsChips = document.getElementById("design-cats");
+  if (dsGrid){
+    const designs = getProductsByType("design");
+    const cats = [...new Set(designs.map(p => p.category))];
+    let active = "";
+    const draw = () => {
+      const list = active ? designs.filter(p => p.category === active) : designs;
+      dsGrid.innerHTML = list.map(productCardHTML).join("");
+      bindWishlistButtons(dsGrid);
+      observeReveal(dsGrid);
+      if (dsChips) dsChips.querySelectorAll(".cat-pill").forEach(b => {
+        const on = (b.dataset.cat || "") === active;
+        b.classList.toggle("active", on); b.setAttribute("aria-pressed", on);
+      });
+      const more = document.getElementById("design-more");
+      if (more) more.href = "shop.html?type=design" + (active ? "&category=" + encodeURIComponent(active) : "");
+    };
+    if (dsChips){
+      dsChips.innerHTML = ["", ...cats].map(c =>
+        `<button type="button" class="cat-pill" data-cat="${c}" aria-pressed="false">${c || "All"}<span class="cat-pill-n">${c ? designs.filter(p => p.category === c).length : designs.length}</span></button>`).join("");
+      dsChips.addEventListener("click", (e) => {
+        const b = e.target.closest(".cat-pill"); if (!b) return;
+        active = b.dataset.cat || ""; draw();
+      });
+    }
+    draw();
   }
 
   const testiGrid = document.getElementById("testimonial-grid");
@@ -481,7 +534,7 @@ function renderHomepage(){
 }
 
 /* ---------- Shop page: filter, search, sort ---------- */
-const shopState = { category: null, maxPrice: 5000, sort: "featured", query: "" };
+const shopState = { category: null, maxPrice: 5000, sort: "featured", query: "", type: "" };
 const DEFAULT_MAX_PRICE = 5000;
 // Populated by initShopPage; lets renderShop()'s empty-state reset button
 // re-sync the filter controls without threading DOM refs between functions.
@@ -494,6 +547,8 @@ function initShopPage(){
 
   const urlCategory = getURLParam("category");
   if (urlCategory) shopState.category = urlCategory;
+  const urlType = getURLParam("type");
+  if (urlType && PRODUCT_TYPES[urlType]) shopState.type = urlType;
 
   const priceRange = document.getElementById("price-range");
   const priceLabel = document.getElementById("price-range-label");
@@ -501,7 +556,37 @@ function initShopPage(){
   if (searchInput && location.hash === "#shop-search") setTimeout(() => searchInput.focus(), 60);
   const catWrap = document.getElementById("category-filters");
   // "Gifts" is a catch-all category: it lists every product in the shop.
-  const cats = [...new Set(PRODUCTS.map(p => p.category)), "Gifts"];
+  // Categories follow the chosen product type (a type only lists the categories it has products in)
+  const typeProducts = () => shopState.type ? getProductsByType(shopState.type) : PRODUCTS;
+  let cats = [...new Set(typeProducts().map(p => p.category)), "Gifts"];
+  function refreshCats(){
+    cats = [...new Set(typeProducts().map(p => p.category)), "Gifts"];
+    if (shopState.category){
+      const keep = (Array.isArray(shopState.category) ? shopState.category : [shopState.category]).filter(c => cats.includes(c));
+      shopState.category = keep.length ? keep : null;
+    }
+  }
+  refreshCats();
+
+  // Product type switch: All / Upload Your Design / Ready-Made Designs
+  const typeBar = document.getElementById("type-bar");
+  function renderTypeBar(){
+    if (!typeBar) return;
+    const items = [["", "All Products", PRODUCTS.length], ["upload", PRODUCT_TYPES.upload.label, getProductsByType("upload").length], ["design", PRODUCT_TYPES.design.label, getProductsByType("design").length]];
+    typeBar.innerHTML = items.map(([v, label, n]) =>
+      `<button type="button" class="type-tab${shopState.type === v ? " active" : ""}" data-type="${v}" aria-pressed="${shopState.type === v}">${label}<span class="type-tab-n">${n}</span></button>`).join("");
+    const note = document.getElementById("type-note");
+    if (note) note.textContent = shopState.type ? PRODUCT_TYPES[shopState.type].blurb : "";
+  }
+  if (typeBar){
+    typeBar.addEventListener("click", (e) => {
+      const b = e.target.closest(".type-tab"); if (!b) return;
+      shopState.type = b.dataset.type;
+      refreshCats();
+      try { const u = new URL(location.href); shopState.type ? u.searchParams.set("type", shopState.type) : u.searchParams.delete("type"); history.replaceState(null, "", u.pathname.split("/").pop() + u.search + u.hash); } catch (err){}
+      renderTypeBar(); renderCategoryCheckboxes(); renderCategoryBar(); renderShop();
+    });
+  }
 
   function renderCategoryCheckboxes(){
     if (!catWrap) return; // sidebar removed - category pills handle this
@@ -570,6 +655,7 @@ function initShopPage(){
     });
   }
   shopRenderCategoryBar = renderCategoryBar;
+  renderTypeBar();
   renderCategoryBar();
 
   // Left/right arrows for the category slider (shown on small screens via CSS)
@@ -598,6 +684,8 @@ function initShopPage(){
   // Keep every control in sync with shopState - used after "Clear all"
   // and after removing a single filter chip.
   function syncControls(){
+    refreshCats();
+    renderTypeBar();
     renderCategoryCheckboxes();
     renderCategoryBar();
     if (priceRange) priceRange.value = shopState.maxPrice;
@@ -655,7 +743,10 @@ function initShopPage(){
         shopState.maxPrice = DEFAULT_MAX_PRICE;
       } else if (kind === "query"){
         shopState.query = "";
+      } else if (kind === "type"){
+        shopState.type = "";
       } else if (kind === "all"){
+        shopState.type = "";
         shopState.category = null;
         shopState.maxPrice = DEFAULT_MAX_PRICE;
         shopState.query = "";
@@ -713,6 +804,7 @@ function renderActiveFilters(){
   if (!wrap) return;
 
   const chips = [];
+  if (shopState.type) chips.push({ label: PRODUCT_TYPES[shopState.type].label, kind: "type" });
   if (shopState.category){
     const cats = Array.isArray(shopState.category) ? shopState.category : [shopState.category];
     cats.forEach(c => chips.push({ label: c, kind: "category", value: c }));
@@ -752,7 +844,7 @@ function renderShop(){
   if (typeof shopRenderCategoryBar === "function") shopRenderCategoryBar();
   const grid = document.getElementById("shop-grid");
   const countEl = document.getElementById("result-count");
-  let list = PRODUCTS.slice();
+  let list = shopState.type ? getProductsByType(shopState.type) : PRODUCTS.slice();
 
   if (shopState.category){
     const cats = Array.isArray(shopState.category) ? shopState.category : [shopState.category];
@@ -773,7 +865,6 @@ function renderShop(){
   switch (shopState.sort){
     case "price-asc": list.sort((a,b) => a.price - b.price); break;
     case "price-desc": list.sort((a,b) => b.price - a.price); break;
-    case "rating": list.sort((a,b) => (b.rating || 0) - (a.rating || 0)); break;
     default: break;
   }
 
@@ -790,6 +881,7 @@ function renderShop(){
     const resetBtn = document.getElementById("empty-reset");
     if (resetBtn){
       resetBtn.addEventListener("click", () => {
+        shopState.type = "";
         shopState.category = null;
         shopState.maxPrice = DEFAULT_MAX_PRICE;
         shopState.query = "";

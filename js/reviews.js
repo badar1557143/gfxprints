@@ -37,6 +37,10 @@ const APPROVED_REVIEWS = [
     if (!grid) return;
     const featured = (typeof TESTIMONIALS !== "undefined") ? TESTIMONIALS : [];
     const all = APPROVED_REVIEWS.concat(featured);
+    if (!all.length){
+      grid.innerHTML = '<p class="rv-empty">No reviews yet</p>';
+      return;
+    }
 
     grid.innerHTML = all.map(r => `
       <figure class="rv-card">

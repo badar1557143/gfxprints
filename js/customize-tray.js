@@ -336,6 +336,30 @@
       r.addEventListener("change", () => { const x = active(); syncPanel(x); commit(); });
     }};
 
+    /* COLORS: change the colors of clipart and shapes (see js/recolor.js) */
+    TOOLS.imgcolors = { title: "Colors", render(){
+      const o = active(), R = window.GfxRecolor;
+      const base = o && R ? R.svgText(o) : null;
+      const list = o && R ? R.colors(o) : [];
+      if (!list.length){
+        body.innerHTML = '<div class="tr-row"><span class="tr-note">Colors can be changed on clipart and shapes. A photo or uploaded file has no editable colors.</span></div>';
+        return;
+      }
+      body.innerHTML = '<div class="tr-row"><span class="tr-lab">Tap a color to change it</span></div><div class="tr-row tr-colors">' +
+        list.map((c, i) => '<label class="tr-cswatch" title="Change this color"><input type="color" data-i="' + i + '" value="' + c + '" aria-label="Color ' + (i + 1) + '"><span style="background:' + c + '"></span></label>').join("") + '</div>';
+      const map = {};
+      body.querySelectorAll('input[type="color"]').forEach(inp => {
+        const from = list[Number(inp.dataset.i)];
+        inp.addEventListener("input", () => {
+          const x = active(); if (!x) return;
+          map[from] = inp.value.toLowerCase();
+          inp.nextElementSibling.style.background = inp.value;
+          R.apply(x, base, map, redraw);
+        });
+        inp.addEventListener("change", () => { setTimeout(commit, 150); });
+      });
+    }};
+
     /* POSITION: arrange / align / precise */
     TOOLS.position = { title: "Position", render(){
       let tab = "arrange";
@@ -509,7 +533,7 @@
     }};
 
     /* ---------- IMAGE tools: drive the same hidden controls as the Properties panel ---------- */
-    const IMAGE_ONLY = new Set(["filters", "imglayout", "crop", "imgfx"]);
+    const IMAGE_ONLY = new Set(["filters", "imglayout", "crop", "imgfx", "imgcolors"]);
     const hid = (id) => $(id);
     const sl = (label, id, suffix) => '<div class="tr-row tr-split"><label class="tr-lab tr-labw" for="t-' + id + '">' + label +
       '</label><input type="range" class="tr-range" id="t-' + id + '" data-h="' + id + '" data-sfx="' + (suffix || "") + '"><output></output></div>';

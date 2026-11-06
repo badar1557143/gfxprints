@@ -1080,6 +1080,31 @@ function handleAddToCartNow(buyNow, skipQualityCheck){
   const hasDesign = anySideHasContent();
   const sidesDesign = collectSidesDesign();
 
+  // Every order is a printed product. A blank canvas is not a design, so offer the two valid routes instead.
+  if (!hasDesign){
+    addToCartBusy = false;
+    const helpOpts = { color: selectedColor, size: selectedSize, orientation: selectedOrientation, packaging: selectedPackaging, qty: qty };
+    if (window.GfxOrder){
+      GfxOrder.showChoice({
+        title: "Add your design first",
+        text: "Every order is a printed product and your product has no design yet. Add text, an image or a template, or choose Design It for Me and we will help.",
+        actions: [
+          { label: "Keep designing", primary: true },
+          { label: "Design It for Me: add to cart", run: () => {
+              addToCart({ id: p.id, name: p.name, image: getStageImage(p, selectedColor, "front"), price: computeUnitPrice(), color: selectedColor, size: selectedSize,
+                packaging: selectedPackaging, orientation: selectedOrientation, customText: "", customDesign: null, designHelp: true, designPreview: null, designFiles: [], qty: qty });
+              showToast(`${p.name} added to cart with a design help request`);
+              if (buyNow) window.location.href = "checkout.html";
+          } },
+          { label: "Chat with us on WhatsApp", href: GfxOrder.designHelpLink(p, helpOpts) }
+        ]
+      });
+    } else {
+      showToast("Please add a design first");
+    }
+    return;
+  }
+
   // Blurry pictures: ask first (or stop, if far too small). "Continue anyway" re-runs this without the check.
   if (hasDesign && !skipQualityCheck){
     const issues = findLowQualityImages(sidesDesign);
@@ -1118,11 +1143,17 @@ function handleAddToCartNow(buyNow, skipQualityCheck){
       }
     }
 
+    // Gallery / Templates design the customer started from (null when they built the design themselves).
+    // It is only a record of where the design began: the real print file is designFiles below.
+    const usedTpl = (hasDesign && window.GfxTemplates && typeof window.GfxTemplates.used === "function") ? window.GfxTemplates.used() : null;
     addToCart({
       id: p.id,
       name: p.name,
+      templateId: usedTpl ? usedTpl.id : null,
+      templateName: usedTpl ? usedTpl.name : null,
       image: getStageImage(p, selectedColor, "front"),
       price: computeUnitPrice(),
+      basePrice: getVariantPrice(p, selectedColor, selectedPackaging, selectedSize),   // product (with chosen packaging); printing is price minus this
       color: selectedColor,
       size: selectedSize,
       packaging: selectedPackaging,

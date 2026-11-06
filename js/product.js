@@ -48,7 +48,7 @@ function initProductPage(){
   // Breadcrumb - links to this product's category instead of the generic Shop page
   const breadcrumbCat = document.getElementById("breadcrumb-cat");
   breadcrumbCat.textContent = p.category;
-  breadcrumbCat.href = `shop.html?category=${encodeURIComponent(p.category)}`;
+  breadcrumbCat.href = `shop.html?type=${p.productType}&category=${encodeURIComponent(p.category)}`;
   document.getElementById("breadcrumb-name").textContent = seo.breadcrumbName || p.name;
 
   // Gallery - for products with per-color photos the gallery and the color swatches stay in sync
@@ -78,7 +78,9 @@ function initProductPage(){
   });
 
   // Text fields
-  document.getElementById("pd-cat").textContent = p.category;
+  document.getElementById("pd-cat").innerHTML = "";
+  document.getElementById("pd-cat").append(p.category + " ");
+  { const t = document.createElement("span"); t.className = "pc-type pc-type-" + p.productType + " pc-type-inline"; t.textContent = PRODUCT_TYPES[p.productType].label; document.getElementById("pd-cat").appendChild(t); }
   document.getElementById("pd-title").textContent = seo.h1 || p.name;
   if (seo.hideRatings || p.rating == null){
     // No ratings or reviews are shown (or sent to search engines) for this product
@@ -99,10 +101,6 @@ function initProductPage(){
   document.getElementById("pd-desc").textContent = p.description;
   updatePrice();
 
-  if (p.oldPrice){
-    document.getElementById("pd-old-price").textContent = formatPrice(p.oldPrice);
-    document.getElementById("pd-old-price").style.display = "inline";
-  }
 
   // Size Guide - show the t-shirt size chart for T-Shirts, keep the generic note for everything else
   const sizeGuideBody = document.getElementById("size-guide-body");
@@ -138,8 +136,23 @@ function initProductPage(){
       customizeBtn.style.display = "none";
     } else {
       customizeBtn.href = customizeURL(p.id);
+      customizeBtn.textContent = p.productType === "design" ? "Customize This Design" : "Upload & Customize Your Design";
     }
   }
+
+  // Route B: "Design It for Me" opens WhatsApp with the chosen options filled in. The customer presses send themselves.
+  const helpBtn = document.getElementById("design-help-btn");
+  if (helpBtn){
+    helpBtn.addEventListener("click", (e) => {
+      if (!window.GfxOrder) return;   // falls back to the plain WhatsApp link
+      e.preventDefault();
+      const qty = Number(document.getElementById("pd-qty").value) || 1;
+      window.open(GfxOrder.designHelpLink(p, { color: selectedColor, size: selectedSize, orientation: selectedOrientation, packaging: selectedPackaging, qty: qty }), "_blank", "noopener");
+      if (window.GfxTrack) GfxTrack.event("design_help", { product_id: p.id });
+    });
+  }
+  if (customizeBtn) customizeBtn.addEventListener("click", () => { if (window.GfxTrack) GfxTrack.event("customise_product", { product_id: p.id }); });
+  if (window.GfxTrack) GfxTrack.event("product_view", { product_id: p.id });
 
   // Colors
   const colorLabel = document.getElementById("pd-color-label");
@@ -176,9 +189,11 @@ function initProductPage(){
   const qtyInput = document.getElementById("pd-qty");
   document.getElementById("qty-minus").addEventListener("click", () => {
     qtyInput.value = Math.max(1, Number(qtyInput.value) - 1);
+    updateBreakdown();
   });
   document.getElementById("qty-plus").addEventListener("click", () => {
     qtyInput.value = Number(qtyInput.value) + 1;
+    updateBreakdown();
   });
 
   // Accordions
@@ -199,8 +214,9 @@ function initProductPage(){
   });
 
   // Add to cart / buy now (plain product - designs are added from customize.html)
-  document.getElementById("add-to-cart-btn").addEventListener("click", () => handleAddToCart(false));
-  document.getElementById("buy-now-btn").addEventListener("click", () => handleAddToCart(true));
+  const addBtn = document.getElementById("add-to-cart-btn"), buyBtn = document.getElementById("buy-now-btn");
+  if (addBtn) addBtn.addEventListener("click", () => handleAddToCart(false));
+  if (buyBtn) buyBtn.addEventListener("click", () => handleAddToCart(true));
 
   renderRelated(p);
 }
@@ -247,11 +263,24 @@ function updatePrice(){
   const p = currentProduct;
   const orderable = isVariantOrderable(p, selectedColor, selectedPackaging, selectedSize);
   const priceEl = document.getElementById("pd-price");
+  const noteEl = document.getElementById("pd-price-note");
+  const chipEl = document.getElementById("pd-price-chip");
+  const oldEl = document.getElementById("pd-old-price");
   if (hasValidVariantPrice(p, selectedColor, selectedPackaging, selectedSize)){
-    priceEl.textContent = formatPrice(getVariantPrice(p, selectedColor, selectedPackaging, selectedSize));
+    const base = getVariantPrice(p, selectedColor, selectedPackaging, selectedSize);
+    const one = getOneSidePrintPrice(p);
+    priceEl.textContent = formatPrice(base + one);
+    chipEl.textContent = one > 0 ? "1 printed side included" : "Printing included";
+    chipEl.style.display = "";
+    noteEl.textContent = one > 0 ? `Product ${formatPrice(base)} + printing ${formatPrice(one)}. Delivery is extra.` : "Delivery is extra.";
+    if (oldEl && p.oldPrice){ oldEl.textContent = formatPrice(p.oldPrice + one); oldEl.style.display = "inline"; }
   } else {
     priceEl.textContent = "Price coming soon";
+    chipEl.style.display = "none";
+    noteEl.textContent = "";
+    if (oldEl) oldEl.style.display = "none";
   }
+  updateBreakdown();
   const status = document.getElementById("pd-status");
   if (status){
     status.textContent = orderable ? "" : (isVariantAvailable(p, selectedColor, selectedSize)
@@ -264,6 +293,55 @@ function updatePrice(){
     const b = document.getElementById(id);
     if (b){ b.disabled = !orderable; b.setAttribute("aria-disabled", String(!orderable)); }
   });
+}
+
+/* Price breakdown shown above the order buttons. Every figure comes from the same data the cart uses:
+   the variant price table, the per-side print prices on the product, and the shipping constants. */
+function updateBreakdown(){
+  const p = currentProduct;
+  const box = document.getElementById("pd-breakdown");
+  if (!p || !box) return;
+  const qty = Math.max(1, Number((document.getElementById("pd-qty") || {}).value) || 1);
+  const valid = hasValidVariantPrice(p, selectedColor, selectedPackaging, selectedSize);
+  if (!valid){
+    box.innerHTML = '<h3>Your price</h3><p class="pdb-sub">Price coming soon for this option.</p>';
+    return;
+  }
+  const base = getVariantPrice(p, selectedColor, selectedPackaging, selectedSize);
+  const sides = (p.sides || []).filter(s => s.price > 0);
+  const one = getOneSidePrintPrice(p);
+  const firstSide = sides.length ? (sides.find(s => s.id === "front") || sides[0]) : null;
+  const item = base + one;
+  const desc = [selectedColor, selectedSize, selectedPackaging].filter(Boolean).join(", ");
+  const rows = [
+    `<div class="pdb-line"><div><b>Product</b>${desc ? `<small>${desc}</small>` : ""}</div><span>${formatPrice(base)}</span></div>`,
+    one > 0
+      ? `<div class="pdb-line"><div><b>Printing</b><small>1 side (${firstSide.label})</small></div><span>+ ${formatPrice(one)}</span></div>`
+      : `<div class="pdb-line"><div><b>Printing</b><small>Included in the price</small></div><span class="pdb-free">Included</span></div>`
+  ].join("");
+  const extras = sides.length > 1
+    ? `<p class="pdb-extra"><b>Printing more sides?</b> Each extra side adds: ${sides.filter(s => s !== firstSide).map(s => `${s.label} ${formatPrice(s.price)}`).join(", ")}. You choose the sides in the design editor.</p>`
+    : "";
+  const itemsTotal = item * qty;
+  const qtyRow = qty > 1
+    ? `<div class="pdb-line pdb-qty"><div><b>${qty} items</b><small>${formatPrice(item)} each</small></div><span>${formatPrice(itemsTotal)}</span></div>`
+    : "";
+  box.innerHTML = `
+    <h3>Your price</h3>
+    <p class="pdb-sub">Updates as you choose your options above.</p>
+    <div class="pdb-lines">${rows}</div>
+    <div class="pdb-sum"><span>${qty > 1 ? "Price per item" : "Item price"}</span><strong>${formatPrice(item)}</strong></div>
+    ${qtyRow}
+    ${extras}
+    <div class="pdb-ship">
+      <div class="pdb-ship-head">Plus delivery (once per order)</div>
+      <div class="pdb-ship-opts">
+        <div><b>Standard</b><span>${formatPrice(SHIPPING_STANDARD)}</span></div>
+        <div><b>Express</b><span>${formatPrice(SHIPPING_EXPRESS)}</span></div>
+      </div>
+    </div>
+    <div class="pdb-final"><span>You pay with Standard delivery</span><strong>${formatPrice(itemsTotal + SHIPPING_STANDARD)}</strong></div>
+    <p class="pdb-note">Choose Standard or Express at checkout. Your final total is confirmed in the cart.</p>`;
 }
 
 function selectColor(color){
@@ -309,10 +387,11 @@ function handleAddToCart(buyNow){
     orientation: selectedOrientation,
     customText: "",
     customDesign: null,
+    designHelp: true,   // explicit "Design It for Me" request: the design is agreed with the customer on WhatsApp
     designPreview: null,
     qty: qty
   });
-  showToast(`${p.name} added to cart`);
+  showToast(`${p.name} added to cart with a design help request`);
   if (buyNow){
     window.location.href = "checkout.html";
   }
@@ -391,8 +470,8 @@ function injectProductSchema(p, seo, metaDesc){
   if (orderable.length){
     const lo = Math.min(...orderable), hi = Math.max(...orderable);
     schema.offers = lo === hi
-      ? { "@type": "Offer", "url": canonicalURL(p), "priceCurrency": "PKR", "price": String(lo), "availability": "https://schema.org/InStock", "itemCondition": "https://schema.org/NewCondition" }
-      : { "@type": "AggregateOffer", "url": canonicalURL(p), "priceCurrency": "PKR", "lowPrice": String(lo), "highPrice": String(hi), "offerCount": String(orderable.length), "availability": "https://schema.org/InStock", "itemCondition": "https://schema.org/NewCondition" };
+      ? { "@type": "Offer", "url": canonicalURL(p), "priceCurrency": "PKR", "price": String(lo), "itemCondition": "https://schema.org/NewCondition" }
+      : { "@type": "AggregateOffer", "url": canonicalURL(p), "priceCurrency": "PKR", "lowPrice": String(lo), "highPrice": String(hi), "offerCount": String(orderable.length), "itemCondition": "https://schema.org/NewCondition" };
   }
   let script = document.getElementById("product-schema");
   if (!script){

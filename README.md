@@ -29,7 +29,7 @@ GfxPrints/
 ├── cart.html          Cart (persisted in localStorage)
 ├── checkout.html      Checkout UI (front-end only, no payment wired up)
 ├── about.html         About + FAQ
-├── contact.html       Contact form (front-end only)
+├── contact.html       Contact form (sends via Apps Script, FormSubmit backup)
 ├── css/style.css      Full design system + all page styles
 ├── js/products.js     Central product data array - edit this to add/change products
 ├── js/main.js         Shared nav, cart badge, wishlist, homepage + shop rendering
@@ -241,3 +241,56 @@ script itself enforces file-type, size and rate limits.
 
 ## Other pages
 `privacy.html`, `terms.html` (policies), `wishlist.html` (saved products, stored in the browser only, `js/wishlist.js`).
+
+## Design Gallery and Templates
+
+`design-gallery.html` (nav: **Design Gallery**) lets customers browse ready-made designs, search them, filter
+by category and by product, and see Featured / Popular / Latest rows. Tapping **Customize Design** asks which
+compatible product to use, then opens `customize.html?id=<product id>&template=<design id>`. The Design Studio
+puts that design on the product as normal editable layers (text, colours, size, position, uploads all still work).
+If a saved draft is already on the canvas, the studio asks whether to replace it or add on top.
+
+A design is **not** a product. There is no design checkout and no design fee. A design only ever reaches the cart
+as part of a printed product, and the cart item keeps `templateId` and `templateName` next to the product id,
+variant, price, print files (`designFiles`) and preview (`designPreview`). The order message and the Apps Script
+order sheet show `Design: <name>`.
+
+The Design Studio's **Templates** tab uses the same list (`js/templates.js`), filtered to designs that suit the
+selected product, so there is one copy of the data.
+
+### Adding a design
+
+1. Open `js/templates.js` and copy an entry in the `TEMPLATES` array (the comment above it explains every field).
+2. Give it a new unique `id`, a `name`, a `cat` that exists in `CATS`, a one line `desc`, search `tags`, and
+   `products` (use `ALL`, `WEAR`, `WEAR_MUG` or a list such as `[TEE, MUG]`). Never list a product it does not suit.
+3. Set `added` to today's date (drives "Latest designs"). `featured` and `popular` are hand-picked flags, not sales data.
+4. Build the layers with `T()` (text), `S()` (SVG), `C()` (Clipart id from `js/clipart.js`) and `R()` (a transparent WebP
+   picture from `assets/templates/`; use the `LIGHT` product group because pictures keep their own colours).
+5. Run `sh tools/build.sh`, then open the Templates tab and the Design Gallery to check it. Commit the `.min` files.
+
+To add a category, add its name to `CATS` and give at least one design that `cat`. Product group names must match
+the `category` values in `js/products.js` (T-Shirts, Mugs, Hoodies, Tote Bags, Photo Frames).
+
+If you change the order script, re-deploy `google-apps-script/Code.gs` so the template name reaches the sheet.
+
+### Changing clipart and shape colors
+
+Selecting clipart, a shape or a template graphic shows a **Colors** button in the Design Studio toolbar (desktop
+and phone). It lists each color in that artwork and lets the customer change any of them (`js/recolor.js`,
+tool `imgcolors` in `js/customize-tray.js`). Photos and uploaded PNG/JPG files have no editable colors, so the
+button is hidden for them.
+
+## Ordering routes, Design It for Me and tracking hooks
+
+- **Two routes** on every product page: *Customize* (the Design Studio) and *Design It for Me*
+  (a prefilled WhatsApp message, or "Add to Cart with Design Help", which saves `designHelp: true` on the cart item).
+  Design help pricing is never shown as free or fixed; customers are told to ask for a confirmed price.
+- **No blank personalised orders:** the Design Studio will not add an empty canvas to the cart, and checkout will not
+  send an item that has neither a saved design nor `designHelp`. Shared code is in `js/ordering.js`.
+- **Bulk enquiries:** any link with `data-bulk-enquiry` is pointed at the official WhatsApp number with a prefilled message.
+- **Tracking is OFF.** `js/ordering.js` contains `GFX_TRACKING = { enabled: false, ga4MeasurementId: "", metaPixelId: "" }`.
+  Events (product_view, customise_product, design_help, whatsapp_click, add_to_cart, begin_checkout, order_submitted)
+  do nothing until you add real IDs, load the vendor script yourself and set `enabled: true`. No personal data is passed.
+  Update `privacy.html` before enabling any tracking.
+- **Building:** `ESB=/path/to/esbuild sh tools/build.sh` uses a local esbuild; without `ESB` it runs `npx esbuild`.
+  Re-deploy `google-apps-script/Code.gs` so `designHelp` and the design name reach the orders sheet.

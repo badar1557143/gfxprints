@@ -33,7 +33,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600&family=Manrope:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600&family=Manrope:wght@400;500;600;700&display=swap"></noscript>
-<link rel="stylesheet" href="css/style.min.css?v=20261026">
+<link rel="stylesheet" href="css/style.min.css?v=20261115">
 <style>
 /* Home page: "Why people choose", "Your Idea. Your Style. Your Print." and "From Idea to Product". Scoped under .hm- */
 .hm-wrap{ max-width: var(--container); margin: 0 auto; padding: 0 var(--space-5); }
@@ -108,7 +108,8 @@
     <nav class="main-nav" aria-label="Primary">
       <a href="index.html" class="active">Home</a>
       <a href="shop.html">Shop</a>
-      <a href="customize.html" target="_blank" rel="noopener">Design Now</a>
+      <a href="design-gallery.html">Design Gallery</a>
+      <a href="customize.html" target="_blank" rel="noopener">Customize</a>
       <a href="about.html">About</a>
       <a href="contact.html">Contact</a>
     </nav>
@@ -131,7 +132,8 @@
   <nav id="mobile-nav" aria-label="Mobile">
     <a href="index.html">Home</a>
     <a href="shop.html">Shop</a>
-    <a href="customize.html" target="_blank" rel="noopener">Design Now</a>
+    <a href="design-gallery.html">Design Gallery</a>
+    <a href="customize.html" target="_blank" rel="noopener">Customize</a>
     <a href="about.html">About</a>
     <a href="contact.html">Contact</a>
     <a href="cart.html">Cart</a>
@@ -153,7 +155,7 @@
         </h1>
         <p class="lede">Your imagination deserves more than a screen. Transform your ideas into custom products designed to express your personality, style, and story.</p>
         <div class="hero-actions">
-          <a href="customize.html" target="_blank" rel="noopener" class="btn btn-design">Design Now
+          <a href="customize.html" target="_blank" rel="noopener" class="btn btn-design">Customize
             <svg class="design-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h15"/><path d="M13 5.5L19.5 12 13 18.5"/></svg>
           </a>
           <a href="shop.html" class="btn btn-outline btn-explore">Explore Products
@@ -196,21 +198,42 @@
   <section class="section section-border">
     <div class="container">
       <div class="section-header section-header-tight">
-        <h2>Trending Now</h2>
+        <h2>Shop by Category</h2>
         <a href="shop.html" class="view-all-link">View All</a>
       </div>
       <div class="trend-row" id="trending-row"></div>
     </div>
   </section>
 
-  <!-- JUST FOR YOU -->
-  <section class="section section-border">
+  <!-- UPLOAD YOUR OWN DESIGN (the 5 main products) -->
+  <section class="section section-border hm-type hm-type-upload" id="upload-your-design" aria-labelledby="hm-upload-h">
     <div class="container">
       <div class="section-header section-header-tight">
-        <h2>Just for You</h2>
-        <a href="shop.html" class="view-all-link">View All</a>
+        <div>
+          <span class="hm-type-tag">Main products</span>
+          <h2 id="hm-upload-h">Upload Your Own Design</h2>
+          <p class="hm-type-sub">Pick a product, then add your own artwork, logo or photo, or build a design in our studio.</p>
+        </div>
+        <a href="shop.html?type=upload" class="view-all-link">View All</a>
       </div>
-      <div class="product-grid" id="featured-grid"></div>
+      <div class="product-grid" id="upload-grid"></div>
+    </div>
+  </section>
+
+  <!-- READY-MADE DESIGNS (design products, grouped by category) -->
+  <section class="section section-border hm-type hm-type-design" id="ready-made-designs" aria-labelledby="hm-design-h">
+    <div class="container">
+      <div class="section-header section-header-tight">
+        <div>
+          <span class="hm-type-tag">Our designs</span>
+          <h2 id="hm-design-h">Ready-Made Designs</h2>
+          <p class="hm-type-sub">Finished designs on real products. Order as they are, or change the name, colour and size.</p>
+        </div>
+        <a href="shop.html?type=design" class="view-all-link" id="design-more">View All</a>
+      </div>
+      <div class="cat-bar-track hm-design-cats" id="design-cats" role="group" aria-label="Ready-made designs by category"></div>
+      <div class="product-grid" id="design-grid"></div>
+      <p class="hm-type-more"><a href="design-gallery.html">Browse the full Design Gallery &rarr;</a></p>
     </div>
   </section>
 
@@ -251,10 +274,23 @@
       <h2>From Idea to Product</h2>
       <ol class="hm-rail">
         <li><span class="hm-node">01</span><div class="hm-step-body"><h3>Choose your product</h3><p>Browse the catalog and pick what fits the moment.</p></div></li>
-        <li><span class="hm-node">02</span><div class="hm-step-body"><h3>Make it personal</h3><p>Add a name, photo, or message using the customizer.</p></div></li>
+        <li><span class="hm-node">02</span><div class="hm-step-body"><h3>Make it personal</h3><p>Customize your product in our editor, or choose Design It for Me and tell us your idea on WhatsApp.</p></div></li>
         <li><span class="hm-node">03</span><div class="hm-step-body"><h3>We print it</h3><p>Your order goes into the current print run.</p></div></li>
         <li><span class="hm-node">04</span><div class="hm-step-body"><h3>You enjoy it</h3><p>It arrives at your door, made for you alone.</p></div></li>
       </ol>
+      <div class="hm-routes">
+        <div><h3>Customize</h3><p>Create your own design in our editor. You bring your own text, images and artwork.</p></div>
+        <div><h3>Design It for Me</h3><p>Share your idea with us on WhatsApp and we will help with the design. Design pricing depends on the work needed, so ask us for a confirmed price.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BUSINESS / BULK -->
+  <section class="hm-sec hm-bulk">
+    <div class="hm-wrap">
+      <h2>Business / Bulk Enquiry</h2>
+      <p>Ordering for a business, team or event? Message us on WhatsApp and tell us what you need.</p>
+      <a class="btn btn-whatsapp" data-bulk-enquiry href="https://wa.me/923222920135" target="_blank" rel="noopener">Bulk Order? Contact Us</a>
     </div>
   </section>
 
@@ -263,8 +299,8 @@
     <div class="container rv-layout">
 
       <div class="rv-main">
-        <div class="section-tag">Customer love</div>
-        <h2 class="rv-title">Loved by people who make it personal</h2>
+        <div class="section-tag">Customer reviews</div>
+        <h2 class="rv-title">What customers say</h2>
 
         <div class="rv-stat" id="reviews-summary" hidden>
           <span class="rv-stat-num" id="rv-avg"></span>
@@ -335,6 +371,8 @@
         <h4>Help</h4>
         <ul>
           <li><a href="contact.html">Contact Us</a></li>
+          <li><a href="https://wa.me/923222920135" data-wa-number target="_blank" rel="noopener">WhatsApp: +92 322 2920135</a></li>
+          <li><a href="https://wa.me/923222920135" data-bulk-enquiry target="_blank" rel="noopener">Business / Bulk Enquiry</a></li>
           <li><a href="about.html#faq">FAQ</a></li>
           <li><a href="about.html#faq">Shipping</a></li>
           <li><a href="about.html#faq">Returns</a></li>
@@ -346,7 +384,8 @@
         <ul>
           <li><a href="about.html">About Us</a></li>
           <li><a href="about.html">Our Story</a></li>
-          <li><a href="customize.html" target="_blank" rel="noopener">Design Now</a></li>
+          <li><a href="design-gallery.html">Design Gallery</a></li>
+          <li><a href="customize.html" target="_blank" rel="noopener">Customize</a></li>
           <li><a href="privacy.html">Privacy Policy</a></li>
           <li><a href="terms.html">Terms &amp; Conditions</a></li>
         </ul>
@@ -358,9 +397,10 @@
   </div>
 </footer>
 
-<script src="js/products.min.js?v=20261015" defer></script>
-<script src="js/main.min.js?v=20261061" defer></script>
-<script src="js/waterfall.min.js?v=20261015" defer></script>
-<script src="js/reviews.min.js?v=20261015" defer></script>
+<script src="js/products.min.js?v=20261115" defer></script>
+<script src="js/main.min.js?v=20261115" defer></script>
+<script src="js/ordering.min.js?v=20261115" defer></script>
+<script src="js/waterfall.min.js?v=20261115" defer></script>
+<script src="js/reviews.min.js?v=20261115" defer></script>
 </body>
 </html>

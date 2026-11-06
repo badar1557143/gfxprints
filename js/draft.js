@@ -248,6 +248,7 @@
       // Give the canvas a moment to finish loading the saved JSON before saving is switched on.
       setTimeout(function(){
         restoring = false;
+        window.gfxDraftSettled = true;   // lets templates.js wait until a saved design has been restored
         bindEvents();
         if (ok) showToast("Welcome back. Your saved design was restored");
       }, ok ? 900 : 0);

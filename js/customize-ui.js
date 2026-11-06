@@ -356,6 +356,7 @@ const add = (o) => {
       image: [
         { label: "Replace", icon: ICON.replace, run: clickId("img-replace-input") },
         { label: "Remove BG", icon: ICON.bg, run: () => { clickId("img-bgremove")(); } },
+        { label: "Colors", icon: ICON.color, tray: "imgcolors", run: tray("imgcolors") },
         { label: "Filters", icon: ICON.adjust, tray: "filters", run: tray("filters") },
         { label: "Layout", icon: ICON.layout, tray: "imglayout", run: tray("imglayout") },
         { label: "Crop", icon: ICON.crop, tray: "crop", run: tray("crop") },

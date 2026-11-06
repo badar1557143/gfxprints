@@ -4,8 +4,6 @@
    helpers: getCart, saveCart, addToCart).
    ========================================================= */
 
-const SHIPPING_STANDARD = 250;
-const SHIPPING_EXPRESS = 650;
 
 function cartSubtotal(){
   return getCart().reduce((sum, item) => sum + item.price * item.qty, 0);
@@ -34,8 +32,8 @@ function renderCartPage(){
         <div class="ci-name">${item.name}</div>
         <div class="ci-opts">
           ${item.color ? "Color: " + item.color + " · " : ""}${item.size ? "Size: " + item.size : ""}${item.orientation ? " · Orientation: " + item.orientation : ""}${item.packaging ? " · Packaging: " + item.packaging : ""}
-          ${item.customText ? " · " + item.customText : ""}
-        </div>
+          ${item.customText ? " · " + item.customText : ""}${item.designHelp ? " · Design help requested" : ""}${item.templateName ? " · Design: " + escapeHtml(item.templateName) : ""}
+        </div>${(typeof item.basePrice === "number" && item.price > item.basePrice) ? `<div class="ci-breakdown">Product ${formatPrice(item.basePrice)} + Printing ${formatPrice(item.price - item.basePrice)}</div>` : ""}${(item.customDesign || item.designHelp) ? "" : '<div class="ci-warn">Needs a design: customize it or choose Design It for Me before checkout.</div>'}
         <div class="qty-row">
           <button aria-label="Decrease quantity" data-i="${i}" class="ci-minus">−</button>
           <input type="text" value="${item.qty}" readonly>
@@ -324,7 +322,7 @@ function walletProofOk(){
 function buildOrderMessageText(cart, subtotal, shipping, shippingMethod, orderRef, cloud){
   const contact = checkoutContactInfo();
   const itemLines = cart.map(item => {
-    const opts = [item.color ? `Color: ${item.color}` : null, item.size ? `Size: ${item.size}` : null, item.orientation ? `Orientation: ${item.orientation}` : null, item.packaging ? `Packaging: ${item.packaging}` : null].filter(Boolean).join(", ");
+    const opts = [item.designHelp ? "Design help requested, details confirmed on WhatsApp" : null, item.templateName ? `Design: ${item.templateName}` : null, item.color ? `Color: ${item.color}` : null, item.size ? `Size: ${item.size}` : null, item.orientation ? `Orientation: ${item.orientation}` : null, item.packaging ? `Packaging: ${item.packaging}` : null].filter(Boolean).join(", ");
     return `- ${item.name} × ${item.qty}${opts ? ` (${opts})` : ""}, ${formatPrice(item.price * item.qty)}${item.designFiles && item.designFiles.length ? ` [custom design: ${item.designFiles.length > 1 ? item.designFiles.length + " files" : "file"} ${cloud && cloud.ok ? "saved online" : "attached"}]` : ""}`;
   });
   const hasDesigns = cart.some(item => item.designFiles && item.designFiles.length);
@@ -426,7 +424,7 @@ async function uploadOrderToCloud(cart, info){
       }
     }
     // The mockup preview image is not sent with the order, only the print files.
-    items.push({ name: item.name, qty: item.qty, price: item.price, color: item.color, size: item.size, orientation: item.orientation, packaging: item.packaging, files });
+    items.push({ designHelp: item.designHelp === true, productId: item.id, template: item.templateName || "", templateId: item.templateId || "", name: item.name, qty: item.qty, price: item.price, color: item.color, size: item.size, orientation: item.orientation, packaging: item.packaging, files });
   }
   const shot = currentWalletShot();
   if (shot && items.length){
@@ -535,6 +533,22 @@ function initCheckoutPage(){
     setSubmitLoading(submitBtn, true, "Placing your order...");
     const stopLoading = () => { submitting = false; setSubmitLoading(submitBtn, false); };
     const cart = getCart();
+    // Every order needs a saved design or an explicit Design It for Me request
+    const missing = cart.filter(i => !(window.GfxOrder ? GfxOrder.itemHasDesign(i) : (i.customDesign || i.designHelp)));
+    if (missing.length){
+      stopLoading();
+      if (window.GfxOrder){
+        GfxOrder.showChoice({
+          title: "A design is needed",
+          text: `${missing.map(i => i.name).join(", ")} ${missing.length > 1 ? "have" : "has"} no design yet. Every order is a printed product. Create your design, or choose Design It for Me.`,
+          actions: [
+            { label: "Customize", primary: true, href: customizeURL(missing[0].id) },
+            { label: "Use Design It for Me for these items", run: () => { const c = getCart(); c.forEach(i => { if (!GfxOrder.itemHasDesign(i)) i.designHelp = true; }); saveCart(c); renderCartPage && renderCartPage(); showToast("Design help added. Press Place Order again"); } }
+          ]
+        });
+      } else showToast("Please add a design to each item first");
+      return;
+    }
     try {
       await hydrateDesignFiles(cart);
     } catch (err){
@@ -588,6 +602,7 @@ function initCheckoutPage(){
           ? ", then send it so we can confirm your order"
           : "";
       }
+      if (window.GfxTrack) GfxTrack.event("order_submitted", { items: cart.length });
       document.getElementById("checkout-form-wrap").style.display = "none";
       document.getElementById("checkout-confirmation").style.display = "block";
       localStorage.removeItem(STORAGE_CART);
@@ -595,10 +610,83 @@ function initCheckoutPage(){
       updateCartBadge();
     };
 
-    // Fallback for devices that can't share files (mostly desktop): open
-    // WhatsApp with the pre-filled message, and auto-download each custom
-    // design file so it's ready to attach manually. Staggered a beat apart
-    // since browsers can silently block several downloads fired at once.
+    // The order could not be saved online and the cart has design files: NEVER open WhatsApp with text only
+    // and empty the cart. Keep the cart and the saved design, and let the customer download the file(s),
+    // send them on WhatsApp, and only then finish (that is the only moment the cart is cleared).
+    const showDesignRescue = () => {
+      stopLoading();
+      const wrap = document.getElementById("checkout-form-wrap");
+      const old = document.getElementById("checkout-rescue");
+      if (old) old.remove();
+      const mk = (tag, cls, text) => { const el = document.createElement(tag); if (cls) el.className = cls; if (text) el.textContent = text; return el; };
+      const files = [];
+      cart.forEach(item => (item.designFiles || []).forEach(f => {
+        if (f.blob) files.push({ name: designFileName(item, f, orderRef), blob: f.blob, label: `${item.name}: ${f.label}` });
+      }));
+      const shot = currentWalletShot();
+      if (shot) { try { const sf = dataUrlToFile(shot.dataUrl, `payment-screenshot-${orderRef}.jpg`); files.push({ name: sf.name, blob: sf, label: "Payment screenshot" }); } catch (e){} }
+      const download = (f) => {
+        const url = URL.createObjectURL(f.blob);
+        const a = document.createElement("a");
+        a.href = url; a.download = f.name; document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 15000);
+      };
+
+      const box = mk("section", "co-card");
+      box.id = "checkout-rescue";
+      box.setAttribute("role", "alert");
+      box.style.cssText = "max-width:680px;margin:32px auto;";
+      box.appendChild(mk("h2", "co-h", "We could not save your design online"));
+      box.appendChild(mk("p", "", "Your design and cart are safe, nothing is lost. Please follow these steps so we receive your design:"));
+
+      box.appendChild(mk("h3", "", "1. Download your design file(s)"));
+      const list = mk("div", "");
+      list.style.cssText = "display:grid;gap:8px;margin:8px 0 16px;";
+      files.forEach(f => {
+        const b = mk("button", "btn btn-outline btn-block", "Download: " + f.label);
+        b.type = "button";
+        b.addEventListener("click", () => download(f));
+        list.appendChild(b);
+      });
+      if (files.length > 1){
+        const all = mk("button", "btn btn-primary btn-block", "Download all files");
+        all.type = "button";
+        all.addEventListener("click", () => files.forEach((f, i) => setTimeout(() => download(f), i * 600)));
+        list.insertBefore(all, list.firstChild);
+      }
+      box.appendChild(list);
+
+      box.appendChild(mk("h3", "", "2. Send them to us on WhatsApp"));
+      box.appendChild(mk("p", "", "Open WhatsApp, press the attach (paperclip) button, choose Document, and pick the downloaded file(s). Sending as a Document keeps full print quality."));
+      const wa = mk("a", "btn btn-whatsapp btn-block", "Open WhatsApp with my order");
+      wa.href = whatsappLink(messageText); wa.target = "_blank"; wa.rel = "noopener";
+      wa.style.margin = "8px 0 16px";
+      box.appendChild(wa);
+
+      box.appendChild(mk("h3", "", "3. Finish"));
+      box.appendChild(mk("p", "", "Your cart stays saved until you press the button below. Press it only after your files have been sent."));
+      const done = mk("button", "btn btn-accent btn-block", "I have sent my order and files");
+      done.type = "button";
+      done.addEventListener("click", () => { box.remove(); finishOrder(false); });
+      box.appendChild(done);
+      const retry = mk("button", "btn btn-outline btn-block", "Try saving online again");
+      retry.type = "button";
+      retry.style.marginTop = "10px";
+      retry.addEventListener("click", () => {
+        box.remove();
+        if (wrap) wrap.style.display = "";
+        if (form.requestSubmit) form.requestSubmit(); else form.dispatchEvent(new Event("submit", { cancelable: true }));
+      });
+      box.appendChild(retry);
+
+      if (wrap){ wrap.style.display = "none"; wrap.parentNode.insertBefore(box, wrap); }
+      else document.body.appendChild(box);
+      box.scrollIntoView({ block: "start" });
+      if (window.GfxTrack) GfxTrack.event("order_save_failed", { items: cart.length });
+    };
+
+    // Fallback for orders WITHOUT design files (nothing to lose): open WhatsApp with the pre-filled message.
+    // Orders with design files that were not saved online go through showDesignRescue() above instead.
     const openWhatsAppAndDownload = () => {
       window.open(whatsappLink(messageText), "_blank", "noopener");
       // No automatic download of design files; the order is placed only.
@@ -627,10 +715,12 @@ function initCheckoutPage(){
             showToast("Order not sent. Tap Place Order to try again.");
             return;
           }
-          openWhatsAppAndDownload();
+          // Share failed (for example the browser no longer counted the tap after the upload wait).
+          if (hasDesigns) showDesignRescue(); else openWhatsAppAndDownload();
         });
     } else {
-      openWhatsAppAndDownload();
+      // Desktop or any browser that cannot share files: protect the design if there is one.
+      if (hasDesigns) showDesignRescue(); else openWhatsAppAndDownload();
     }
   });
 }

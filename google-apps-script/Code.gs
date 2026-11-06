@@ -61,7 +61,7 @@ function rotateToken() {
 }
 
 // Open the web app address in a browser: it shows which version of this script is live.
-function doGet() { return json_({ ok: true, service: 'GfxPrints orders', build: 'order-emails-2026-10-22' }); }
+function doGet() { return json_({ ok: true, service: 'GfxPrints orders', build: 'order-emails-contact-2026-11-05' }); }
 
 function doPost(e) {
   var lock = LockService.getScriptLock();
@@ -75,6 +75,9 @@ function doPost(e) {
     var props = PropertiesService.getScriptProperties();
     if (!safeEqual_(String(data.token || ''), String(props.getProperty('ORDER_TOKEN') || '')))
       return json_({ ok: false, error: 'Not allowed' });
+
+    // Contact page messages use the same web app (data.type === 'contact')
+    if (data.type === 'contact') return handleContact_(data, props, lock);
 
     // ---- validate and clean everything before touching Drive or the Sheet ----
     var ref = clean_(data.ref, 40).replace(/[^A-Za-z0-9_-]/g, '');
@@ -111,6 +114,7 @@ function doPost(e) {
                           name: safeName_(f.name, ALLOWED_MIME[mime]) });
       }
       cleanItems.push({
+        designHelp: it.designHelp === true, productId: clean_(it.productId, 40), template: clean_(it.template, 80), templateId: clean_(it.templateId, 60),
         name: clean_(it.name, LIMITS.field), qty: num_(it.qty, 1, 1000), price: num_(it.price, 0, 1e7),
         color: clean_(it.color, 40), size: clean_(it.size, 40), orientation: clean_(it.orientation, 20),
         packaging: clean_(it.packaging, 60), files: cleanFiles
@@ -137,7 +141,7 @@ function doPost(e) {
       });
     });
     var itemsText = cleanItems.map(function (it) {
-      return it.qty + ' x ' + it.name + [it.color, it.size, it.orientation, it.packaging].filter(String).map(function (s) { return ' [' + s + ']'; }).join('');
+      return it.qty + ' x ' + it.name + [it.designHelp ? 'Design help requested' : '', it.template ? 'Design: ' + it.template : '', it.color, it.size, it.orientation, it.packaging].filter(String).map(function (s) { return ' [' + s + ']'; }).join('');
     }).join('\n');
     var ss = SpreadsheetApp.openById(props.getProperty('SHEET_ID')).getSheetByName('Orders');
     ss.appendRow([new Date(), ref, contact.name, contact.phone, contact.email, contact.address, contact.city,
@@ -161,6 +165,42 @@ function doPost(e) {
   } finally {
     try { lock.releaseLock(); } catch (x) {}
   }
+}
+
+/* ---------- Contact page messages: saved in the "Messages" sheet and emailed to the owner ---------- */
+function handleContact_(data, props, lock) {
+  var m = {
+    name: clean_(data.name, LIMITS.field), email: clean_(data.email, LIMITS.field),
+    subject: clean_(data.subject, 150), message: clean_(data.message, 3000)
+  };
+  if (!m.name || !m.subject || !m.message) return json_({ ok: false, error: 'Missing fields' });
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m.email)) return json_({ ok: false, error: 'Bad email' });
+  if (data.honey) return json_({ ok: true });            // spam trap filled in: pretend it worked
+
+  lock.waitLock(20000);
+  var cache = CacheService.getScriptCache();
+  if (!hit_(cache, 'contact-site', 20)) return json_({ ok: false, error: 'Busy, please use WhatsApp' });
+  if (!hit_(cache, 'contact:' + m.email.toLowerCase().replace(/[^a-z0-9@.]/g, ''), 3)) return json_({ ok: false, error: 'Too many messages' });
+
+  var ss = SpreadsheetApp.openById(props.getProperty('SHEET_ID'));
+  var sh = ss.getSheetByName('Messages');
+  if (!sh) { sh = ss.insertSheet('Messages'); sh.appendRow(['Received', 'Name', 'Email', 'Subject', 'Message', 'Email status']); }
+  sh.appendRow([new Date(), m.name, m.email, m.subject, m.message, ''].map(sheetSafe_));
+
+  var status = 'owner: off';
+  if (MAIL.notifyOwner && MAIL.ownerEmail) {
+    try {
+      MailApp.sendEmail({
+        to: MAIL.ownerEmail, name: MAIL.fromName, replyTo: m.email,
+        subject: 'Contact form: ' + m.subject + ' - ' + m.name,
+        body: 'New message from the website contact form\n\nName: ' + m.name + '\nEmail: ' + m.email +
+              '\nSubject: ' + m.subject + '\n\n' + m.message + '\n\n(Reply to this email to answer the customer.)'
+      });
+      status = 'owner: sent';
+    } catch (err) { console.error('Contact email failed', err); status = 'owner: ERROR ' + errText_(err); }
+  }
+  try { sh.getRange(sh.getLastRow(), 6).setValue(status); } catch (e2) {}
+  return json_({ ok: true });
 }
 
 /* ---------- helpers ---------- */

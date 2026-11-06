@@ -38,6 +38,7 @@
       layout: I('<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>'),
       fx: I('<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 17v4M17 19h4"/>'),
       opacity: I('<path d="M12 3s6 6.2 6 10.5A6 6 0 0 1 6 13.5C6 9.2 12 3 12 3z"/>'),
+      palette: I('<circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1.3" fill="currentColor"/><circle cx="12" cy="7.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="10" r="1.3" fill="currentColor"/>'),
       position: I('<path d="M3 3v18M21 3v18"/><rect x="8" y="8" width="8" height="8" rx="1"/>'),
       spacing: I('<path d="M3 12h18M7 8l-4 4 4 4M17 8l4 4-4 4"/>'),
       copy: I('<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/>'),
@@ -73,6 +74,7 @@
       image: [
         { k: "act", id: "img-replace-input", label: "Replace image", ic: IC.replace, text: "Replace" },
         { k: "act", id: "img-bgremove", label: "Remove background", ic: IC.bg, text: "Remove BG" },
+        { k: "tray", name: "imgcolors", label: "Change colors", ic: IC.palette, text: "Colors" },
         { k: "sep" },
         { k: "tray", name: "filters", label: "Filters", ic: IC.filters, text: "Filters" },
         { k: "tray", name: "crop", label: "Crop", ic: IC.crop, text: "Crop" },

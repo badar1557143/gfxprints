@@ -55,3 +55,6 @@ Because the token is in public code, treat it as a "please don't" sign, not a lo
 - uses a lock so two orders cannot write at once
 
 If you ever see spam in the Sheet, run `rotateToken` and lower the limits at the top of `Code.gs`.
+
+## Contact form messages
+The Contact page now sends through this same Apps Script (type "contact"). After pasting the new Code.gs: Deploy > Manage deployments > edit > New version > Deploy (same URL). Messages land in a new "Messages" tab of the Orders sheet and are emailed to the shop Gmail. If the script fails, the page falls back to FormSubmit.

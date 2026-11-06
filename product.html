@@ -27,7 +27,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=Caveat:wght@600&display=swap" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=Caveat:wght@600&display=swap"></noscript>
-<link rel="stylesheet" href="css/style.min.css?v=20261026">
+<link rel="stylesheet" href="css/style.min.css?v=20261115">
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -38,7 +38,8 @@
     <nav class="main-nav" aria-label="Primary">
       <a href="index.html">Home</a>
       <a href="shop.html" class="active">Shop</a>
-      <a href="customize.html" target="_blank" rel="noopener">Design Now</a>
+      <a href="design-gallery.html">Design Gallery</a>
+      <a href="customize.html" target="_blank" rel="noopener">Customize</a>
       <a href="about.html">About</a>
       <a href="contact.html">Contact</a>
     </nav>
@@ -61,7 +62,8 @@
   <nav id="mobile-nav" aria-label="Mobile">
     <a href="index.html">Home</a>
     <a href="shop.html">Shop</a>
-    <a href="customize.html" target="_blank" rel="noopener">Design Now</a>
+    <a href="design-gallery.html">Design Gallery</a>
+    <a href="customize.html" target="_blank" rel="noopener">Customize</a>
     <a href="about.html">About</a>
     <a href="contact.html">Contact</a>
     <a href="cart.html">Cart</a>
@@ -88,9 +90,14 @@
         <div class="pd-rating"><span class="stars" id="pd-rating-stars"></span> <span id="pd-rating-text"></span></div>
         <p class="pd-desc" id="pd-desc"></p>
 
-        <div class="ticket" style="margin-bottom:24px;">
-          <span id="pd-price" style="font-size:1.3rem;font-weight:800;"></span>
-          <span id="pd-old-price" style="display:none;text-decoration:line-through;color:var(--grey);"></span>
+        <div class="price-head" style="margin-bottom:24px;">
+          <span class="ph-label">Price per item</span>
+          <div class="ph-row">
+            <span class="ph-amt" id="pd-price"></span>
+            <span class="ph-old" id="pd-old-price" style="display:none;"></span>
+            <span class="ph-chip" id="pd-price-chip"></span>
+          </div>
+          <span class="ph-note" id="pd-price-note"></span>
           <p id="pd-status" class="pd-status" role="status" aria-live="polite" style="display:none;"></p>
         </div>
 
@@ -119,10 +126,14 @@
           </div>
         </div>
 
-        <div class="pd-actions">
-          <a id="customize-btn" target="_blank" rel="noopener" href="customize.html" class="btn btn-design btn-design-noarrow pd-customize">Design Now</a>
-          <button id="add-to-cart-btn" class="btn btn-outline">Add to Cart</button>
-          <button id="buy-now-btn" class="btn btn-accent">Buy Now</button>
+        <div class="pd-breakdown" id="pd-breakdown" aria-live="polite"></div>
+        <div class="pd-routes" id="pd-routes">
+          <div class="pd-actions pd-two">
+            <a id="customize-btn" target="_blank" rel="noopener" href="customize.html" class="btn btn-design btn-design-noarrow pd-customize">Customize</a>
+            <a id="design-help-btn" class="btn btn-outline" href="https://wa.me/923222920135" target="_blank" rel="noopener">Design It for Me</a>
+          </div>
+          <p class="pd-routes-note">Customize: create your own design in our editor. Design It for Me: tell us your idea on WhatsApp and we will help with the design. Design pricing depends on the work needed, so ask us for a confirmed price.</p>
+          <p class="pd-routes-bulk">Ordering for a business or in bulk? <a data-bulk-enquiry href="https://wa.me/923222920135" target="_blank" rel="noopener">Business / Bulk Enquiry</a></p>
         </div>
 
         <div class="accordion-item open">
@@ -139,7 +150,7 @@
         </div>
         <div class="accordion-item" id="shipping-returns-item">
           <button class="accordion-head">Shipping &amp; Returns <span class="chev">+</span></button>
-          <div class="accordion-body">Because each item is made to order, production takes 2–4 days before it ships. As these are personalized items, returns are accepted only if the product arrives damaged or incorrect.</div>
+          <div class="accordion-body">Because each item is made to order, production takes 2–4 business days before it ships. After that, Standard delivery takes 5–7 business days and Express takes 2–3, so expect about 7–11 business days in total with Standard delivery or 4–7 with Express. Personalised products are accepted for return only if they are damaged, defective, or different from what was ordered.</div>
         </div>
         <div class="accordion-item">
           <button class="accordion-head">FAQ <span class="chev">+</span></button>
@@ -176,12 +187,16 @@
           <li><a href="shop.html?category=Hoodies">Hoodies</a></li>
           <li><a href="shop.html?category=Tote%20Bags">Tote Bags</a></li>
           <li><a href="shop.html?category=Gifts">Gifts</a></li>
+          <li><a href="shop.html?type=upload">Upload Your Design</a></li>
+          <li><a href="shop.html?type=design">Ready-Made Designs</a></li>
         </ul>
       </div>
       <div class="footer-col">
         <h4>Help</h4>
         <ul>
           <li><a href="contact.html">Contact Us</a></li>
+          <li><a href="https://wa.me/923222920135" data-wa-number target="_blank" rel="noopener">WhatsApp: +92 322 2920135</a></li>
+          <li><a href="https://wa.me/923222920135" data-bulk-enquiry target="_blank" rel="noopener">Business / Bulk Enquiry</a></li>
           <li><a href="about.html#faq">FAQ</a></li>
           <li><a href="about.html#faq">Shipping</a></li>
           <li><a href="about.html#faq">Returns</a></li>
@@ -193,7 +208,8 @@
         <ul>
           <li><a href="about.html">About Us</a></li>
           <li><a href="about.html">Our Story</a></li>
-          <li><a href="customize.html" target="_blank" rel="noopener">Design Now</a></li>
+          <li><a href="design-gallery.html">Design Gallery</a></li>
+          <li><a href="customize.html" target="_blank" rel="noopener">Customize</a></li>
           <li><a href="privacy.html">Privacy Policy</a></li>
           <li><a href="terms.html">Terms &amp; Conditions</a></li>
         </ul>
@@ -205,8 +221,9 @@
   </div>
 </footer>
 
-<script src="js/products.min.js?v=20261015" defer></script>
-<script src="js/main.min.js?v=20261061" defer></script>
-<script src="js/product.min.js?v=20261015" defer></script>
+<script src="js/products.min.js?v=20261115" defer></script>
+<script src="js/main.min.js?v=20261115" defer></script>
+<script src="js/ordering.min.js?v=20261115" defer></script>
+<script src="js/product.min.js?v=20261115" defer></script>
 </body>
 </html>

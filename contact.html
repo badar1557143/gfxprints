@@ -29,7 +29,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"></noscript>
-<link rel="stylesheet" href="css/style.min.css?v=20261026">
+<link rel="stylesheet" href="css/style.min.css?v=20261115">
 <style>
 /* Contact page: "job ticket" design. Scoped under .ct- so the shared stylesheet is untouched. */
 .ct-wrap{ max-width: var(--container); margin: 0 auto; padding: 0 var(--space-5); }
@@ -113,7 +113,8 @@ a.ct-channel:hover{ border-color: var(--cobalt); background:#fff; }
     <nav class="main-nav" aria-label="Primary">
       <a href="index.html">Home</a>
       <a href="shop.html">Shop</a>
-      <a href="customize.html" target="_blank" rel="noopener">Design Now</a>
+      <a href="design-gallery.html">Design Gallery</a>
+      <a href="customize.html" target="_blank" rel="noopener">Customize</a>
       <a href="about.html">About</a>
       <a href="contact.html" class="active">Contact</a>
     </nav>
@@ -130,6 +131,7 @@ a.ct-channel:hover{ border-color: var(--cobalt); background:#fff; }
   <nav id="mobile-nav" aria-label="Mobile">
     <a href="index.html">Home</a>
     <a href="shop.html">Shop</a>
+    <a href="design-gallery.html">Design Gallery</a>
     <a href="about.html">About</a>
     <a href="contact.html">Contact</a>
     <a href="cart.html">Cart</a>
@@ -223,17 +225,17 @@ a.ct-channel:hover{ border-color: var(--cobalt); background:#fff; }
 <footer class="site-footer">
   <div class="container">
     <div class="footer-bottom" style="border-top:none;padding-top:0;">
-      <span>© 2026 GfxPrints. All rights reserved. &nbsp;·&nbsp; <a href="privacy.html">Privacy Policy</a> &nbsp;·&nbsp; <a href="terms.html">Terms &amp; Conditions</a></span>
+      <span>© 2026 GfxPrints. All rights reserved. &nbsp;·&nbsp; <a href="privacy.html">Privacy Policy</a> &nbsp;·&nbsp; <a href="terms.html">Terms &amp; Conditions</a> &nbsp;·&nbsp; <a href="https://wa.me/923222920135" data-wa-number target="_blank" rel="noopener">WhatsApp: +92 322 2920135</a></span>
     </div>
   </div>
 </footer>
 
-<script src="js/products.min.js?v=20261015" defer></script>
-<script src="js/main.min.js?v=20261061" defer></script>
+<script src="js/products.min.js?v=20261115" defer></script>
+<script src="js/main.min.js?v=20261115" defer></script>
+<script src="js/ordering.min.js?v=20261115" defer></script>
 <script>
-  // Sends the form to the shop Gmail through FormSubmit (free, no backend needed).
-  // First time only: the first message triggers an activation email from FormSubmit
-  // to the Gmail inbox. Click "Activate Form" in it once, then every message is delivered.
+  // Sends the form to our Google Apps Script (same one that receives orders), which saves it in the
+  // "Messages" sheet and emails the shop Gmail. FormSubmit is only a backup (needs a one-time activation email).
   (function(){
     var FORM_EMAIL = "gfxprints.com@gmail.com";
     var form = document.getElementById("contact-form");
@@ -263,12 +265,26 @@ a.ct-channel:hover{ border-color: var(--cobalt); background:#fff; }
       btn.disabled = true; btn.textContent = "Sending...";
       msg.textContent = "";
 
-      fetch("https://formsubmit.co/ajax/" + FORM_EMAIL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Accept": "application/json" },
-        body: JSON.stringify(data)
-      })
-      .then(function(r){ return r.json().then(function(j){ return { ok: r.ok, body: j }; }); })
+      // 1) Our own Google Apps Script (saves the message in the Sheet and emails the shop Gmail).
+      // 2) If that is not set up or fails, FormSubmit is used as a backup.
+      function viaScript(){
+        if (typeof ORDER_ENDPOINT === "undefined" || !ORDER_ENDPOINT) return Promise.reject(new Error("no script"));
+        return fetch(ORDER_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },   // simple request, no CORS preflight
+          body: JSON.stringify({ token: ORDER_TOKEN, type: "contact", name: data.name, email: data.email,
+                                 subject: data.subject, message: data.message, honey: data._honey })
+        }).then(function(r){ return r.json(); })
+          .then(function(j){ if (!j || !j.ok) throw new Error((j && j.error) || "script failed"); return { ok: true, body: j }; });
+      }
+      function viaFormSubmit(){
+        return fetch("https://formsubmit.co/ajax/" + FORM_EMAIL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Accept": "application/json" },
+          body: JSON.stringify(data)
+        }).then(function(r){ return r.json().then(function(j){ return { ok: r.ok, body: j }; }); });
+      }
+      viaScript().catch(function(){ return viaFormSubmit(); })
       .then(function(res){
         if (!res.ok || String(res.body.success) === "false") throw new Error("send failed");
         msg.textContent = "Thanks, your message has been sent. We'll get back to you soon.";

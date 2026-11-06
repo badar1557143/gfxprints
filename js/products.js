@@ -594,6 +594,16 @@ DESIGN_PRODUCTS.forEach(d => {
     // coloured-mug photos have no artwork on them); the chosen colour opens pre-selected in the Design Studio.
     product.colorImages = null;
     product.gallery = [base.gallery[0]];
+    // Finished photos of this design on every mug colour, in 3 views (handle left, handle right, front).
+    // Made by tools/make-mug-mockups.py, named design-<key>-mug-<colour>-<view>.webp
+    product.designMockups = {};
+    product.colors.forEach(c => {
+      const slug = c.toLowerCase().replace(/\s+/g, "-");
+      const f = (v) => "assets/products/design-" + d.key + "-mug-" + slug + "-" + v + ".webp?v=2";
+      product.designMockups[c] = { left: f("left"), right: f("right"), front: f("front") };
+    });
+    // Shop cards and the product page open on the white mug with its handle showing
+    product.image = product.heroImage = product.designMockups[product.colors[0]].left;
   }
   if (d.kind === "Photo Frame"){
     product.orientations = ["Landscape", "Portrait"];   // the artwork is wider than tall

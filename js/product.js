@@ -77,6 +77,9 @@ function initProductPage(){
     });
   });
 
+  // Ready-made design mugs: photos of the design on the chosen colour, with the handle showing
+  if (p.designMockups) setDesignGallery(selectedColor);
+
   // Text fields
   document.getElementById("pd-cat").innerHTML = "";
   document.getElementById("pd-cat").append(p.category + " ");
@@ -359,6 +362,7 @@ function selectColor(color){
     sw.classList.toggle("selected", on);
     sw.setAttribute("aria-pressed", String(on));
   });
+  if (currentProduct.designMockups) setDesignGallery(color);
   // Show that color's photo (products without per-color photos keep their current image)
   if (currentProduct.colorImages && currentProduct.colorImages[color]){
     const src = currentProduct.colorImages[color];
@@ -511,4 +515,35 @@ function initDesignChoices(btn){
     if (e.target.closest("#pd-colors, #pd-sizes, #pd-orientation, #pd-packaging")) setTimeout(sync, 0);
   });
   sync();
+}
+
+
+/* Ready-made design mugs: the main photo and the 3 thumbnails follow the chosen colour.
+   The view the customer was looking at (handle left / handle right / front) stays selected when the colour changes. */
+let designViewIndex = 0;
+function setDesignGallery(color){
+  const p = currentProduct;
+  const m = p.designMockups && p.designMockups[color];
+  if (!m) return;
+  const views = [
+    { src: m.left, label: "Handle on the left" },
+    { src: m.right, label: "Handle on the right" },
+    { src: m.front, label: "Front view" }
+  ];
+  const mainImg = document.getElementById("gallery-main-img");
+  const thumbsWrap = document.getElementById("gallery-thumbs");
+  mainImg.parentElement.classList.add("gallery-tall");
+  thumbsWrap.classList.remove("many");
+  const show = (i) => {
+    designViewIndex = i;
+    mainImg.src = views[i].src;
+    mainImg.alt = p.name + " on a " + color + " mug, " + views[i].label.toLowerCase();
+    thumbsWrap.querySelectorAll("button").forEach((b, k) => b.classList.toggle("active", k === i));
+  };
+  thumbsWrap.innerHTML = views.map((v, i) => `
+    <button type="button" data-src="${v.src}" aria-label="${v.label}">
+      <img src="${v.src}" alt="" loading="lazy">
+    </button>`).join("");
+  thumbsWrap.querySelectorAll("button").forEach((b, i) => b.addEventListener("click", () => show(i)));
+  show(designViewIndex);
 }

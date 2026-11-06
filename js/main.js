@@ -351,49 +351,46 @@ function initReveal(){
 /* ---------- Product card builder (shared by home + shop) ---------- */
 function productCardHTML(p){
   const isWishlisted = getWishlist().includes(p.id);
-  // "From Rs. X" when the price depends on the options, using the lowest orderable price from the central variant price table
-  // Card price: lowest to highest product price, plus the price of printing one side (central variant table + product side prices)
-  // Card price: lowest price (cheapest option + 1 printed side) to highest price (dearest option + every print side).
-  // Delivery is not included here; it is shown on the product page and at checkout.
+  // Card price, shown on a small price tag: the lowest price (cheapest option + 1 printed side) and, when the price
+  // depends on the options, the highest (dearest option + every print side). Delivery is shown on the product page and at checkout.
   const base = typeof getPriceRange === "function" ? getPriceRange(p) : null;
-  let priceHTML, hasRange = false;
+  let tagLabel = "Price", tagAmt, noteHTML = "";
   if (base){
-    const lo = base.min + getOneSidePrintPrice(p);
+    const one = getOneSidePrintPrice(p);
+    const lo = base.min + one;
     const hi = base.max + getAllSidesPrintPrice(p);
+    tagAmt = formatPrice(lo);
     if (hi > lo){
-      hasRange = true;
-      priceHTML = `<span class="pcr-end"><span class="pcr-tag">Min</span><span class="pcr-amt">${formatPrice(lo)}</span><span class="pcr-sub">1 printed side</span></span>` +
-        `<span class="pcr-line" aria-hidden="true"><i></i></span>` +
-        `<span class="pcr-end pcr-max"><span class="pcr-tag">Max</span><span class="pcr-amt">${formatPrice(hi)}</span><span class="pcr-sub">all sides printed</span></span>`;
+      tagLabel = "From";
+      noteHTML = `<span>${one > 0 ? "1 printed side included" : "Printing included"}</span><span>Up to ${formatPrice(hi)} with all options</span>`;
     } else {
-      priceHTML = `<span class="pc-from">Price</span><span class="pc-amt">${formatPrice(lo)}</span><small class="pc-print">${getOneSidePrintPrice(p) > 0 ? "with 1 printed side" : "printing included"}</small>`;
+      noteHTML = `<span>${one > 0 ? "1 printed side included" : "Printing included"}</span>`;
     }
   } else {
-    priceHTML = p.oldPrice ? `<span class="old">${formatPrice(p.oldPrice)}</span>${formatPrice(p.price)}` : formatPrice(p.price);
+    tagAmt = formatPrice(p.price);
+    if (p.oldPrice) noteHTML = `<span>Was <s>${formatPrice(p.oldPrice)}</s></span>`;
   }
+  const ctaHTML = p.customizable === false
+    ? `<a href="product.html?id=${p.id}" class="btn btn-outline btn-sm pc2-cta">View</a>`
+    : `<a href="${customizeURL(p.id)}" target="_blank" rel="noopener" class="btn btn-design btn-design-sm btn-design-noarrow pc2-cta">${PRODUCT_TYPES[p.productType].cta}</a>`;
   return `
-    <article class="product-card reveal">
-      <div class="pc-media">
-        <a href="product.html?id=${p.id}" aria-label="View ${p.name}">
+    <article class="product-card pc2 reveal">
+      <div class="pc2-media">
+        <a class="pc2-photo" href="product.html?id=${p.id}" aria-label="View ${p.name}">
           <img src="${p.image}" alt="${p.name}" loading="lazy" decoding="async" width="400" height="400">
         </a>
+        <span class="pc2-kind pc2-kind-${p.productType}">${PRODUCT_TYPES[p.productType].short}</span>
         <button class="pc-wishlist ${isWishlisted ? "active" : ""}" data-id="${p.id}" aria-label="Add to wishlist" aria-pressed="${isWishlisted}">
           <svg viewBox="0 0 24 24" fill="${isWishlisted ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2"><path d="M12 21s-7.5-4.6-10-9.3C.4 8 2 4.5 5.6 4.1c2-.2 3.7.8 4.9 2.4C11.7 4.9 13.4 3.9 15.4 4.1 19 4.5 20.6 8 20 11.7 17.5 16.4 12 21 12 21z"/></svg>
         </button>
-        <a class="pc-quick" href="product.html?id=${p.id}">Quick View</a>
-        <span class="pc-type pc-type-${p.productType}">${PRODUCT_TYPES[p.productType].short}</span>
+        <p class="pc2-tag"><span class="pc2-tag-label">${tagLabel}</span><span class="pc2-tag-amt">${tagAmt}</span></p>
       </div>
-      <div class="pc-body">
+      <div class="pc2-body">
         <span class="pc-cat">${p.category}</span>
-        <h3 class="pc-name">${p.name}</h3>
+        <h3 class="pc-name"><a href="product.html?id=${p.id}">${p.name}</a></h3>
         ${p.rating == null ? "" : `<div class="pc-rating"><span class="stars">${starString(p.rating)}</span> ${p.rating} (${p.reviews})</div>`}
-        <p class="pc-desc">${p.description}</p>
-        <div class="pc-footer${hasRange ? " pc-footer-range" : ""}">
-          <span class="pc-price${hasRange ? " pc-price-range" : ""}">${priceHTML}</span>
-          ${p.customizable === false
-            ? `<a href="product.html?id=${p.id}" class="btn btn-outline btn-sm">View</a>`
-            : `<a href="${customizeURL(p.id)}" target="_blank" rel="noopener" class="btn btn-design btn-design-sm btn-design-noarrow">${PRODUCT_TYPES[p.productType].cta}</a>`}
-        </div>
+        ${noteHTML ? `<p class="pc2-note">${noteHTML}</p>` : ""}
+        ${ctaHTML}
       </div>
     </article>`;
 }

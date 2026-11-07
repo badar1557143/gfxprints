@@ -1,59 +1,67 @@
 /* =========================================================
-   GfxPrints - Hero "floating studio"
-   Real product photos (transparent cut-outs) pop in one by
-   one, then float gently inside #hero-waterfall on the
-   homepage. On desktop with a mouse, the products also drift
-   a little with the pointer (each at its own depth).
-   Layout (x, y, w, tilt) lives here; look and motion live in
-   css/style.css under "Hero floating studio".
+   GfxPrints - Hero "orbit studio"
+   One mug sits in the middle of #hero-waterfall. The other
+   products travel slowly in a circle around it, always the
+   same distance apart, and stay upright while they move.
+   Products pop in one by one. On desktop with a mouse the
+   whole scene drifts a little with the pointer, and the orbit
+   holds still while the mouse is over it.
+
+   Layout lives here (sizes + angles). Look and motion live in
+   css/style.css under "Hero orbit studio".
    ========================================================= */
 
 (function(){
   const DIR = "assets/products/";
 
-  /* The stage is a fixed-shape box, 100 units wide. Desktop is 106 units
-     tall, phones/tablets 90 (keep in sync with the aspect-ratio in
-     css/style.css). Every product is placed in these units, so the gaps are
-     the same on every screen and nothing can overlap when the window resizes.
+  /* The stage is a square, 100 units wide and tall (css: aspect-ratio 1).
+     Every number below is in stage % so nothing changes between screens.
+     R = radius of the circle the products travel on.
+     The sizes and R were checked at every rotation angle so each product keeps
+     at least 3 units of gap from its neighbours and from the centre mug.   */
+  const R = 38;
+  const CENTER = {
+    f:"hero-mug-umrah-orange", w:28, r:0,
+    alt:"White mug with an orange handle, printed with an Umrah Mubarak design"
+  };
 
-     x, y, w   = left, top and width on desktop
-     mx, my, mw = the same on phones/tablets (mob:false = hidden there)
-     r = tilt in degrees, d = how far it drifts with the pointer
-     h = photo height / width (only used here to check the layout)          */
-  const STAGE = { W:100, H:106, mH:90 };
-  const ITEMS = [
-    { f:"hoodie-blue",           alt:"Light blue hoodie with a custom printed front design",                       x:31, y:28, w:38, mx:31, my:29, mw:40, r:-2, d:1.0, mob:true  },
-    { f:"tee-skyblue-brush",     alt:"Light blue t-shirt with a custom printed front design",                      x: 3, y: 4, w:27, mx: 2, my: 2, mw:28, r:-6, d:1.5, mob:true  },
-    { f:"hero-frame-umrah",      alt:"Wooden framed poster with a custom printed Umrah Mubarak design",            x:69, y: 6, w:28, mx:67, my: 5, mw:30, r: 5, d:1.7, mob:true  },
-    { f:"mug-valentine",         alt:"Personalized photo mug with a couple and a Happy Valentine's Day message",   x: 2, y:52, w:27, mx: 2, my:62, mw:28, r: 4, d:1.3, mob:true  },
-    { f:"tote-canvas",           alt:"Natural canvas tote bag, ready for your custom print",                       x:73, y:54, w:24, mx:74, my:40, mw:24, r:-4, d:1.2, mob:true  },
-    { f:"hero-mug-umrah-orange", alt:"White mug with an orange handle, printed with an Umrah Mubarak design",      x:37.5, y:1, w:25, mx:36.5, my:1, mw:27, r: 3, d:0.7, mob:true },
-    { f:"tee-lucky-green",       alt:"Forest green t-shirt printed with a 'Lucky, good things take time' design",  x:39, y:80, w:22, r: 5, d:0.8, mob:false },
-    { f:"tee-black-loudvoices",  alt:"Black t-shirt printed with a bold 'Loud Voices' design",                     x:79, y:31, w:17, r: 6, d:0.6, mob:false }
+  /* Order = order around the circle, starting at the top, going clockwise.
+     mob:false = left out on phones and tablets (5 products there, 6 on desktop),
+     and the rest are spaced evenly again. w = width, r = tilt in degrees.     */
+  const ORBIT = [
+    { f:"hoodie-blue",       w:18,   r:-3, mob:true,  alt:"Light blue hoodie with a custom printed front design" },
+    { f:"hero-frame-umrah",  w:19,   r: 3, mob:true,  alt:"Wooden framed poster with a custom printed Umrah Mubarak design" },
+    { f:"tote-canvas",       w:11.7, r:-2, mob:true,  alt:"Natural canvas tote bag, ready for your custom print" },
+    { f:"tee-skyblue-brush", w:17,   r: 3, mob:true,  alt:"Light blue t-shirt with a custom printed front design" },
+    { f:"mug-valentine",     w:18,   r:-3, mob:true,  alt:"Personalized photo mug with a couple and a Happy Valentine's Day message" },
+    { f:"tee-lucky-green",   w:16.2, r: 2, mob:false, alt:"Forest green t-shirt printed with a 'Lucky, good things take time' design" }
   ];
 
-  // Small deterministic pseudo-random: the layout is the same on every
-  // load, but each product still gets its own float speed and timing.
+  // Small deterministic pseudo-random: same layout on every load, but each
+  // product still gets its own float speed and timing.
   function rand(seed, min, max){
     const x = Math.sin(seed * 999.7) * 10000;
     return min + (x - Math.floor(x)) * (max - min);
   }
 
-  function buildItem(it, i){
+  function point(index, count){
+    const a = (-90 + index * 360 / count) * Math.PI / 180;
+    return [50 + R * Math.cos(a), 50 + R * Math.sin(a)];
+  }
+
+  function buildItem(it, i, extraClass, vars){
     const el = document.createElement("div");
-    el.className = "wf-item" + (it.mob ? "" : " wf-desk-only");
-    const pc = (v, of) => (v / of * 100).toFixed(2) + "%";
+    el.className = "wf-item" + extraClass;
     el.style.cssText =
-      `--x:${pc(it.x, STAGE.W)};--y:${pc(it.y, STAGE.H)};--w:${pc(it.w, STAGE.W)};--r:${it.r}deg;--d:${it.d};` +
-      (it.mob ? `--mx:${pc(it.mx, STAGE.W)};--my:${pc(it.my, STAGE.mH)};--mw:${pc(it.mw, STAGE.W)};` : "") +
-      `--i:${i};--fy:${rand(i + 1, 6, 11).toFixed(1)}px;--fdur:${rand(i + 2, 5.5, 8.5).toFixed(1)}s;` +
+      `${vars}--w:${it.w}%;--r:${it.r}deg;--i:${i};` +
+      `--fy:${rand(i + 1, 5, 9).toFixed(1)}px;--fdur:${rand(i + 2, 5.5, 8.5).toFixed(1)}s;` +
       `--fdelay:${(-rand(i + 3, 0, 6)).toFixed(1)}s`;
-    // The first three products load right away; the rest wait their turn.
+    // The centre mug and the first two products load right away; the rest wait.
     const eager = i < 3 ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"';
     el.innerHTML =
-      `<div class="wf-pop"><div class="wf-float"><div class="wf-tilt">` +
+      `<div class="wf-upright"><div class="wf-pop"><div class="wf-float"><div class="wf-tilt">` +
       `<img class="wf-photo" src="${DIR}${it.f}.webp" alt="${it.alt}" ${eager} decoding="async" draggable="false">` +
-      `</div></div></div>`;
+      `</div></div></div></div>`;
     return el;
   }
 
@@ -64,7 +72,27 @@
     const stage = document.createElement("div");
     stage.className = "wf-stage";
     stage.innerHTML = '<span class="wf-ring" aria-hidden="true"></span>';
-    ITEMS.forEach((it, i) => stage.appendChild(buildItem(it, i)));
+
+    const drift = document.createElement("div");
+    drift.className = "wf-drift";
+    const orbit = document.createElement("div");
+    orbit.className = "wf-orbit";
+
+    const mobCount = ORBIT.filter(o => o.mob).length;
+    let mobIndex = 0;
+    ORBIT.forEach((it, k) => {
+      const d = point(k, ORBIT.length);
+      let vars = `--x:${d[0].toFixed(2)}%;--y:${d[1].toFixed(2)}%;`;
+      if (it.mob){
+        const m = point(mobIndex++, mobCount);
+        vars += `--mx:${m[0].toFixed(2)}%;--my:${m[1].toFixed(2)}%;`;
+      }
+      orbit.appendChild(buildItem(it, k + 1, it.mob ? "" : " wf-desk-only", vars));
+    });
+    drift.appendChild(orbit);
+    stage.appendChild(drift);
+    // The mug goes last in the DOM so it sits on top of the circle.
+    stage.appendChild(buildItem(CENTER, 0, " wf-center", ""));
     host.appendChild(stage);
 
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;

@@ -248,10 +248,7 @@ p{ margin: 0; }
 .hero-waterfall{
   position:relative; width:100%; height:100%;
   container-type:size;  /* lets the stage fit the box with cqw / cqh units */
-  overflow:hidden;
-  /* soften the left/right edges so the halftone field melts into the paper */
-  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 5%, #000 95%, transparent 100%);
-          mask-image: linear-gradient(90deg, transparent 0, #000 5%, #000 95%, transparent 100%);
+  overflow:visible;     /* shadows may spill past the box; .hero clips at the section edge */
 }
 /* desktop: hero-art stretches to the row height (via align-items:stretch
    above); pull the waterfall past that box on both edges by exactly the
@@ -271,45 +268,64 @@ p{ margin: 0; }
 /* soft cobalt glow behind the products (dot pattern removed) */
 .hero-waterfall::before{
   content:""; position:absolute; inset:0; pointer-events:none;
-  background: radial-gradient(circle at 50% 46%, rgba(36,56,224,0.10), transparent 60%);
-  -webkit-mask-image: radial-gradient(ellipse 62% 52% at 50% 47%, #000 8%, transparent 78%);
-          mask-image: radial-gradient(ellipse 62% 52% at 50% 47%, #000 8%, transparent 78%);
+  background: radial-gradient(circle at 50% 50%, rgba(36,56,224,0.10), transparent 60%);
+  -webkit-mask-image: radial-gradient(ellipse 62% 52% at 50% 50%, #000 8%, transparent 78%);
+          mask-image: radial-gradient(ellipse 62% 52% at 50% 50%, #000 8%, transparent 78%);
 }
 /* =========================================================
-   Hero floating studio
-   Products pop in, float, and (mouse only) drift with the
-   pointer. Positions come from js/waterfall.js (--x --y --w
-   on desktop, --mx --my --mw on phones and tablets).
+   Hero orbit studio
+   One mug sits in the centre; the other products travel in a
+   circle around it, always the same distance apart. Positions
+   come from js/waterfall.js (angles on a circle, in % of the
+   stage). The stage is a square that scales to fit, so spacing
+   is identical on every screen.
    ========================================================= */
-/* The stage is a fixed-shape box (same proportions on every screen) that is
-   centred in the hero and scaled to fit. Products sit inside it by % of the
-   stage, so their spacing never changes and they cannot overlap when the
-   screen resizes. Keep the aspect ratios in sync with STAGE in waterfall.js. */
 .hero-waterfall .wf-stage{
   position:absolute; left:50%; top:50%; translate:-50% -50%;
   width:100%;                                  /* fallback for old browsers */
-  width:min(100cqw, calc(100cqh * 100 / 106 * 0.96)); /* fit inside the hero box, with a little air */
-  aspect-ratio: 100 / 106;
+  width:min(100cqw, calc(100cqh * 0.96));      /* fit inside the hero box, with a little air */
+  aspect-ratio: 1;
 }
 
-/* dashed "design guide" ring behind the products, a nod to the Design Studio */
+/* dashed "design guide" circle = the orbit path (radius 38% -> 76% wide) */
 .hero-waterfall .wf-ring{
-  position:absolute; left:50%; top:46.7%; width:76%; aspect-ratio:1; border-radius:50%;
+  position:absolute; left:50%; top:50%; width:76%; aspect-ratio:1; border-radius:50%;
   border:1.5px dashed rgba(36,56,224,0.26);
   translate:-50% -50%;
-  animation: wf-ring-spin 70s linear infinite;
+  animation: wf-spin 90s linear infinite;
 }
-@keyframes wf-ring-spin{ to{ rotate:360deg; } }
+@keyframes wf-spin{ to{ rotate:360deg; } }
+
+/* pointer drift moves the whole orbit together, so spacing never changes */
+.hero-waterfall .wf-drift{
+  position:absolute; inset:0;
+  transform: translate3d(calc(var(--px,0) * -12px), calc(var(--py,0) * -9px), 0);
+  transition: transform .6s cubic-bezier(.2,.8,.2,1);
+}
+/* the circle turns slowly; each product turns back the same amount so it stays upright */
+.hero-waterfall .wf-orbit{
+  position:absolute; inset:0;
+  animation: wf-turn 80s linear infinite;
+  will-change: transform;
+}
+.hero-waterfall .wf-upright{
+  animation: wf-turn 80s linear infinite reverse;
+  will-change: transform;
+}
+@keyframes wf-turn{ from{ transform:rotate(0deg); } to{ transform:rotate(360deg); } }
 
 .hero-waterfall .wf-item{
   position:absolute; left:var(--x); top:var(--y); z-index:1;
   width:var(--w);
-  /* --px / --py (-1 to 1) are set on the stage by the pointer */
-  transform: translate3d(calc(var(--px,0) * var(--d,1) * -14px), calc(var(--py,0) * var(--d,1) * -10px), 0);
-  transition: transform .6s cubic-bezier(.2,.8,.2,1);
+  transform: translate(-50%,-50%);
   user-select:none; -webkit-user-select:none;
 }
-.hero-waterfall .wf-item:nth-child(2){ z-index:2; }  /* hoodie sits in front */
+/* the centre mug */
+.hero-waterfall .wf-item.wf-center{
+  left:50%; top:50%; z-index:2;
+  transform: translate(-50%,-50%) translate3d(calc(var(--px,0) * -5px), calc(var(--py,0) * -4px), 0);
+  transition: transform .6s cubic-bezier(.2,.8,.2,1);
+}
 
 /* 1) pop in, one after another */
 .hero-waterfall .wf-pop{ opacity:0; }
@@ -329,8 +345,8 @@ p{ margin: 0; }
   will-change: transform;
 }
 @keyframes wf-float{
-  0%,100%{ transform: translateY(calc(var(--fy, 10px) * -0.5)) rotate(-1.2deg); }
-  50%    { transform: translateY(calc(var(--fy, 10px) *  0.5)) rotate(1.2deg); }
+  0%,100%{ transform: translateY(calc(var(--fy, 6px) * -0.5)) rotate(-1deg); }
+  50%    { transform: translateY(calc(var(--fy, 6px) *  0.5)) rotate(1deg); }
 }
 
 .hero-waterfall .wf-tilt{
@@ -339,16 +355,21 @@ p{ margin: 0; }
 }
 .hero-waterfall .wf-photo{
   display:block; width:100%; height:auto;
-  filter: drop-shadow(0 12px 18px rgba(21,23,27,0.18));
+  filter: drop-shadow(0 10px 16px rgba(21,23,27,0.18));
 }
 @media (hover:hover) and (pointer:fine){
   .hero-waterfall .wf-item:hover .wf-tilt{ transform: rotate(var(--r, 0deg)) scale(1.07); }
+  /* hold still while someone is looking at a product */
+  .hero-waterfall .wf-stage:hover .wf-orbit,
+  .hero-waterfall .wf-stage:hover .wf-upright{ animation-play-state: paused; }
 }
 
 /* pause everything while the hero is off screen */
 .hero-waterfall .wf-stage.is-paused .wf-float,
 .hero-waterfall .wf-stage.is-paused .wf-pop,
-.hero-waterfall .wf-stage.is-paused .wf-ring{ animation-play-state: paused; }
+.hero-waterfall .wf-stage.is-paused .wf-ring,
+.hero-waterfall .wf-stage.is-paused .wf-orbit,
+.hero-waterfall .wf-stage.is-paused .wf-upright{ animation-play-state: paused; }
 
 /* Press-stamp seal: sits on the seam between copy and product stream */
 .hero-seal{
@@ -371,7 +392,10 @@ p{ margin: 0; }
   .hero-waterfall .wf-pop{ opacity:1; animation:none !important; }
   .hero-waterfall .wf-float,
   .hero-waterfall .wf-ring,
+  .hero-waterfall .wf-orbit,
+  .hero-waterfall .wf-upright,
   .hero-seal .seal-ring{ animation:none !important; }
+  .hero-waterfall .wf-drift,
   .hero-waterfall .wf-item,
   .hero-waterfall .wf-tilt{ transition:none; }
 }
@@ -386,15 +410,9 @@ p{ margin: 0; }
     height: calc(360px + var(--space-8));
     margin-top: calc(var(--space-8) * -1);
   }
-  /* phones + tablets: 6 products, a slightly squarer stage */
-  .hero-waterfall .wf-stage{
-    width:min(100cqw, calc(100cqh * 100 / 90 * 0.92));
-    aspect-ratio: 100 / 90;
-  }
-  .hero-waterfall .wf-ring{ left:51%; top:57%; width:80%; }
-  .hero-waterfall .wf-item{
-    left:var(--mx); top:var(--my); width:var(--mw);
-  }
+  /* phones + tablets: 5 products orbit (the 6th is hidden) */
+  .hero-waterfall .wf-stage{ width:min(100cqw, calc(100cqh * 0.94)); }
+  .hero-waterfall .wf-item:not(.wf-center){ left:var(--mx); top:var(--my); }
   .hero-waterfall .wf-desk-only{ display:none; }
   .hero-seal{ left:auto; right: var(--space-4); bottom: var(--space-4); width:92px; height:92px; transform: rotate(-8deg); }
   .hero h1{ font-size: clamp(1.3rem, 6vw, 2.6rem); }
@@ -405,7 +423,10 @@ p{ margin: 0; }
   .hero-waterfall{ height: calc(500px + var(--space-8)); }
 }
 @media (max-width: 560px){
-  .hero-waterfall{ height: calc(300px + var(--space-8)); }
+  .hero-waterfall{ height: calc(340px + var(--space-8)); }
+  /* small screens: products a touch smaller, so the gaps stay comfortable */
+  .hero-waterfall .wf-item:not(.wf-center){ width: calc(var(--w) * 0.94); }
+  .hero-waterfall .wf-item.wf-center{ width: 26%; }
   .hero-seal{ width:78px; height:78px; right: var(--space-3); bottom: var(--space-2); }
   .hero-actions .btn{ flex:1 1 100%; }
   .trust-line{ flex-direction:column; gap:0; padding-top:0; }
@@ -1398,6 +1419,8 @@ input, select, textarea{ max-width: 100%; }
   .hero h1{ font-size: clamp(1.6rem, 4.6vw, 2.2rem); margin-bottom: var(--space-3); }
   .hero p.lede{ font-size: 0.95rem; margin-bottom: var(--space-4); }
   .hero-waterfall{ height: calc(100% + var(--space-5) + var(--space-6)); margin-top: calc(var(--space-5) * -1); margin-bottom: calc(var(--space-6) * -1); }
+  .hero-waterfall .wf-item:not(.wf-center){ width: calc(var(--w) * 0.94); }
+  .hero-waterfall .wf-item.wf-center{ width: 26%; }
   .hero-seal{ width: 70px; height: 70px; }
   .trust-line{ flex-direction: row; }
   .trust-line li{ padding: 0; border-top: none !important; }

@@ -23,7 +23,7 @@
     { f:"hero-frame-umrah",          alt:"Wooden framed poster with a custom printed Umrah Mubarak design",              x:79, y:24, w:25, r: 5, d:1.7, mx:79, my:23, mw:28, mob:true  },
     { f:"mug-valentine",          alt:"Personalized photo mug with a couple and a Happy Valentine's Day message",     x:21, y:72, w:25, r: 4, d:1.3, mx:19, my:76, mw:28, mob:true  },
     { f:"tote-canvas",            alt:"Natural canvas tote bag, ready for your custom print",                         x:80, y:74, w:23, r:-4, d:1.2, mx:82, my:69, mw:24, mob:true  },
-    { f:"hero-gift-box",             alt:"Gift box with a red ribbon, for personalized gifts",                           x:50, y:16, w:14, r: 3, d:0.7, mx:52, my:16, mw:15, mob:true  },
+    { f:"hero-mug-umrah-orange",     alt:"White mug with an orange handle, printed with an Umrah Mubarak design",        x:50, y:15, w:22, r: 3, d:0.7, mx:51, my:17, mw:23, mob:true  },
     { f:"tee-lucky-green",        alt:"Forest green t-shirt printed with a 'Lucky, good things take time' design",    x:50, y:88, w:19, r: 5, d:0.8, mob:false },
     { f:"tee-black-loudvoices",   alt:"Black t-shirt printed with a bold 'Loud Voices' design",                       x:90, y:48, w:15, r: 6, d:0.6, mob:false }
   ];

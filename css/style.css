@@ -243,95 +243,86 @@ p{ margin: 0; }
 
 .hero-art{ position:relative; }
 
-/* Product waterfall - no card/box chrome; bleeds full-height into the
-   hero section itself rather than sitting in a contained square. */
+/* Product wheel box. On desktop it is pinned to the right-hand side of the hero
+   section itself (full height, running off the right edge), because the wheel
+   turns around the middle of that right edge. .hero clips whatever goes past. */
 .hero-waterfall{
   position:relative; width:100%; height:100%;
-  container-type:size;  /* lets the stage fit the box with cqw / cqh units */
-  overflow:visible;     /* shadows may spill past the box; .hero clips at the section edge */
+  container-type:size;  /* lets the wheel size itself from the box with cqw / cqh units */
+  overflow:visible;
 }
-/* desktop: hero-art stretches to the row height (via align-items:stretch
-   above); pull the waterfall past that box on both edges by exactly the
-   section's own padding, so it starts at the very top of .hero and ends
-   at its very bottom - .hero's overflow:hidden clips it there cleanly. */
 @media (min-width: 901px){
-  /* Keep the whole hero within one screen: tighter padding, and the headline
-     scales with viewport height (the 495px is header + padding + the fixed
-     copy below the headline). Width still caps it on large monitors. */
+  /* Keep the whole hero within one screen: tighter padding. */
   .hero{ padding: var(--space-7) 0 var(--space-8); }
+  .hero-art{ position:static; }            /* so the box below is placed against .hero */
   .hero-waterfall{
-    margin-top: calc(var(--space-7) * -1);
-    margin-bottom: calc(var(--space-8) * -1);
-    height: calc(100% + var(--space-7) + var(--space-8));
+    position:absolute; top:0; right:0; bottom:0; width:58%; height:auto;
   }
 }
 /* soft cobalt glow behind the products (dot pattern removed) */
 .hero-waterfall::before{
   content:""; position:absolute; inset:0; pointer-events:none;
-  background: radial-gradient(circle at 50% 50%, rgba(36,56,224,0.10), transparent 60%);
-  -webkit-mask-image: radial-gradient(ellipse 62% 52% at 50% 50%, #000 8%, transparent 78%);
-          mask-image: radial-gradient(ellipse 62% 52% at 50% 50%, #000 8%, transparent 78%);
+  background: radial-gradient(circle at 100% 50%, rgba(36,56,224,0.12), transparent 62%);
 }
 /* =========================================================
-   Hero orbit studio
-   One mug sits in the centre; the other products travel in a
-   circle around it, always the same distance apart. Positions
-   come from js/waterfall.js (angles on a circle, in % of the
-   stage). The stage is a square that scales to fit, so spacing
-   is identical on every screen.
+   Hero product wheel
+   A big wheel of products turns around a point in the middle of
+   the hero's right edge, so you see its left half sweep past like
+   a carousel. Positions come from js/waterfall.js (angles on a
+   circle, in % of the stage). --R is the wheel radius in px; the
+   stage is 2.5 x that wide, so the ring (radius 40%) has radius --R.
    ========================================================= */
 .hero-waterfall .wf-stage{
-  position:absolute; left:50%; top:50%; translate:-50% -50%;
-  width:100%;                                  /* fallback for old browsers */
-  width:min(100cqw, calc(100cqh * 0.96));      /* fit inside the hero box, with a little air */
+  cursor:grab; -webkit-tap-highlight-color:transparent;
+  touch-action: pan-y;  /* up/down swipes still scroll the page; sideways drags turn the wheel */
+  /* spin direction: anticlockwise = the front of the circle moves left to right.
+     Swap the two words (normal / reverse) to turn it the other way. */
+  --spin: reverse; --spin-back: normal;
+  --R: min(50cqw, 80cqh);
+  position:absolute; left:100%; top:50%; translate:-50% -50%;
+  width: calc(var(--R) * 2.5);
   aspect-ratio: 1;
+  border-radius:50%;    /* only the round area takes clicks and drags */
 }
 
-/* dashed "design guide" circle = the orbit path (radius 38% -> 76% wide) */
+/* dashed "design guide" circle = the orbit path (radius 40% -> 80% wide) */
 .hero-waterfall .wf-ring{
-  position:absolute; left:50%; top:50%; width:76%; aspect-ratio:1; border-radius:50%;
+  position:absolute; left:50%; top:50%; width:80%; aspect-ratio:1; border-radius:50%;
   border:1.5px dashed rgba(36,56,224,0.26);
   translate:-50% -50%;
-  animation: wf-spin 90s linear infinite;
+  animation: wf-spin 80s linear infinite var(--spin);
 }
 @keyframes wf-spin{ to{ rotate:360deg; } }
 
 /* pointer drift moves the whole orbit together, so spacing never changes */
 .hero-waterfall .wf-drift{
-  position:absolute; inset:0;
+  position:absolute; inset:0; pointer-events:none;
   transform: translate3d(calc(var(--px,0) * -12px), calc(var(--py,0) * -9px), 0);
   transition: transform .6s cubic-bezier(.2,.8,.2,1);
 }
 /* the circle turns slowly; each product turns back the same amount so it stays upright */
 .hero-waterfall .wf-orbit{
-  position:absolute; inset:0;
-  animation: wf-turn 80s linear infinite;
+  position:absolute; inset:0; pointer-events:none;
+  animation: wf-turn 80s linear infinite var(--spin);
   will-change: transform;
 }
 .hero-waterfall .wf-upright{
-  animation: wf-turn 80s linear infinite reverse;
+  animation: wf-turn 80s linear infinite var(--spin-back);
   will-change: transform;
 }
 @keyframes wf-turn{ from{ transform:rotate(0deg); } to{ transform:rotate(360deg); } }
 
 .hero-waterfall .wf-item{
   position:absolute; left:var(--x); top:var(--y); z-index:1;
-  width:var(--w);
+  width:var(--w); pointer-events:auto;
   transform: translate(-50%,-50%);
   user-select:none; -webkit-user-select:none;
 }
-/* the centre mug */
-.hero-waterfall .wf-item.wf-center{
-  left:50%; top:50%; z-index:2;
-  transform: translate(-50%,-50%) translate3d(calc(var(--px,0) * -5px), calc(var(--py,0) * -4px), 0);
-  transition: transform .6s cubic-bezier(.2,.8,.2,1);
-}
-
 /* 1) pop in, one after another */
 .hero-waterfall .wf-pop{ opacity:0; }
 .hero-waterfall .wf-stage.is-in .wf-pop{
-  animation: wf-pop .8s cubic-bezier(.2,.9,.3,1.25) both;
-  animation-delay: calc(var(--i, 0) * 110ms + 100ms);
+  animation: wf-pop .6s cubic-bezier(.2,.9,.3,1.25) both;
+  animation-delay: calc(var(--i, 0) * 70ms + 50ms);
 }
 @keyframes wf-pop{
   from{ opacity:0; transform: translateY(28px) scale(.55); }
@@ -359,10 +350,9 @@ p{ margin: 0; }
 }
 @media (hover:hover) and (pointer:fine){
   .hero-waterfall .wf-item:hover .wf-tilt{ transform: rotate(var(--r, 0deg)) scale(1.07); }
-  /* hold still while someone is looking at a product */
-  .hero-waterfall .wf-stage:hover .wf-orbit,
-  .hero-waterfall .wf-stage:hover .wf-upright{ animation-play-state: paused; }
 }
+
+.hero-waterfall .wf-stage.is-dragging{ cursor:grabbing; }
 
 /* pause everything while the hero is off screen */
 .hero-waterfall .wf-stage.is-paused .wf-float,
@@ -407,12 +397,15 @@ p{ margin: 0; }
   .hero-inner{ grid-template-columns: 1fr; }
   .hero-art{ order:-1; }
   .hero-waterfall{
-    height: calc(360px + var(--space-8));
+    height: calc(440px + var(--space-8));
     margin-top: calc(var(--space-8) * -1);
+    margin-right: calc(var(--space-5) * -1);   /* run to the screen edge: the wheel turns around it */
+    width:auto;
   }
-  /* phones + tablets: 5 products orbit (the 6th is hidden) */
-  .hero-waterfall .wf-stage{ width:min(100cqw, calc(100cqh * 0.94)); }
-  .hero-waterfall .wf-item:not(.wf-center){ left:var(--mx); top:var(--my); }
+  /* phones + tablets: 6 products on the wheel (the 7th is hidden), at their own widths */
+  .hero-waterfall .wf-stage{ --R: min(78cqw, 68cqh); }
+  .hero-waterfall{ overflow:clip; }   /* the wheel stays inside its own box above the headline */
+  .hero-waterfall .wf-item{ left:var(--mx); top:var(--my); width: var(--mw); }
   .hero-waterfall .wf-desk-only{ display:none; }
   .hero-seal{ left:auto; right: var(--space-4); bottom: var(--space-4); width:92px; height:92px; transform: rotate(-8deg); }
   .hero h1{ font-size: clamp(1.3rem, 6vw, 2.6rem); }
@@ -420,13 +413,10 @@ p{ margin: 0; }
 }
 @media (min-width: 600px) and (max-width: 900px){
   /* tablets: more room, so the products can be bigger */
-  .hero-waterfall{ height: calc(500px + var(--space-8)); }
+  .hero-waterfall{ height: calc(480px + var(--space-8)); }
 }
 @media (max-width: 560px){
-  .hero-waterfall{ height: calc(340px + var(--space-8)); }
-  /* small screens: products a touch smaller, so the gaps stay comfortable */
-  .hero-waterfall .wf-item:not(.wf-center){ width: calc(var(--w) * 0.94); }
-  .hero-waterfall .wf-item.wf-center{ width: 26%; }
+  .hero-waterfall{ height: calc(420px + var(--space-8)); }
   .hero-seal{ width:78px; height:78px; right: var(--space-3); bottom: var(--space-2); }
   .hero-actions .btn{ flex:1 1 100%; }
   .trust-line{ flex-direction:column; gap:0; padding-top:0; }
@@ -1418,9 +1408,7 @@ input, select, textarea{ max-width: 100%; }
   .hero-art{ order: 0; }
   .hero h1{ font-size: clamp(1.6rem, 4.6vw, 2.2rem); margin-bottom: var(--space-3); }
   .hero p.lede{ font-size: 0.95rem; margin-bottom: var(--space-4); }
-  .hero-waterfall{ height: calc(100% + var(--space-5) + var(--space-6)); margin-top: calc(var(--space-5) * -1); margin-bottom: calc(var(--space-6) * -1); }
-  .hero-waterfall .wf-item:not(.wf-center){ width: calc(var(--w) * 0.94); }
-  .hero-waterfall .wf-item.wf-center{ width: 26%; }
+  .hero-waterfall{ height: calc(100% + var(--space-5) + var(--space-6)); margin-top: calc(var(--space-5) * -1); margin-bottom: calc(var(--space-6) * -1); margin-right: calc(var(--space-5) * -1); }
   .hero-seal{ width: 70px; height: 70px; }
   .trust-line{ flex-direction: row; }
   .trust-line li{ padding: 0; border-top: none !important; }

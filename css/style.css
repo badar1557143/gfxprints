@@ -249,8 +249,8 @@ p{ margin: 0; }
   position:relative; width:100%; height:100%;
   overflow:hidden;
   /* soften the left/right edges so the halftone field melts into the paper */
-  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 9%, #000 91%, transparent 100%);
-          mask-image: linear-gradient(90deg, transparent 0, #000 9%, #000 91%, transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 5%, #000 95%, transparent 100%);
+          mask-image: linear-gradient(90deg, transparent 0, #000 5%, #000 95%, transparent 100%);
 }
 /* desktop: hero-art stretches to the row height (via align-items:stretch
    above); pull the waterfall past that box on both edges by exactly the
@@ -274,66 +274,71 @@ p{ margin: 0; }
   -webkit-mask-image: radial-gradient(ellipse 62% 52% at 50% 47%, #000 8%, transparent 78%);
           mask-image: radial-gradient(ellipse 62% 52% at 50% 47%, #000 8%, transparent 78%);
 }
-.hero-waterfall .wf-stage{
-  position:absolute; inset:0; display:flex; justify-content:center; align-items:flex-start;
-  gap: clamp(10px, 2vw, 22px); padding: 0 clamp(6px, 2vw, 18px);
-}
-.hero-waterfall .wf-stage::before{
-  content:""; position:absolute; inset:0; z-index:2; pointer-events:none;
-  background: linear-gradient(var(--paper), rgba(242,240,234,0) 14%, rgba(242,240,234,0) 86%, var(--paper));
-}
-.hero-waterfall .wf-col{
-  position:relative; flex: 1 1 0; max-width:150px; display:flex; flex-direction:column; align-items:center;
-}
-.hero-waterfall .wf-track{
-  display:flex; flex-direction:column; gap: clamp(16px, 2.6vw, 26px);
-  animation-name: wf-fall; animation-timing-function: linear; animation-iteration-count: infinite;
-  will-change:transform;
-}
-/* Every column falls the same direction - top to bottom - like a real
-   waterfall, just at different speeds per column for a natural cascade. */
-@keyframes wf-fall{ from{ transform:translateY(-50%); } to{ transform:translateY(0); } }
-.hero-waterfall .wf-col:nth-child(1) .wf-track{ animation-duration: 15s; }
-.hero-waterfall .wf-col:nth-child(2) .wf-track{ animation-duration: 21s; }
-.hero-waterfall .wf-col:nth-child(3) .wf-track{ animation-duration: 12s; }
-.hero-waterfall .wf-col:nth-child(4) .wf-track{ animation-duration: 18s; }
+/* =========================================================
+   Hero floating studio
+   Products pop in, float, and (mouse only) drift with the
+   pointer. Positions come from js/waterfall.js (--x --y --w
+   on desktop, --mx --my --mw on phones and tablets).
+   ========================================================= */
+.hero-waterfall .wf-stage{ position:absolute; inset:0; }
 
-/* wf-card: outer wrapper drifts gently side to side, like it's carried
-   by a current - independent of the vertical scroll and the card's
-   own rotation, so the two motions blend instead of fighting. */
-.hero-waterfall .wf-card{
-  width:100%;
-  animation: wf-flow var(--fdur, 8s) ease-in-out infinite;
+/* dashed "design guide" ring behind the products, a nod to the Design Studio */
+.hero-waterfall .wf-ring{
+  position:absolute; left:50%; top:50%; width:min(80%, 440px); aspect-ratio:1; border-radius:50%;
+  border:1.5px dashed rgba(36,56,224,0.26);
+  translate:-50% -50%;
+  animation: wf-ring-spin 70s linear infinite;
+}
+@keyframes wf-ring-spin{ to{ rotate:360deg; } }
+
+.hero-waterfall .wf-item{
+  position:absolute; left:var(--x); top:var(--y); z-index:1;
+  width:calc(var(--w) * 1%); max-width:calc(var(--w) * 7px);
+  /* --px / --py (-1 to 1) are set on the stage by the pointer */
+  transform: translate(-50%,-50%) translate3d(calc(var(--px,0) * var(--d,1) * -16px), calc(var(--py,0) * var(--d,1) * -12px), 0);
+  transition: transform .6s cubic-bezier(.2,.8,.2,1);
+  user-select:none; -webkit-user-select:none;
+}
+.hero-waterfall .wf-item:nth-child(2){ z-index:2; }  /* hoodie sits in front */
+
+/* 1) pop in, one after another */
+.hero-waterfall .wf-pop{ opacity:0; }
+.hero-waterfall .wf-stage.is-in .wf-pop{
+  animation: wf-pop .8s cubic-bezier(.2,.9,.3,1.25) both;
+  animation-delay: calc(var(--i, 0) * 110ms + 100ms);
+}
+@keyframes wf-pop{
+  from{ opacity:0; transform: translateY(28px) scale(.55); }
+  to  { opacity:1; transform: none; }
+}
+
+/* 2) float gently, each product at its own speed */
+.hero-waterfall .wf-float{
+  animation: wf-float var(--fdur, 7s) ease-in-out infinite;
   animation-delay: var(--fdelay, 0s);
   will-change: transform;
 }
-@keyframes wf-flow{
-  0%   { transform: translateX(calc(var(--fx, 10px) * -1)) translateY(0); }
-  50%  { transform: translateX(var(--fx, 10px)) translateY(calc(var(--fx, 10px) * 0.6)); }
-  100% { transform: translateX(calc(var(--fx, 10px) * -1)) translateY(0); }
+@keyframes wf-float{
+  0%,100%{ transform: translateY(calc(var(--fy, 10px) * -0.5)) rotate(-1.2deg); }
+  50%    { transform: translateY(calc(var(--fy, 10px) *  0.5)) rotate(1.2deg); }
 }
-.hero-waterfall .wf-inner{
-  border-radius: 10px; display:flex; align-items:center; justify-content:center;
-  filter: drop-shadow(0 10px 18px rgba(21,23,27,0.16));
+
+.hero-waterfall .wf-tilt{
   transform: rotate(var(--r, 0deg));
-  transition: filter .3s ease;
-  /* Every card gets the same footprint regardless of the product photo's
-     native aspect ratio (a tall bottle vs. a wide mug vs. a square tee),
-     so columns keep an even rhythm instead of some cards towering over
-     their neighbors and crowding the gap between them. */
-  aspect-ratio: 4 / 5;
-  width:100%;
+  transition: transform .35s cubic-bezier(.2,.8,.2,1);
 }
-.hero-waterfall .wf-inner svg{ display:block; width:100%; height:auto; }
-/* real product photos (transparent PNGs) sit in the same flow as the SVGs */
-.hero-waterfall .wf-inner img.wf-photo{
-  display:block; width:100%; height:100%; object-fit:contain;
+.hero-waterfall .wf-photo{
+  display:block; width:100%; height:auto;
+  filter: drop-shadow(0 12px 18px rgba(21,23,27,0.18));
 }
-.hero-waterfall .wf-inner.wf-sway{ animation: wf-sway 6s ease-in-out infinite; }
-@keyframes wf-sway{
-  0%,100%{ transform: rotate(var(--r,0deg)); }
-  50%{ transform: rotate(calc(var(--r,0deg) + 2.2deg)); }
+@media (hover:hover) and (pointer:fine){
+  .hero-waterfall .wf-item:hover .wf-tilt{ transform: rotate(var(--r, 0deg)) scale(1.07); }
 }
+
+/* pause everything while the hero is off screen */
+.hero-waterfall .wf-stage.is-paused .wf-float,
+.hero-waterfall .wf-stage.is-paused .wf-pop,
+.hero-waterfall .wf-stage.is-paused .wf-ring{ animation-play-state: paused; }
 
 /* Press-stamp seal: sits on the seam between copy and product stream */
 .hero-seal{
@@ -353,10 +358,12 @@ p{ margin: 0; }
 @keyframes seal-spin{ to{ transform: rotate(360deg); } }
 
 @media (prefers-reduced-motion: reduce){
-  .hero-waterfall .wf-track,
-  .hero-waterfall .wf-card,
-  .hero-waterfall .wf-inner.wf-sway,
-  .hero-seal .seal-ring{ animation: none !important; }
+  .hero-waterfall .wf-pop{ opacity:1; animation:none !important; }
+  .hero-waterfall .wf-float,
+  .hero-waterfall .wf-ring,
+  .hero-seal .seal-ring{ animation:none !important; }
+  .hero-waterfall .wf-item,
+  .hero-waterfall .wf-tilt{ transition:none; }
 }
 
 @media (max-width: 1100px){
@@ -369,14 +376,20 @@ p{ margin: 0; }
     height: calc(360px + var(--space-8));
     margin-top: calc(var(--space-8) * -1);
   }
-  .hero-waterfall .wf-col{ max-width: 120px; }
+  /* phones + tablets: own layout, centred, no wider than 520px */
+  .hero-waterfall .wf-stage{ inset:0 auto 0 50%; width:min(100%, 520px); translate:-50% 0; }
+  .hero-waterfall .wf-item{
+    left:var(--mx); top:var(--my);
+    width:calc(var(--mw) * 1%); max-width:calc(var(--mw) * 6px);
+    transform: translate(-50%,-50%);
+  }
+  .hero-waterfall .wf-desk-only{ display:none; }
   .hero-seal{ left:auto; right: var(--space-4); bottom: var(--space-4); width:92px; height:92px; transform: rotate(-8deg); }
   .hero h1{ font-size: clamp(1.3rem, 6vw, 2.6rem); }
   .hero-actions{ margin-bottom: var(--space-6); }
 }
 @media (max-width: 560px){
   .hero-waterfall{ height: calc(300px + var(--space-8)); }
-  .hero-waterfall .wf-col:nth-child(3){ display:none; }
   .hero-seal{ width:78px; height:78px; right: var(--space-3); bottom: var(--space-2); }
   .hero-actions .btn{ flex:1 1 100%; }
   .trust-line{ flex-direction:column; gap:0; padding-top:0; }

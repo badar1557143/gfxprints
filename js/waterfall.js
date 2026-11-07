@@ -11,21 +11,25 @@
 (function(){
   const DIR = "assets/products/";
 
-  /* x, y = centre of the product, in % of the stage
-     w     = width, in % of the stage width
-     r     = tilt in degrees
-     d     = parallax depth (bigger = moves more)
-     mx, my, mw = the same position and size on phones/tablets
-     mob   = false hides the product on phones/tablets            */
+  /* The stage is a fixed-shape box, 100 units wide. Desktop is 106 units
+     tall, phones/tablets 90 (keep in sync with the aspect-ratio in
+     css/style.css). Every product is placed in these units, so the gaps are
+     the same on every screen and nothing can overlap when the window resizes.
+
+     x, y, w   = left, top and width on desktop
+     mx, my, mw = the same on phones/tablets (mob:false = hidden there)
+     r = tilt in degrees, d = how far it drifts with the pointer
+     h = photo height / width (only used here to check the layout)          */
+  const STAGE = { W:100, H:106, mH:90 };
   const ITEMS = [
-    { f:"hoodie-blue",            alt:"Light blue hoodie with a custom printed front design",                         x:50, y:50, w:36, r:-2, d:1.0, mx:50, my:50, mw:40, mob:true  },
-    { f:"tee-skyblue-brush",      alt:"Light blue t-shirt with a custom printed front design",                        x:22, y:27, w:26, r:-6, d:1.5, mx:20, my:24, mw:28, mob:true  },
-    { f:"hero-frame-umrah",          alt:"Wooden framed poster with a custom printed Umrah Mubarak design",              x:79, y:24, w:25, r: 5, d:1.7, mx:79, my:23, mw:28, mob:true  },
-    { f:"mug-valentine",          alt:"Personalized photo mug with a couple and a Happy Valentine's Day message",     x:21, y:72, w:25, r: 4, d:1.3, mx:19, my:76, mw:28, mob:true  },
-    { f:"tote-canvas",            alt:"Natural canvas tote bag, ready for your custom print",                         x:80, y:74, w:23, r:-4, d:1.2, mx:82, my:69, mw:24, mob:true  },
-    { f:"hero-mug-umrah-orange",     alt:"White mug with an orange handle, printed with an Umrah Mubarak design",        x:50, y:15, w:22, r: 3, d:0.7, mx:51, my:17, mw:23, mob:true  },
-    { f:"tee-lucky-green",        alt:"Forest green t-shirt printed with a 'Lucky, good things take time' design",    x:50, y:88, w:19, r: 5, d:0.8, mob:false },
-    { f:"tee-black-loudvoices",   alt:"Black t-shirt printed with a bold 'Loud Voices' design",                       x:90, y:48, w:15, r: 6, d:0.6, mob:false }
+    { f:"hoodie-blue",           alt:"Light blue hoodie with a custom printed front design",                       x:31, y:28, w:38, mx:31, my:29, mw:40, r:-2, d:1.0, mob:true  },
+    { f:"tee-skyblue-brush",     alt:"Light blue t-shirt with a custom printed front design",                      x: 3, y: 4, w:27, mx: 2, my: 2, mw:28, r:-6, d:1.5, mob:true  },
+    { f:"hero-frame-umrah",      alt:"Wooden framed poster with a custom printed Umrah Mubarak design",            x:69, y: 6, w:28, mx:67, my: 5, mw:30, r: 5, d:1.7, mob:true  },
+    { f:"mug-valentine",         alt:"Personalized photo mug with a couple and a Happy Valentine's Day message",   x: 2, y:52, w:27, mx: 2, my:62, mw:28, r: 4, d:1.3, mob:true  },
+    { f:"tote-canvas",           alt:"Natural canvas tote bag, ready for your custom print",                       x:73, y:54, w:24, mx:74, my:40, mw:24, r:-4, d:1.2, mob:true  },
+    { f:"hero-mug-umrah-orange", alt:"White mug with an orange handle, printed with an Umrah Mubarak design",      x:37.5, y:1, w:25, mx:36.5, my:1, mw:27, r: 3, d:0.7, mob:true },
+    { f:"tee-lucky-green",       alt:"Forest green t-shirt printed with a 'Lucky, good things take time' design",  x:39, y:80, w:22, r: 5, d:0.8, mob:false },
+    { f:"tee-black-loudvoices",  alt:"Black t-shirt printed with a bold 'Loud Voices' design",                     x:79, y:31, w:17, r: 6, d:0.6, mob:false }
   ];
 
   // Small deterministic pseudo-random: the layout is the same on every
@@ -38,10 +42,11 @@
   function buildItem(it, i){
     const el = document.createElement("div");
     el.className = "wf-item" + (it.mob ? "" : " wf-desk-only");
+    const pc = (v, of) => (v / of * 100).toFixed(2) + "%";
     el.style.cssText =
-      `--x:${it.x}%;--y:${it.y}%;--w:${it.w};--r:${it.r}deg;--d:${it.d};` +
-      `--mx:${it.mx != null ? it.mx : it.x}%;--my:${it.my != null ? it.my : it.y}%;--mw:${it.mw != null ? it.mw : it.w};` +
-      `--i:${i};--fy:${rand(i + 1, 7, 13).toFixed(1)}px;--fdur:${rand(i + 2, 5.5, 8.5).toFixed(1)}s;` +
+      `--x:${pc(it.x, STAGE.W)};--y:${pc(it.y, STAGE.H)};--w:${pc(it.w, STAGE.W)};--r:${it.r}deg;--d:${it.d};` +
+      (it.mob ? `--mx:${pc(it.mx, STAGE.W)};--my:${pc(it.my, STAGE.mH)};--mw:${pc(it.mw, STAGE.W)};` : "") +
+      `--i:${i};--fy:${rand(i + 1, 6, 11).toFixed(1)}px;--fdur:${rand(i + 2, 5.5, 8.5).toFixed(1)}s;` +
       `--fdelay:${(-rand(i + 3, 0, 6)).toFixed(1)}s`;
     // The first three products load right away; the rest wait their turn.
     const eager = i < 3 ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"';

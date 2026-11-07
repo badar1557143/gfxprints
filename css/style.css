@@ -247,6 +247,7 @@ p{ margin: 0; }
    hero section itself rather than sitting in a contained square. */
 .hero-waterfall{
   position:relative; width:100%; height:100%;
+  container-type:size;  /* lets the stage fit the box with cqw / cqh units */
   overflow:hidden;
   /* soften the left/right edges so the halftone field melts into the paper */
   -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 5%, #000 95%, transparent 100%);
@@ -280,11 +281,20 @@ p{ margin: 0; }
    pointer. Positions come from js/waterfall.js (--x --y --w
    on desktop, --mx --my --mw on phones and tablets).
    ========================================================= */
-.hero-waterfall .wf-stage{ position:absolute; inset:0; }
+/* The stage is a fixed-shape box (same proportions on every screen) that is
+   centred in the hero and scaled to fit. Products sit inside it by % of the
+   stage, so their spacing never changes and they cannot overlap when the
+   screen resizes. Keep the aspect ratios in sync with STAGE in waterfall.js. */
+.hero-waterfall .wf-stage{
+  position:absolute; left:50%; top:50%; translate:-50% -50%;
+  width:100%;                                  /* fallback for old browsers */
+  width:min(100cqw, calc(100cqh * 100 / 106 * 0.96)); /* fit inside the hero box, with a little air */
+  aspect-ratio: 100 / 106;
+}
 
 /* dashed "design guide" ring behind the products, a nod to the Design Studio */
 .hero-waterfall .wf-ring{
-  position:absolute; left:50%; top:50%; width:min(80%, 440px); aspect-ratio:1; border-radius:50%;
+  position:absolute; left:50%; top:46.7%; width:76%; aspect-ratio:1; border-radius:50%;
   border:1.5px dashed rgba(36,56,224,0.26);
   translate:-50% -50%;
   animation: wf-ring-spin 70s linear infinite;
@@ -293,9 +303,9 @@ p{ margin: 0; }
 
 .hero-waterfall .wf-item{
   position:absolute; left:var(--x); top:var(--y); z-index:1;
-  width:calc(var(--w) * 1%); max-width:calc(var(--w) * 7px);
+  width:var(--w);
   /* --px / --py (-1 to 1) are set on the stage by the pointer */
-  transform: translate(-50%,-50%) translate3d(calc(var(--px,0) * var(--d,1) * -16px), calc(var(--py,0) * var(--d,1) * -12px), 0);
+  transform: translate3d(calc(var(--px,0) * var(--d,1) * -14px), calc(var(--py,0) * var(--d,1) * -10px), 0);
   transition: transform .6s cubic-bezier(.2,.8,.2,1);
   user-select:none; -webkit-user-select:none;
 }
@@ -376,17 +386,23 @@ p{ margin: 0; }
     height: calc(360px + var(--space-8));
     margin-top: calc(var(--space-8) * -1);
   }
-  /* phones + tablets: own layout, centred, no wider than 520px */
-  .hero-waterfall .wf-stage{ inset:0 auto 0 50%; width:min(100%, 520px); translate:-50% 0; }
+  /* phones + tablets: 6 products, a slightly squarer stage */
+  .hero-waterfall .wf-stage{
+    width:min(100cqw, calc(100cqh * 100 / 90 * 0.92));
+    aspect-ratio: 100 / 90;
+  }
+  .hero-waterfall .wf-ring{ left:51%; top:57%; width:80%; }
   .hero-waterfall .wf-item{
-    left:var(--mx); top:var(--my);
-    width:calc(var(--mw) * 1%); max-width:calc(var(--mw) * 6px);
-    transform: translate(-50%,-50%);
+    left:var(--mx); top:var(--my); width:var(--mw);
   }
   .hero-waterfall .wf-desk-only{ display:none; }
   .hero-seal{ left:auto; right: var(--space-4); bottom: var(--space-4); width:92px; height:92px; transform: rotate(-8deg); }
   .hero h1{ font-size: clamp(1.3rem, 6vw, 2.6rem); }
   .hero-actions{ margin-bottom: var(--space-6); }
+}
+@media (min-width: 600px) and (max-width: 900px){
+  /* tablets: more room, so the products can be bigger */
+  .hero-waterfall{ height: calc(500px + var(--space-8)); }
 }
 @media (max-width: 560px){
   .hero-waterfall{ height: calc(300px + var(--space-8)); }

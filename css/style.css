@@ -3301,7 +3301,7 @@ body.bgr-open{ overflow:hidden; }
   background:#fff; color:#ee1a78; border-radius:50%; text-shadow:none;
   box-shadow:0 2px 6px rgba(120,0,50,.2); transition:transform .2s ease;
 }
-.btn.btn-design:hover .design-chevron{ transform:translateX(4px) scale(1.06); }
+.btn.btn-design:hover .design-chevron{ transform:translateY(-3px) scale(1.06); }
 .btn.btn-design .design-chevron path:first-child{ transition:d .2s ease; }
 @media (max-width:600px){ .btn.btn-design{ min-width:0; padding:8px 8px 8px 26px; font-size:1.02rem; } }
 @media (prefers-reduced-motion:reduce){ .btn.btn-design, .btn.btn-design .design-chevron{ transition:none; } }
@@ -3342,7 +3342,7 @@ body.bgr-open{ overflow:hidden; }
 
 /* ---------- "Explore Products" button: pill outline that pairs with "Design Now" ---------- */
 .hero-lime .hero-actions .btn.btn-explore{
-  border-radius:999px; border:2px solid var(--olive-ink); background:transparent; color:var(--olive-ink);
+  border-radius:999px; border:2px solid var(--olive-ink); background:#fff; color:var(--olive-ink);
   padding:8px 8px 8px 30px; gap:16px; justify-content:space-between; box-shadow:none;
   font-family:'Poppins','Inter',system-ui,sans-serif; font-weight:600; font-size:1.08rem; letter-spacing:.2px;
   transition:background .2s ease, color .2s ease, transform .18s ease;
@@ -3352,7 +3352,7 @@ body.bgr-open{ overflow:hidden; }
   background:var(--olive-ink); color:var(--paper-raised); transition:transform .2s ease, background .2s ease, color .2s ease;
 }
 .hero-lime .hero-actions .btn.btn-explore:hover{ background:var(--olive-ink); color:var(--paper-raised); transform:translateY(-2px); box-shadow:none; }
-.hero-lime .hero-actions .btn.btn-explore:hover .explore-arrow{ background:var(--paper-raised); color:var(--olive-ink); transform:translate(3px,-3px); }
+.hero-lime .hero-actions .btn.btn-explore:hover .explore-arrow{ background:var(--paper-raised); color:var(--olive-ink); transform:scale(1.08); }
 .hero-lime .hero-actions .btn.btn-explore:active{ transform:translateY(1px); box-shadow:none; }
 .hero-lime .hero-actions .btn.btn-explore:focus-visible{ outline:3px solid #14150F; outline-offset:3px; }
 @media (max-width:600px){ .hero-lime .hero-actions .btn.btn-explore{ padding:6px 6px 6px 24px; font-size:1.02rem; } }

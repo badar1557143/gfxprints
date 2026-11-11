@@ -17,7 +17,8 @@
    Colours: "@ink" is the main text colour (dark on light products, white on
    dark ones), "@soft" is a calmer second ink, and "@blue", "@brown", "@green" are
    accents that brighten on dark products. Any normal hex colour also works.
-   extras: bold:true, sp (letter spacing), angle, op (opacity), stroke, sw (outline width)
+   extras: bold:true, sp (letter spacing), angle, op (opacity), stroke, sw (outline width),
+           lh (line height, for text with several lines: put \n between the lines)
    ========================================================= */
 (function(){
   "use strict";
@@ -380,7 +381,11 @@
       const fill = toneColour(l.fill, dark);
       const rot = l.angle ? ` transform="rotate(${l.angle} ${l.x} ${l.y})"` : "";
       const st = l.stroke ? ` stroke="${esc(toneColour(l.stroke, dark))}" stroke-width="${l.sw || 1}" paint-order="stroke" stroke-linejoin="round"` : "";
-      return `<text x="${l.x}" y="${(l.y + l.size * TEXT_BASELINE).toFixed(2)}" text-anchor="middle" font-family="${esc(l.font)}" font-size="${l.size}" font-weight="${l.bold ? 700 : 400}" fill="${esc(fill)}"${l.sp ? ` letter-spacing="${(l.sp / 1000 * l.size).toFixed(2)}"` : ""}${st}${rot}>${esc(l.text)}</text>`;
+      // A text with line breaks ("\n") is one editable block in the studio, so draw each line here too
+      const lines = String(l.text).split("\n"), dy = l.size * (l.lh || 1.16) * 1.13;
+      const body = lines.length < 2 ? esc(l.text) :
+        lines.map((ln, i) => `<tspan x="${l.x}" y="${(l.y + (i - (lines.length - 1) / 2) * dy + l.size * TEXT_BASELINE).toFixed(2)}">${esc(ln)}</tspan>`).join("");
+      return `<text x="${l.x}" y="${(l.y + l.size * TEXT_BASELINE).toFixed(2)}" text-anchor="middle" font-family="${esc(l.font)}" font-size="${l.size}" font-weight="${l.bold ? 700 : 400}" fill="${esc(fill)}"${l.sp ? ` letter-spacing="${(l.sp / 1000 * l.size).toFixed(2)}"` : ""}${st}${rot}>${body}</text>`;
     }
     if (l.k === "r"){
       const rw = l.w, rh = l.w * l.ar;
@@ -486,6 +491,7 @@
           fontWeight: l.bold ? "bold" : "normal", fontStyle: "normal", textAlign: "center",
           charSpacing: l.sp || 0, angle: l.angle || 0, opacity: l.op || 1
         });
+        if (l.lh){ t.set({ lineHeight: l.lh }); }
         if (l.stroke){ t.set({ stroke: toneColour(l.stroke, dark), strokeWidth: (l.sw || 1) * k, paintFirst: "stroke", strokeLineJoin: "round" }); }
         return Promise.resolve(t);
       }

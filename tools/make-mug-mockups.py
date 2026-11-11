@@ -48,7 +48,11 @@ def main():
             for view, (pattern, spot) in VIEWS.items():
                 base = Image.open(os.path.join(P, pattern.format(c=c)))
                 out = place(base, art, spot)
-                out.save(os.path.join(P, "design-%s-mug-%s-%s.webp" % (key, c, view)), "WEBP", quality=80, method=6)
+                name = "design-%s-mug-%s-%s.webp" % (key, c, view)
+                out.save(os.path.join(P, name), "WEBP", quality=80, method=6)
+                # Small 480 x 600 copy for shop cards and thumbnails (gfxThumb() in js/products.js loads assets/products/sm/)
+                os.makedirs(os.path.join(P, "sm"), exist_ok=True)
+                out.resize((480, 600), Image.LANCZOS).save(os.path.join(P, "sm", name), "WEBP", quality=80, method=6)
                 n += 1
     print("wrote", n, "photos")
 

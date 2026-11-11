@@ -16,7 +16,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 P = os.path.join(ROOT, "assets", "products")
 ART = os.path.join(ROOT, "assets", "templates", "art")
 
-DESIGNS = {"umrah": "umrah-mubarak-watercolor", "hajj": "hajj-mubarak-kaaba-name"}
+DESIGNS = {"umrah": "umrah-mubarak-watercolor", "hajj": "hajj-mubarak-kaaba-name", "birthday": "pastel-birthday-photo-mug"}
 COLOURS = ["white", "red", "orange", "light-blue", "royal-blue", "pink", "purple", "light-green", "black"]
 # Photo file per view, then where the design sits on that photo (1000 x 1250 px photos):
 #   centre x of the visible mug body, the printed width, and the centre y.

@@ -374,7 +374,7 @@
     ] },
 
     /* ---- Birthday: photo mug wrap (every part is editable) ---- */
-    { id: "pastel-birthday-photo-mug", name: "Pastel Birthday Photo Mug", cat: "Birthday", desc: "Handwritten birthday wishes with a spot for your own photo and a short message.", tags: "birthday mug photo friend wish message pink hearts crown handwritten gift picture", products: [MUG], added: "2026-11-11", layers: [
+    { id: "pastel-birthday-photo-mug", name: "Pastel Birthday Photo Mug", cat: "Birthday", desc: "Handwritten birthday wishes with a spot for your own photo and a short message.", tags: "birthday mug photo friend wish message pink hearts crown handwritten gift picture", products: ALL, added: "2026-11-11", layers: [
       S(PHOTO_SPOT, 72.1, 46.5, 39.4, 100, 123),
       S(TAPE, 80.3, 22.4, 11.4, 100, 24, { angle: 8 }),
       S(LINE_HEART, 80.7, 22.3, 3.4, 100, 100),

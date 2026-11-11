@@ -560,27 +560,39 @@ const DESIGN_PRODUCTS = [
   { id: 103, baseId: 4, templateId: "umrah-mubarak-watercolor", key: "umrah", kind: "Photo Frame", name: "Umrah Mubarak Watercolor Photo Frame", image: "assets/products/design-umrah-frame.webp" },
   { id: 104, baseId: 2, templateId: "hajj-mubarak-kaaba-name",  key: "hajj",  kind: "Mug",        name: "Hajj Mubarak Mug with Name",          image: "assets/products/design-hajj-mug.webp", named: true },
   { id: 105, baseId: 6, templateId: "hajj-mubarak-kaaba-name",  key: "hajj",  kind: "Tote Bag",   name: "Hajj Mubarak Tote Bag with Name",     image: "assets/products/design-hajj-tote.webp", named: true },
-  { id: 106, baseId: 4, templateId: "hajj-mubarak-kaaba-name",  key: "hajj",  kind: "Photo Frame", name: "Hajj Mubarak Photo Frame with Name",  image: "assets/products/design-hajj-frame.webp", named: true }
+  { id: 106, baseId: 4, templateId: "hajj-mubarak-kaaba-name",  key: "hajj",  kind: "Photo Frame", name: "Hajj Mubarak Photo Frame with Name",  image: "assets/products/design-hajj-frame.webp", named: true },
+  // Texts for a design that is not Hajj or Umrah (the Hajj and Umrah wording is built in below)
+  { id: 107, baseId: 2, templateId: "pastel-birthday-photo-mug", key: "birthday", kind: "Mug", name: "Pastel Birthday Photo Mug", image: "assets/products/design-birthday-mug-white-left.webp",
+    info: {
+      label: "Birthday",
+      lead: "Handwritten birthday wishes with a pink crown and hearts, a spot for your own photo and a short message.",
+      description: "Handwritten birthday wishes with a pink crown and hearts, a spot for your own photo and a short message. A ready-made birthday gift mug. Add your own photo and change the wishes and the message in the Design Studio. Made on demand.",
+      tags: ["birthday", "photo mug", "friend", "wishes", "gift", "mug"],
+      metaDescription: "Handwritten birthday wishes with a spot for your own photo. Customize this birthday photo mug at GfxPrints, made on demand.",
+      targetKeyword: "Birthday photo mug",
+      keywords: "birthday photo mug, birthday gift mug, personalised birthday mug, photo mug Pakistan, birthday gift for friend"
+    } }
 ];
 
 DESIGN_PRODUCTS.forEach(d => {
   const base = PRODUCTS.find(x => x.id === d.baseId);
   if (!base) return;
+  const info = d.info || null;
   const isUmrah = d.key === "umrah";
-  const trip = isUmrah ? "Umrah" : "Hajj";
+  const trip = info ? info.label : (isUmrah ? "Umrah" : "Hajj");
   const what = d.kind.toLowerCase();
-  const lead = isUmrah
+  const lead = info ? info.lead : (isUmrah
     ? "A golden watercolor Kaaba, mosque skyline and hanging lanterns with Umrah Mubarak calligraphy."
-    : "The Kaaba and Hajj Mubarak calligraphy with “May Allah Accept”, and your own name in the middle.";
+    : "The Kaaba and Hajj Mubarak calligraphy with “May Allah Accept”, and your own name in the middle.");
   const nameLine = d.named ? " Change BABA to any name (Baba, Mama, Dada, Nani, a family name) in the Design Studio." : "";
-  const description = lead + " A ready-made " + trip + " Mubarak gift " + what + " you can order as it is or personalise." + nameLine + " Made on demand.";
+  const description = info ? info.description : lead + " A ready-made " + trip + " Mubarak gift " + what + " you can order as it is or personalise." + nameLine + " Made on demand.";
   const seoBase = Object.assign({}, base.seo || {});
   const product = Object.assign({}, base, {
     id: d.id,
     name: d.name,
     seoTitle: d.name + " | GfxPrints",
     description: description,
-    tags: [trip.toLowerCase(), "mubarak", "kaaba", "islamic", "gift", what].concat(base.tags || []),
+    tags: (info ? info.tags : [trip.toLowerCase(), "mubarak", "kaaba", "islamic", "gift", what]).concat(base.tags || []),
     image: d.image,
     heroImage: d.image,
     designProduct: true,
@@ -589,10 +601,10 @@ DESIGN_PRODUCTS.forEach(d => {
     seo: Object.assign(seoBase, {
       h1: d.name,
       metaTitle: d.name + " | GfxPrints",
-      metaDescription: lead + " Order this " + trip + " Mubarak " + what + " from GfxPrints, made on demand and personalisable.",
+      metaDescription: info ? info.metaDescription : lead + " Order this " + trip + " Mubarak " + what + " from GfxPrints, made on demand and personalisable.",
       breadcrumbName: d.name,
-      targetKeyword: trip + " Mubarak " + what,
-      keywords: trip + " mubarak gift, " + trip + " mubarak " + what + ", kaaba " + what + ", islamic gift Pakistan, personalised " + what,
+      targetKeyword: info ? info.targetKeyword : trip + " Mubarak " + what,
+      keywords: info ? info.keywords : trip + " mubarak gift, " + trip + " mubarak " + what + ", kaaba " + what + ", islamic gift Pakistan, personalised " + what,
       ogImage: d.image,
       imageAltBase: d.name,
       imageAlt: d.name

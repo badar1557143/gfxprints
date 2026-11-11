@@ -53,6 +53,29 @@
   const HEX = '<polygon points="50,4 91,27 91,73 50,96 9,73 9,27" fill="@blue"/>';
   const WAVE = '<path d="M2 8q8-8 16 0t16 0 16 0 16 0 16 0 16 0" fill="none" stroke="#C8643B" stroke-width="3" stroke-linecap="round"/>';
 
+  /* Pastel Birthday mug wrap: small drawings (pink hearts, crown, brush stroke, torn photo spot) */
+  const PINK = "#FF5FA2", PINK_SOFT = "#FFA3BF";
+  const HEART_D = "M50 90C20 68 6 50 6 33 6 20 16 10 29 10c9 0 17 5 21 13 4-8 12-13 21-13 13 0 23 10 23 23 0 17-14 35-44 57z";
+  const PINK_HEART = '<path d="' + HEART_D + '" fill="' + PINK + '" stroke="#15171b" stroke-width="7" stroke-linejoin="round"/>';
+  const LINE_HEART = '<path d="' + HEART_D + '" fill="none" stroke="@ink" stroke-width="8" stroke-linejoin="round"/>';
+  const PINK_CROWN = '<path d="M8 82L4 32l26 22L50 12l20 42 26-22-4 50z" fill="' + PINK_SOFT + '" stroke="#15171b" stroke-width="6" stroke-linejoin="round"/>' +
+    '<circle cx="4" cy="30" r="5" fill="' + PINK_SOFT + '" stroke="#15171b" stroke-width="4"/><circle cx="50" cy="12" r="5" fill="' + PINK_SOFT + '" stroke="#15171b" stroke-width="4"/><circle cx="96" cy="30" r="5" fill="' + PINK_SOFT + '" stroke="#15171b" stroke-width="4"/>';
+  const UNDERLINE = '<path d="M2 12q48-10 96-3" fill="none" stroke="@ink" stroke-width="3.2" stroke-linecap="round"/>';
+  const HEART_RULE = '<path d="M2 10h34M64 10h34" stroke="@ink" stroke-width="2.4" stroke-linecap="round" fill="none"/>' +
+    '<g transform="translate(40 0) scale(.2)"><path d="' + HEART_D + '" fill="' + PINK + '" stroke="#15171b" stroke-width="9" stroke-linejoin="round"/></g>';
+  const BRUSH = '<path d="M6 8L22 2l22 3 30-3 22 4 8 4-7 6 9 6-8 5 6 6-10 5 4 6-18 3-26-2-28 2-12-5 6-6-8-5 6-6-7-5z" fill="' + PINK_SOFT + '"/>';
+  const TAPE = '<path d="M2 6l8-3 10 3 12-3 14 3 12-3 12 3 8 3-3 12 4 9-8 4-12-3-12 3-14-3-12 3-10-3-8-3 3-11z" fill="' + PINK_SOFT + '"/>';
+  // Torn-edge photo spot. Light grey, so it never looks like part of the print. The customer puts their own photo on top.
+  const PHOTO_SPOT = (function(){
+    const w = 100, h = 123, n = 16, pts = [], r = (i) => ((i * 37) % 7) / 7 * 1.6;
+    for (let i = 0; i <= n; i++) pts.push((i * w / n).toFixed(1) + "," + (1 + r(i)).toFixed(1));
+    for (let i = 1; i <= n; i++) pts.push((w - 1 - r(i + 3)).toFixed(1) + "," + (i * h / n).toFixed(1));
+    for (let i = n - 1; i >= 0; i--) pts.push((i * w / n).toFixed(1) + "," + (h - 1 - r(i + 5)).toFixed(1));
+    for (let i = n - 1; i > 0; i--) pts.push((1 + r(i + 8)).toFixed(1) + "," + (i * h / n).toFixed(1));
+    return '<polygon points="' + pts.join(" ") + '" fill="#EEF1F6" stroke="#B9C2D0" stroke-width="1.4" stroke-dasharray="4 3"/>' +
+      '<g transform="translate(34 42) scale(.32)" fill="none" stroke="#8C97A8" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"><path d="M8 30h18l6-10h36l6 10h18v52H8z"/><circle cx="50" cy="56" r="16"/></g>';
+  })();
+
   /* ---- Product groups a design can be printed on (names match "category" in js/products.js) ---- */
   const TEE = "T-Shirts", HOOD = "Hoodies", TOTE = "Tote Bags", MUG = "Mugs", FRAME = "Photo Frames";
   const ALL = [TEE, HOOD, TOTE, MUG, FRAME];
@@ -348,6 +371,28 @@
     { id: "hajj-mubarak-kaaba-name", name: "Hajj Mubarak with Name", cat: "Islamic & Ramadan", desc: "Kaaba and Hajj Mubarak calligraphy with your own name. Tap BABA to change it.", tags: "hajj mubarak kaaba makkah mecca name baba mama dada gift pilgrimage arabic calligraphy islamic lantern may allah accept", products: LIGHT, added: "2026-11-05", layers: [
       R("assets/templates/hajj-mubarak-kaaba.webp", 50, 50, 100, 0.722, { thumb: "assets/templates/hajj-mubarak-kaaba-thumb.webp" }),
       T("BABA", 50.46, 65.26, 12.5, F.mont, "@ink", { bold: true, sp: 30 })
+    ] },
+
+    /* ---- Birthday: photo mug wrap (every part is editable) ---- */
+    { id: "pastel-birthday-photo-mug", name: "Pastel Birthday Photo Mug", cat: "Birthday", desc: "Handwritten birthday wishes with a spot for your own photo and a short message.", tags: "birthday mug photo friend wish message pink hearts crown handwritten gift picture", products: [MUG], added: "2026-11-11", layers: [
+      S(PHOTO_SPOT, 72.1, 46.5, 39.4, 100, 123),
+      S(TAPE, 80.3, 22.4, 11.4, 100, 24, { angle: 8 }),
+      S(LINE_HEART, 80.7, 22.3, 3.4, 100, 100),
+      S(PINK_HEART, 87.9, 30.3, 4.4, 100, 100, { angle: 8 }),
+      S(PINK_HEART, 90.4, 34.8, 3.2, 100, 100, { angle: 10 }),
+      T("To my amazing friend", 71.9, 74.4, 4, F.caveat, "@ink", { bold: true }),
+      S(HEART_RULE, 72.5, 78.8, 31, 100, 20),
+      S(PINK_CROWN, 25.1, 21.6, 8, 100, 100),
+      S(PINK_HEART, 10.3, 29.2, 3.4, 100, 100, { angle: -12 }),
+      S(PINK_HEART, 44.8, 27.2, 3.8, 100, 100, { angle: 12 }),
+      T("Happy", 27.3, 28.2, 9.5, F.marker, "@ink"),
+      T("Birthday", 29.6, 37.6, 8.6, F.marker, "@ink"),
+      S(UNDERLINE, 28.6, 42, 14.5, 100, 20),
+      T("May your life be\nfilled with happiness,\nsuccess, love and\nall the beautiful\nthings you deserve!", 28.4, 54.7, 3.8, F.caveat, "@ink", { bold: true, lh: 0.92 }),
+      S(HEART_RULE, 28.7, 66, 23, 100, 20),
+      S(BRUSH, 29.6, 74.3, 35.2, 100, 33),
+      T("Stay Happy\nAlways", 28.2, 74.6, 4.6, F.caveat, "#15171b", { bold: true, lh: 0.94 }),
+      S(LINE_HEART, 39.9, 77.3, 4.6, 100, 100, { op: 1 })
     ] }
   ];
 

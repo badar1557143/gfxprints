@@ -1,0 +1,909 @@
+/* =========================================================
+   GfxPrints - Shared site behavior
+   Loaded on every page. Handles navigation, cart badge,
+   wishlist, toast notifications, and homepage rendering.
+   ========================================================= */
+
+/* ---------- Storage helpers (shared with cart.js / product.js) ---------- */
+// Delivery charges (Pakistan). One place for the product page breakdown, cart and checkout.
+const SHIPPING_STANDARD = 250;
+const SHIPPING_EXPRESS = 650;
+const STORAGE_CART = "gfxprints_cart";
+const STORAGE_WISHLIST = "gfxprints_wishlist";
+
+/* ---------- WhatsApp ----------
+   One number powers the floating chat bubble (every page) plus the "Buy on
+   WhatsApp" (product.html) and "Checkout on WhatsApp" (checkout.html) buttons.
+   Replace with your real WhatsApp Business number: country code + number,
+   digits only - no "+", spaces, or leading zero (e.g. Pakistan 03xx-xxxxxxx
+   becomes "923xxxxxxxxx"). */
+const WHATSAPP_NUMBER = "923222920135";
+
+/* Online order saving (Google Drive + Google Sheets, via Apps Script).
+   After you deploy google-apps-script/Code.gs (see SETUP-GUIDE.md), paste the web app URL
+   (ends in /exec) and the ORDER_TOKEN that setup() / rotateToken() printed. While ORDER_ENDPOINT is
+   empty the site keeps using the old WhatsApp-only flow.
+   NOTE: everything in this file is public. The token only deters casual misuse; the real limits
+   (file types, sizes, rate limits) are enforced inside google-apps-script/Code.gs. */
+const ORDER_ENDPOINT = "https://script.google.com/macros/s/AKfycbwSUtr-YGMstMn1DwH4LW2ECTTjxXU-D-WK-IaV9d5GIhqE3nJu5isurFbtaU3tQ8S-/exec";
+const ORDER_TOKEN = "dc632a937df842dbb5d2dc56b7bdabcc";
+
+/* Easypaisa / JazzCash manual payment.
+   Put your real wallet account numbers and account names here. The customer sends the money
+   from their own wallet app, then types the Transaction ID (TID) at checkout. While BOTH
+   numbers are empty the option stays hidden on the checkout page. Leave one empty to show
+   only the other wallet. */
+const WALLET_ACCOUNTS = {
+  easypaisa: { number: "03181557143", name: "MUHAMMAD BADAR UL ISLAM" },
+  jazzcash:  { number: "03222920135", name: "MUHAMMAD BADAR UL ISLAM" }
+};
+
+function whatsappLink(message){
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+}
+
+
+/* ---------- Search and share tags ----------
+   Adds the canonical link and share-preview tags that a page does not already declare, built from
+   the live address so they stay correct on any domain (GitHub Pages, custom domain). product.js
+   later replaces them with product-specific values. */
+function initSeoTags(){
+  const head = document.head;
+  const abs = (u) => { try { return new URL(u, window.location.href).href; } catch (e) { return u; } };
+  const pageUrl = window.location.origin + window.location.pathname + (window.location.pathname.endsWith("product.html") ? window.location.search : "");
+  let canon = document.querySelector('link[rel="canonical"]');
+  if (!canon){ canon = document.createElement("link"); canon.rel = "canonical"; head.appendChild(canon); }
+  if (!/^https?:/.test(canon.getAttribute("href") || "")) canon.setAttribute("href", pageUrl);
+  const ensure = (attr, key, value) => {
+    let m = head.querySelector(`meta[${attr}="${key}"]`);
+    if (!m){ m = document.createElement("meta"); m.setAttribute(attr, key); m.setAttribute("content", /image$/.test(key) ? abs(value) : value); head.appendChild(m); }
+    else if (key === "og:image" || key === "twitter:image"){ m.setAttribute("content", abs(m.getAttribute("content"))); }
+  };
+  const title = document.title;
+  const descEl = head.querySelector('meta[name="description"]');
+  const desc = descEl ? descEl.getAttribute("content") : "";
+  ensure("property", "og:site_name", "GfxPrints");
+  ensure("property", "og:type", "website");
+  ensure("property", "og:title", title);
+  if (desc) ensure("property", "og:description", desc);
+  ensure("property", "og:url", pageUrl);
+  ensure("property", "og:image", "assets/brand/icon-512.png");
+  ensure("name", "twitter:card", "summary_large_image");
+  ensure("name", "twitter:title", title);
+  if (desc) ensure("name", "twitter:description", desc);
+  ensure("name", "twitter:image", "assets/brand/icon-512.png");
+}
+
+// Floating chat bubble, added to every page that loads main.js.
+function initWhatsAppFloat(){
+  if (document.getElementById("whatsapp-float")) return;
+  if (/checkout\.html$/.test(window.location.pathname)) document.body.classList.add("checkout-page");
+  const a = document.createElement("a");
+  a.id = "whatsapp-float";
+  a.className = "whatsapp-float";
+  a.target = "_blank";
+  a.rel = "noopener";
+  a.setAttribute("aria-label", "Chat with us on WhatsApp");
+  a.title = "Chat with us on WhatsApp";
+  a.href = whatsappLink("Hi GfxPrints! I have a question.");
+  a.innerHTML = `<svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.29-1.39a9.9 9.9 0 0 0 4.75 1.21h.01c5.46 0 9.9-4.45 9.9-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 1.67c2.19 0 4.25.85 5.8 2.4a8.2 8.2 0 0 1 2.42 5.84c0 4.55-3.71 8.25-8.25 8.25a8.24 8.24 0 0 1-4.2-1.15l-.3-.18-3.14.82.84-3.06-.2-.32a8.18 8.18 0 0 1-1.26-4.37c0-4.55 3.71-8.23 8.29-8.23zm-4.55 4.74c-.16 0-.42.06-.64.3-.22.24-.85.83-.85 2.03 0 1.2.87 2.35.99 2.51.12.16 1.7 2.7 4.19 3.68 2.07.82 2.49.66 2.94.62.45-.04 1.45-.59 1.65-1.16.2-.57.2-1.06.14-1.16-.06-.1-.22-.16-.46-.28-.24-.12-1.45-.71-1.67-.79-.22-.08-.39-.12-.55.12-.16.24-.63.79-.77.95-.14.16-.28.18-.52.06-.24-.12-1.02-.38-1.94-1.2-.72-.64-1.2-1.43-1.34-1.67-.14-.24-.01-.37.11-.49.11-.11.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.55-1.34-.76-1.83-.2-.48-.4-.42-.55-.42h-.35z"/></svg>`;
+  document.body.appendChild(a);
+}
+
+/* ---------- Visitor counter ----------
+   A real count, kept by a free hosted counter (counterapi.dev). Each browser
+   session adds one visit; every page then shows the running total in the
+   footer. If the counter can't be reached, nothing is shown (never a made-up
+   number). To start a fresh count, change `namespace` to anything unique. */
+const VISITOR_COUNTER = {
+  enabled: true,
+  api: "https://api.counterapi.dev/v1",
+  namespace: "gfxprints-site-k7q2m9",
+  key: "visits"
+};
+
+async function initVisitorCounter(){
+  if (!VISITOR_COUNTER.enabled) return;
+  const bar = document.querySelector(".footer-bottom");
+  if (!bar) return;
+  const SEEN = "gfxprints_visit_counted";
+  let counted = false;
+  try { counted = sessionStorage.getItem(SEEN) === "1"; } catch (e){}
+  const base = `${VISITOR_COUNTER.api}/${VISITOR_COUNTER.namespace}/${VISITOR_COUNTER.key}`;
+  try {
+    const res = await fetch(counted ? base : base + "/up");
+    if (!res.ok) throw new Error("counter unavailable");
+    const data = await res.json();
+    const n = Number(data.count != null ? data.count : data.value);
+    if (!isFinite(n) || n < 0) throw new Error("bad counter value");
+    try { sessionStorage.setItem(SEEN, "1"); } catch (e){}
+    const el = document.createElement("span");
+    el.className = "visitor-count";
+    el.textContent = `${n.toLocaleString("en-US")} visits`;
+    el.title = "Total visits to this website";
+    const first = bar.querySelector("span");
+    if (first) first.insertAdjacentElement("afterend", el); else bar.prepend(el);
+  } catch (e){ /* offline or blocked: show nothing */ }
+}
+
+/* ---------- Design (print) files: PNG, kept in IndexedDB ----------
+   The 300 DPI print files are too big for localStorage (about 5 MB), so the cart keeps only a small
+   record { id, label, key, mime } and the PNG itself lives in IndexedDB (Blob, no base64 bloat). */
+const GfxFiles = (() => {
+  const mem = new Map();
+  let dbp = null;
+  const db = () => dbp || (dbp = new Promise((res, rej) => {
+    try {
+      const r = indexedDB.open("gfxprints-files", 1);
+      r.onupgradeneeded = () => r.result.createObjectStore("f");
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => rej(r.error);
+    } catch (e){ rej(e); }
+  }));
+  const tx = (mode, fn) => db().then(d => new Promise((res, rej) => {
+    const t = d.transaction("f", mode), req = fn(t.objectStore("f"));
+    t.oncomplete = () => res(req ? req.result : undefined);
+    t.onerror = t.onabort = () => rej(t.error);
+  }));
+  return {
+    async put(key, blob){ mem.set(key, blob); try { await tx("readwrite", s => s.put(blob, key)); return true; } catch (e){ return false; } },
+    async get(key){ if (mem.has(key)) return mem.get(key); try { return (await tx("readonly", s => s.get(key))) || null; } catch (e){ return null; } },
+    async clear(){ mem.clear(); try { await tx("readwrite", s => s.clear()); } catch (e){} }
+  };
+})();
+window.GfxFiles = GfxFiles;
+
+function dataUrlToBlob(dataUrl){
+  const m = /^data:([^;,]+)?(;base64)?,(.*)$/s.exec(dataUrl || "");
+  if (!m) return null;
+  const bin = m[2] ? atob(m[3]) : decodeURIComponent(m[3]), bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new Blob([bytes], { type: m[1] || "image/png" });
+}
+function blobToDataUrl(blob){
+  return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error); r.readAsDataURL(blob); });
+}
+// Puts the real file (Blob) on every design-file record of these cart items: file.blob
+async function hydrateDesignFiles(cart){
+  for (const item of (cart || [])){
+    for (const f of (item.designFiles || [])){
+      if (f.blob) continue;
+      if (f.key) f.blob = await GfxFiles.get(f.key);
+      else if (f.dataUrl) f.blob = dataUrlToBlob(f.dataUrl);
+    }
+  }
+}
+function designFileExt(file){
+  const t = (file && (file.blob && file.blob.type || file.mime)) || (/^data:image\/jpe?g/i.test(file && file.dataUrl || "") ? "image/jpeg" : "image/png");
+  return /jpe?g/i.test(t) ? "jpg" : "png";
+}
+
+/* ---------- Design file downloads ---------- */
+// href: a data URL string or a Blob (Blob is safest for big files).
+function triggerFileDownload(href, filename){
+  const isBlob = typeof Blob !== "undefined" && href instanceof Blob;
+  const url = isBlob ? URL.createObjectURL(href) : href;
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  if (isBlob) setTimeout(() => URL.revokeObjectURL(url), 15000);
+}
+
+// Downloads one cart design file (needs file.blob, see hydrateDesignFiles).
+function downloadDesignFile(file, filenameBase){
+  if (!file || !file.blob){
+    showToast("This design file is no longer on this device. Please create the design again.");
+    return;
+  }
+  triggerFileDownload(file.blob, `${filenameBase}.${designFileExt(file)}`);
+}
+
+function getCart(){
+  try{ return JSON.parse(localStorage.getItem(STORAGE_CART)) || []; }
+  catch(e){ return []; }
+}
+function saveCart(cart){
+  try {
+    localStorage.setItem(STORAGE_CART, JSON.stringify(cart));
+  } catch (err){
+    // Storage full (two-sided designs carry big images). The print files live in IndexedDB,
+    // so drop the heavy copies first: design JSON, then the mockup thumbnails.
+    const slim = cart.map(it => Object.assign({}, it, { customDesign: it.customDesign ? { saved: true } : null }));
+    try {
+      localStorage.setItem(STORAGE_CART, JSON.stringify(slim));
+    } catch (err2){
+      const slimmer = slim.map(it => Object.assign({}, it, { designPreview: null }));
+      try {
+        localStorage.setItem(STORAGE_CART, JSON.stringify(slimmer));
+      } catch (err3){
+        if (typeof showToast === "function") showToast("Could not save your cart. Please clear some browser storage and try again");
+      }
+    }
+  }
+  updateCartBadge();
+}
+function cartCount(){
+  return getCart().reduce((sum, item) => sum + item.qty, 0);
+}
+function addToCart(item){
+  const cart = getCart();
+  // Combine identical variant + product
+  const existing = cart.find(c =>
+    c.id === item.id && c.color === item.color && c.size === item.size && (c.packaging || null) === (item.packaging || null) && (c.orientation || null) === (item.orientation || null) &&
+    JSON.stringify(c.customDesign || null) === JSON.stringify(item.customDesign || null) &&
+    (c.designHelp === true) === (item.designHelp === true)
+  );
+  if (existing){ existing.qty += item.qty; }
+  else { cart.push(item); }
+  saveCart(cart);
+}
+
+function getWishlist(){
+  try{ return JSON.parse(localStorage.getItem(STORAGE_WISHLIST)) || []; }
+  catch(e){ return []; }
+}
+function toggleWishlist(id){
+  let list = getWishlist();
+  if (list.includes(id)) list = list.filter(x => x !== id);
+  else list.push(id);
+  localStorage.setItem(STORAGE_WISHLIST, JSON.stringify(list));
+  return list.includes(id);
+}
+
+function updateCartBadge(){
+  document.querySelectorAll(".js-cart-count").forEach(el => {
+    const count = cartCount();
+    el.textContent = count;
+    el.style.display = count > 0 ? "flex" : "none";
+  });
+}
+
+/* ---------- Toast ---------- */
+let toastTimer = null;
+function showToast(message){
+  let toast = document.getElementById("toast");
+  if (!toast){
+    toast = document.createElement("div");
+    toast.id = "toast";
+    toast.setAttribute("role", "status");
+    toast.setAttribute("aria-live", "polite");
+    toast.innerHTML = '<span class="toast-msg"></span>' +
+      '<button type="button" class="toast-close" aria-label="Close message">' +
+      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>' +
+      '</button>';
+    document.body.appendChild(toast);
+    toast.querySelector(".toast-close").addEventListener("click", () => {
+      clearTimeout(toastTimer);
+      toast.classList.remove("show");
+    });
+  }
+  toast.querySelector(".toast-msg").textContent = message;
+  toast.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove("show"), 4000);
+}
+
+/* ---------- Mobile nav ---------- */
+function initMobileNav(){
+  const btn = document.getElementById("hamburger");
+  const nav = document.getElementById("mobile-nav");
+  if (!btn || !nav) return;
+  btn.addEventListener("click", () => {
+    const isOpen = nav.classList.toggle("open");
+    btn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+  });
+  const close = () => {
+    nav.classList.remove("open");
+    btn.setAttribute("aria-expanded", "false");
+  };
+
+  nav.querySelectorAll("a").forEach(a => a.addEventListener("click", close));
+
+  // Rotating a phone or widening the window shouldn't leave the drawer
+  // half-open behind the desktop nav.
+  let last = window.innerWidth;
+  window.addEventListener("resize", () => {
+    if (window.innerWidth !== last){
+      last = window.innerWidth;
+      if (window.innerWidth > 900) close();
+    }
+  });
+
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && nav.classList.contains("open")){ close(); btn.focus(); }
+  });
+}
+
+/* ---------- Reveal-on-scroll (shared observer, safe to call after any re-render) ---------- */
+let revealObserver = null;
+function getRevealObserver(){
+  if (revealObserver || !("IntersectionObserver" in window)) return revealObserver;
+  revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting){
+        entry.target.classList.add("visible");
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  return revealObserver;
+}
+// Call after any innerHTML update that introduces new .reveal elements -
+// initial page load AND every dynamic re-render (shop filters/sort/search).
+function observeReveal(root){
+  const scope = root || document;
+  const items = scope.querySelectorAll(".reveal:not(.visible)");
+  if (items.length === 0) return;
+  const io = getRevealObserver();
+  if (!io){
+    items.forEach(el => el.classList.add("visible"));
+    return;
+  }
+  items.forEach(el => io.observe(el));
+}
+function initReveal(){
+  observeReveal(document);
+}
+
+/* ---------- Product card builder (shared by home + shop) ---------- */
+function productCardHTML(p){
+  const isWishlisted = getWishlist().includes(p.id);
+  // Card price, shown on a small price tag: the lowest price (cheapest option + 1 printed side) and, when the price
+  // depends on the options, the highest (dearest option + every print side). Delivery is shown on the product page and at checkout.
+  const base = typeof getPriceRange === "function" ? getPriceRange(p) : null;
+  let tagLabel = "Price", tagAmt, noteHTML = "";
+  if (base){
+    const one = getOneSidePrintPrice(p);
+    const lo = base.min + one;
+    const hi = base.max + getAllSidesPrintPrice(p);
+    tagAmt = formatPrice(lo);
+    if (hi > lo){
+      tagLabel = "From";
+      noteHTML = `<span>${one > 0 ? "1 printed side included" : "Printing included"}</span><span>Up to ${formatPrice(hi)} with all options</span>`;
+    } else {
+      noteHTML = `<span>${one > 0 ? "1 printed side included" : "Printing included"}</span>`;
+    }
+  } else {
+    tagAmt = formatPrice(p.price);
+    if (p.oldPrice) noteHTML = `<span>Was <s>${formatPrice(p.oldPrice)}</s></span>`;
+  }
+  const ctaHTML = p.customizable === false
+    ? `<a href="product.html?id=${p.id}" class="btn btn-outline btn-sm pc2-cta">View</a>`
+    : `<a href="${customizeURL(p.id)}" target="_blank" rel="noopener" class="btn btn-design btn-design-sm btn-design-noarrow pc2-cta">${PRODUCT_TYPES[p.productType].cta}</a>`;
+  return `
+    <article class="product-card pc2 reveal">
+      <div class="pc2-media">
+        <a class="pc2-photo" href="product.html?id=${p.id}" aria-label="View ${p.name}">
+          <img src="${gfxThumb(p.image)}" alt="${p.name}" loading="lazy" decoding="async" width="400" height="400">
+        </a>
+        <span class="pc2-kind pc2-kind-${p.productType}">${PRODUCT_TYPES[p.productType].short}</span>
+        <button class="pc-wishlist ${isWishlisted ? "active" : ""}" data-id="${p.id}" aria-label="Add to wishlist" aria-pressed="${isWishlisted}">
+          <svg viewBox="0 0 24 24" fill="${isWishlisted ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2"><path d="M12 21s-7.5-4.6-10-9.3C.4 8 2 4.5 5.6 4.1c2-.2 3.7.8 4.9 2.4C11.7 4.9 13.4 3.9 15.4 4.1 19 4.5 20.6 8 20 11.7 17.5 16.4 12 21 12 21z"/></svg>
+        </button>
+        <p class="pc2-tag"><span class="pc2-tag-label">${tagLabel}</span><span class="pc2-tag-amt">${tagAmt}</span></p>
+      </div>
+      <div class="pc2-body">
+        <span class="pc-cat">${p.category}</span>
+        <h3 class="pc-name"><a href="product.html?id=${p.id}">${p.name}</a></h3>
+        ${p.rating == null ? "" : `<div class="pc-rating"><span class="stars">${starString(p.rating)}</span> ${p.rating} (${p.reviews})</div>`}
+        ${noteHTML ? `<p class="pc2-note">${noteHTML}</p>` : ""}
+        ${ctaHTML}
+      </div>
+    </article>`;
+}
+
+function bindWishlistButtons(container){
+  container.querySelectorAll(".pc-wishlist").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      const id = Number(btn.dataset.id);
+      const active = toggleWishlist(id);
+      btn.classList.toggle("active", active);
+      btn.setAttribute("aria-pressed", active);
+      btn.querySelector("svg").setAttribute("fill", active ? "currentColor" : "none");
+      showToast(active ? "Added to wishlist" : "Removed from wishlist");
+    });
+  });
+}
+
+/* Category rail: prev/next arrows + mouse drag-to-scroll (touch already swipes natively) */
+function initCategoryRail(rail){
+  const prev = document.getElementById("cat-prev");
+  const next = document.getElementById("cat-next");
+  const update = () => {
+    const max = rail.scrollWidth - rail.clientWidth;
+    const overflow = max > 4;
+    if (prev) prev.hidden = !overflow || rail.scrollLeft <= 4;
+    if (next) next.hidden = !overflow || rail.scrollLeft >= max - 4;
+  };
+  const step = () => Math.max(rail.clientWidth * 0.8, 160);
+  if (prev) prev.addEventListener("click", () => rail.scrollBy({ left: -step(), behavior: "smooth" }));
+  if (next) next.addEventListener("click", () => rail.scrollBy({ left: step(), behavior: "smooth" }));
+  rail.addEventListener("scroll", update, { passive: true });
+  window.addEventListener("resize", update);
+  rail.querySelectorAll("img").forEach(img => img.addEventListener("load", update));
+
+  // Mouse drag
+  let down = false, moved = false, startX = 0, startLeft = 0;
+  rail.addEventListener("mousedown", e => {
+    if (e.button !== 0) return;
+    down = true; moved = false; startX = e.pageX; startLeft = rail.scrollLeft;
+  });
+  window.addEventListener("mousemove", e => {
+    if (!down) return;
+    const dx = e.pageX - startX;
+    if (!moved && Math.abs(dx) > 5){ moved = true; rail.classList.add("is-dragging"); }
+    if (moved){ rail.scrollLeft = startLeft - dx; e.preventDefault(); }
+  });
+  window.addEventListener("mouseup", () => {
+    if (!down) return;
+    down = false;
+    if (moved) setTimeout(() => rail.classList.remove("is-dragging"), 0);
+  });
+  rail.addEventListener("dragstart", e => e.preventDefault());
+  rail.addEventListener("click", e => { if (moved){ e.preventDefault(); e.stopPropagation(); moved = false; } }, true);
+  update();
+}
+
+/* ---------- Homepage: category shortcuts, trending, just for you, testimonials ---------- */
+function renderHomepage(){
+  // Category shortcuts - small circular icons, one tap to a filtered shop view
+  const catCircles = document.getElementById("category-circles");
+  if (catCircles){
+    catCircles.innerHTML = CATEGORIES.map(c => `
+      <a href="shop.html?category=${encodeURIComponent(c.name)}" class="cat-circle" role="listitem">
+        <span class="cat-circle-img">
+          <img src="${gfxThumb(c.image)}" alt="" loading="lazy" decoding="async" width="140" height="140">
+        </span>
+        <span>${c.name}</span>
+      </a>`).join("");
+    initCategoryRail(catCircles);
+  }
+
+  // Trending Now - the top category families, shown with a "searched for"
+  // signal (derived from combined product review counts as a stand-in
+  // for real search analytics)
+  const trendRow = document.getElementById("trending-row");
+  if (trendRow){
+    const byCategory = CATEGORIES.map(c => {
+      const inCat = PRODUCTS.filter(p => p.category === c.name);
+      return { ...c, image: inCat[0] ? inCat[0].image : c.image };
+    }).filter(c => PRODUCTS.some(p => p.category === c.name)).slice(0, 3);
+
+    trendRow.innerHTML = byCategory.map(c => `
+      <a href="shop.html?category=${encodeURIComponent(c.name)}" class="trend-card reveal">
+        <div class="trend-media"><img src="${gfxThumb(c.image)}" alt="${c.name}" loading="lazy" decoding="async" width="400" height="400"></div>
+        <h3>${c.name}</h3>
+        <p>Browse ${c.name}</p>
+      </a>`).join("");
+  }
+
+  // Main products: the customer uploads their own design
+  const upGrid = document.getElementById("upload-grid");
+  if (upGrid){
+    upGrid.innerHTML = getProductsByType("upload").map(productCardHTML).join("");
+    bindWishlistButtons(upGrid);
+    observeReveal(upGrid);
+  }
+
+  // Ready-made design products, with category chips (only categories that have designs)
+  const dsGrid = document.getElementById("design-grid");
+  const dsChips = document.getElementById("design-cats");
+  if (dsGrid){
+    const designs = getProductsByType("design");
+    const cats = [...new Set(designs.map(p => p.category))];
+    let active = "";
+    const draw = () => {
+      const list = active ? designs.filter(p => p.category === active) : designs;
+      dsGrid.innerHTML = list.map(productCardHTML).join("");
+      bindWishlistButtons(dsGrid);
+      observeReveal(dsGrid);
+      if (dsChips) dsChips.querySelectorAll(".cat-pill").forEach(b => {
+        const on = (b.dataset.cat || "") === active;
+        b.classList.toggle("active", on); b.setAttribute("aria-pressed", on);
+      });
+      const more = document.getElementById("design-more");
+      if (more) more.href = "shop.html?type=design" + (active ? "&category=" + encodeURIComponent(active) : "");
+    };
+    if (dsChips){
+      dsChips.innerHTML = ["", ...cats].map(c =>
+        `<button type="button" class="cat-pill" data-cat="${c}" aria-pressed="false">${c || "All"}<span class="cat-pill-n">${c ? designs.filter(p => p.category === c).length : designs.length}</span></button>`).join("");
+      dsChips.addEventListener("click", (e) => {
+        const b = e.target.closest(".cat-pill"); if (!b) return;
+        active = b.dataset.cat || ""; draw();
+      });
+    }
+    draw();
+  }
+
+  const testiGrid = document.getElementById("testimonial-grid");
+  if (testiGrid){
+    testiGrid.innerHTML = TESTIMONIALS.map(t => `
+      <div class="testi-card reveal">
+        <div class="testi-stars">${"★".repeat(t.rating)}</div>
+        <p>"${t.text}"</p>
+        <div class="testi-name">${t.name}</div>
+      </div>`).join("");
+  }
+}
+
+/* ---------- Shop page: filter, search, sort ---------- */
+const shopState = { category: null, maxPrice: 5000, sort: "featured", query: "", type: "" };
+const DEFAULT_MAX_PRICE = 5000;
+// Populated by initShopPage; lets renderShop()'s empty-state reset button
+// re-sync the filter controls without threading DOM refs between functions.
+let shopSyncControls = null;
+
+let shopRenderCategoryBar = null;
+function initShopPage(){
+  const grid = document.getElementById("shop-grid");
+  if (!grid) return;
+
+  const urlCategory = getURLParam("category");
+  if (urlCategory) shopState.category = urlCategory;
+  const urlType = getURLParam("type");
+  if (urlType && PRODUCT_TYPES[urlType]) shopState.type = urlType;
+
+  const priceRange = document.getElementById("price-range");
+  const priceLabel = document.getElementById("price-range-label");
+  const searchInput = document.getElementById("shop-search");
+  if (searchInput && location.hash === "#shop-search") setTimeout(() => searchInput.focus(), 60);
+  const catWrap = document.getElementById("category-filters");
+  // "Gifts" is a catch-all category: it lists every product in the shop.
+  // Categories follow the chosen product type (a type only lists the categories it has products in)
+  const typeProducts = () => shopState.type ? getProductsByType(shopState.type) : PRODUCTS;
+  let cats = [...new Set(typeProducts().map(p => p.category)), "Gifts"];
+  function refreshCats(){
+    cats = [...new Set(typeProducts().map(p => p.category)), "Gifts"];
+    if (shopState.category){
+      const keep = (Array.isArray(shopState.category) ? shopState.category : [shopState.category]).filter(c => cats.includes(c));
+      shopState.category = keep.length ? keep : null;
+    }
+  }
+  refreshCats();
+
+  // Product type switch: All / Upload Your Design / Ready-Made Designs
+  const typeBar = document.getElementById("type-bar");
+  function renderTypeBar(){
+    if (!typeBar) return;
+    const items = [["", "All Products", PRODUCTS.length], ["upload", PRODUCT_TYPES.upload.label, getProductsByType("upload").length], ["design", PRODUCT_TYPES.design.label, getProductsByType("design").length]];
+    typeBar.innerHTML = items.map(([v, label, n]) =>
+      `<button type="button" class="type-tab${shopState.type === v ? " active" : ""}" data-type="${v}" aria-pressed="${shopState.type === v}">${label}<span class="type-tab-n">${n}</span></button>`).join("");
+    const note = document.getElementById("type-note");
+    if (note) note.textContent = shopState.type ? PRODUCT_TYPES[shopState.type].blurb : "";
+  }
+  if (typeBar){
+    typeBar.addEventListener("click", (e) => {
+      const b = e.target.closest(".type-tab"); if (!b) return;
+      shopState.type = b.dataset.type;
+      refreshCats();
+      try { const u = new URL(location.href); shopState.type ? u.searchParams.set("type", shopState.type) : u.searchParams.delete("type"); history.replaceState(null, "", u.pathname.split("/").pop() + u.search + u.hash); } catch (err){}
+      renderTypeBar(); renderCategoryCheckboxes(); renderCategoryBar(); renderShop();
+    });
+  }
+
+  function renderCategoryCheckboxes(){
+    if (!catWrap) return; // sidebar removed - category pills handle this
+    const active = shopState.category
+      ? (Array.isArray(shopState.category) ? shopState.category : [shopState.category])
+      : [];
+    catWrap.innerHTML = cats.map(c => {
+      const count = c === "Gifts" ? PRODUCTS.length : PRODUCTS.filter(p => p.category === c).length;
+      return `
+      <label class="filter-check">
+        <input type="checkbox" value="${c}" ${active.includes(c) ? "checked" : ""}>
+        <span>${c}</span>
+        <span class="filter-check-count">${count}</span>
+      </label>`;
+    }).join("");
+    catWrap.querySelectorAll("input").forEach(cb => {
+      cb.addEventListener("change", () => {
+        const checked = [...catWrap.querySelectorAll("input:checked")].map(c => c.value);
+        shopState.category = checked.length ? checked : null;
+        renderShop();
+      });
+    });
+  }
+  renderCategoryCheckboxes();
+
+  // Horizontal, swipeable category bar (All + one pill per category).
+  const catBar = document.getElementById("cat-bar");
+  function renderCategoryBar(){
+    if (!catBar) return;
+    const keepScroll = catBar.dataset.ready ? catBar.scrollLeft : null; // multi-select: don't jump on re-render
+    const active = shopState.category
+      ? (Array.isArray(shopState.category) ? shopState.category : [shopState.category])
+      : [];
+    const items = ["All", ...cats];
+    catBar.innerHTML = items.map(c => {
+      const isAll = c === "All";
+      const on = isAll ? active.length === 0 : active.includes(c);
+      return `<button type="button" class="cat-pill${on ? " active" : ""}" data-cat="${isAll ? "" : c}" aria-pressed="${on}">${c}</button>`;
+    }).join("");
+    catBar.dataset.ready = "1";
+    if (keepScroll !== null){ catBar.scrollLeft = keepScroll; return; }
+    const on = catBar.querySelector(".cat-pill.active");
+    if (on && catBar.scrollWidth > catBar.clientWidth){
+      const left = on.offsetLeft - (catBar.clientWidth - on.offsetWidth) / 2;
+      catBar.scrollTo({ left: Math.max(0, left) });
+    }
+  }
+  if (catBar){
+    catBar.addEventListener("click", (e) => {
+      const pill = e.target.closest(".cat-pill");
+      if (!pill) return;
+      const picked = pill.dataset.cat;
+      if (!picked){
+        shopState.category = null; // "All" clears the selection
+      } else {
+        // Toggle: click to add a category, click again to remove it
+        const cur = shopState.category
+          ? (Array.isArray(shopState.category) ? shopState.category : [shopState.category])
+          : [];
+        const next = cur.includes(picked) ? cur.filter(c => c !== picked) : [...cur, picked];
+        shopState.category = next.length ? next : null;
+      }
+      renderCategoryBar();
+      renderCategoryCheckboxes();
+      renderShop();
+    });
+  }
+  shopRenderCategoryBar = renderCategoryBar;
+  renderTypeBar();
+  renderCategoryBar();
+
+  // Left/right arrows for the category slider (shown on small screens via CSS)
+  const catPrev = document.getElementById("shop-cat-prev");
+  const catNext = document.getElementById("shop-cat-next");
+  function updateCatArrows(){
+    if (!catBar || !catPrev || !catNext) return;
+    const max = catBar.scrollWidth - catBar.clientWidth;
+    const overflow = max > 4;
+    catPrev.hidden = !overflow || catBar.scrollLeft <= 4;
+    catNext.hidden = !overflow || catBar.scrollLeft >= max - 4;
+  }
+  if (catBar && catPrev && catNext){
+    const step = () => Math.max(120, Math.round(catBar.clientWidth * 0.7));
+    catPrev.addEventListener("click", () => catBar.scrollBy({ left: -step(), behavior: "smooth" }));
+    catNext.addEventListener("click", () => catBar.scrollBy({ left: step(), behavior: "smooth" }));
+    catBar.addEventListener("scroll", updateCatArrows, { passive: true });
+    window.addEventListener("resize", updateCatArrows);
+    // pills are re-rendered on every selection, so refresh after each render too
+    const baseRender = shopRenderCategoryBar;
+    shopRenderCategoryBar = function(){ baseRender(); updateCatArrows(); };
+    window.addEventListener("load", updateCatArrows);
+    updateCatArrows();
+  }
+
+  // Keep every control in sync with shopState - used after "Clear all"
+  // and after removing a single filter chip.
+  function syncControls(){
+    refreshCats();
+    renderTypeBar();
+    renderCategoryCheckboxes();
+    renderCategoryBar();
+    if (priceRange) priceRange.value = shopState.maxPrice;
+    if (priceLabel) priceLabel.textContent = formatPrice(shopState.maxPrice);
+    if (searchInput) searchInput.value = shopState.query;
+  }
+  shopSyncControls = syncControls;
+
+  if (priceRange){
+    priceRange.addEventListener("input", () => {
+      shopState.maxPrice = Number(priceRange.value);
+      priceLabel.textContent = formatPrice(shopState.maxPrice);
+      renderShop();
+    });
+  }
+
+  const sortSelect = document.getElementById("sort-select");
+  if (sortSelect){
+    sortSelect.addEventListener("change", () => {
+      shopState.sort = sortSelect.value;
+      renderShop();
+    });
+  }
+
+  if (searchInput){
+    searchInput.addEventListener("input", () => {
+      shopState.query = searchInput.value.trim().toLowerCase();
+      renderShop();
+    });
+  }
+
+  const clearBtn = document.getElementById("clear-filters");
+  if (clearBtn){
+    clearBtn.addEventListener("click", () => {
+      shopState.category = null;
+      shopState.maxPrice = DEFAULT_MAX_PRICE;
+      shopState.query = "";
+      syncControls();
+      renderShop();
+    });
+  }
+
+  // Active-filter chip removal (event delegation - chips are re-rendered often)
+  const activeFiltersWrap = document.getElementById("active-filters");
+  if (activeFiltersWrap){
+    activeFiltersWrap.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-remove]");
+      if (!btn) return;
+      const kind = btn.dataset.remove;
+      if (kind === "category"){
+        const cats2 = Array.isArray(shopState.category) ? shopState.category : [shopState.category];
+        const remaining = cats2.filter(c => c !== btn.dataset.value);
+        shopState.category = remaining.length ? remaining : null;
+      } else if (kind === "price"){
+        shopState.maxPrice = DEFAULT_MAX_PRICE;
+      } else if (kind === "query"){
+        shopState.query = "";
+      } else if (kind === "type"){
+        shopState.type = "";
+      } else if (kind === "all"){
+        shopState.type = "";
+        shopState.category = null;
+        shopState.maxPrice = DEFAULT_MAX_PRICE;
+        shopState.query = "";
+      }
+      syncControls();
+      renderShop();
+    });
+  }
+
+  // Mobile filter drawer
+  const filterToggle = document.getElementById("filter-toggle");
+  const filtersPanel = document.getElementById("filters-panel");
+  const filtersBackdrop = document.getElementById("filters-backdrop");
+  const filtersClose = document.getElementById("filters-close");
+  const filtersApply = document.getElementById("filters-apply");
+  if (filterToggle && filtersPanel){
+    const openFilters = () => {
+      filtersPanel.classList.add("open");
+      filtersBackdrop.classList.add("show");
+      filterToggle.setAttribute("aria-expanded", "true");
+      document.body.style.overflow = "hidden";
+    };
+    const closeFilters = () => {
+      filtersPanel.classList.remove("open");
+      filtersBackdrop.classList.remove("show");
+      filterToggle.setAttribute("aria-expanded", "false");
+      document.body.style.overflow = "";
+    };
+    filterToggle.addEventListener("click", openFilters);
+    filtersClose.addEventListener("click", closeFilters);
+    filtersBackdrop.addEventListener("click", closeFilters);
+    filtersApply.addEventListener("click", closeFilters);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && filtersPanel.classList.contains("open")) closeFilters();
+    });
+    let lastWidth = window.innerWidth;
+    window.addEventListener("resize", () => {
+      if (window.innerWidth !== lastWidth){
+        lastWidth = window.innerWidth;
+        if (window.innerWidth > 900) closeFilters();
+      }
+    });
+  }
+
+  renderShop();
+}
+
+function getURLParam(name){
+  return new URLSearchParams(window.location.search).get(name);
+}
+
+function renderActiveFilters(){
+  const wrap = document.getElementById("active-filters");
+  const toggleCount = document.getElementById("filter-toggle-count");
+  if (!wrap) return;
+
+  const chips = [];
+  if (shopState.type) chips.push({ label: PRODUCT_TYPES[shopState.type].label, kind: "type" });
+  if (shopState.category){
+    const cats = Array.isArray(shopState.category) ? shopState.category : [shopState.category];
+    cats.forEach(c => chips.push({ label: c, kind: "category", value: c }));
+  }
+  if (shopState.maxPrice && shopState.maxPrice < DEFAULT_MAX_PRICE){
+    chips.push({ label: `Under ${formatPrice(shopState.maxPrice)}`, kind: "price" });
+  }
+  if (shopState.query){
+    chips.push({ label: `"${shopState.query}"`, kind: "query" });
+  }
+
+  if (chips.length === 0){
+    wrap.hidden = true;
+    wrap.innerHTML = "";
+  } else {
+    wrap.hidden = false;
+    wrap.innerHTML = chips.map(c => `
+      <span class="filter-chip">
+        ${c.label}
+        <button type="button" data-remove="${c.kind}" ${c.value ? `data-value="${c.value}"` : ""} aria-label="Remove filter">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </span>`).join("") + `<button type="button" class="filter-chip-clear-all" data-remove="all">Clear all</button>`;
+  }
+
+  if (toggleCount){
+    if (chips.length > 0){
+      toggleCount.hidden = false;
+      toggleCount.textContent = chips.length;
+    } else {
+      toggleCount.hidden = true;
+    }
+  }
+}
+
+function renderShop(){
+  if (typeof shopRenderCategoryBar === "function") shopRenderCategoryBar();
+  const grid = document.getElementById("shop-grid");
+  const countEl = document.getElementById("result-count");
+  let list = shopState.type ? getProductsByType(shopState.type) : PRODUCTS.slice();
+
+  if (shopState.category){
+    const cats = Array.isArray(shopState.category) ? shopState.category : [shopState.category];
+    if (!cats.includes("Gifts")) list = list.filter(p => cats.includes(p.category));
+  }
+  if (shopState.maxPrice){
+    list = list.filter(p => p.price <= shopState.maxPrice);
+  }
+  if (shopState.query){
+    const q = shopState.query;
+    list = list.filter(p =>
+      p.name.toLowerCase().includes(q) ||
+      p.category.toLowerCase().includes(q) ||
+      p.description.toLowerCase().includes(q) ||
+      p.tags.some(t => t.toLowerCase().includes(q))
+    );
+  }
+  switch (shopState.sort){
+    case "price-asc": list.sort((a,b) => a.price - b.price); break;
+    case "price-desc": list.sort((a,b) => b.price - a.price); break;
+    default: break;
+  }
+
+  renderActiveFilters();
+
+  countEl.textContent = `${list.length} product${list.length === 1 ? "" : "s"}`;
+  if (list.length === 0){
+    grid.innerHTML = `
+      <div class="empty-state">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <p>No products match your filters yet.</p>
+        <button type="button" class="btn btn-outline btn-sm" id="empty-reset">Clear all filters</button>
+      </div>`;
+    const resetBtn = document.getElementById("empty-reset");
+    if (resetBtn){
+      resetBtn.addEventListener("click", () => {
+        shopState.type = "";
+        shopState.category = null;
+        shopState.maxPrice = DEFAULT_MAX_PRICE;
+        shopState.query = "";
+        if (shopSyncControls) shopSyncControls();
+        renderShop();
+      });
+    }
+    return;
+  }
+  grid.innerHTML = list.map(productCardHTML).join("");
+  bindWishlistButtons(grid);
+  observeReveal(grid);
+}
+
+/* ---------- Init ---------- */
+document.addEventListener("DOMContentLoaded", () => {
+  updateCartBadge();
+  initMobileNav();
+  renderHomepage();
+  initShopPage();
+  initReveal();
+  initWhatsAppFloat();
+  initSeoTags();
+  // The visit counter is a third-party request: wait until the page has finished loading and the
+  // browser is idle so it never competes with images or scripts.
+  const startCounter = () => (window.requestIdleCallback ? requestIdleCallback(initVisitorCounter, { timeout: 4000 }) : setTimeout(initVisitorCounter, 1500));
+  if (document.readyState === "complete") startCounter(); else window.addEventListener("load", startCounter, { once: true });
+});

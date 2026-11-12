@@ -18,7 +18,8 @@
    dark ones), "@soft" is a calmer second ink, and "@blue", "@brown", "@green" are
    accents that brighten on dark products. Any normal hex colour also works.
    extras: bold:true, sp (letter spacing), angle, op (opacity), stroke, sw (outline width),
-           lh (line height, for text with several lines: put \n between the lines)
+           lh (line height, for text with several lines: put \n between the lines),
+           slot ({x,y,w,h} photo spot inside an S drawing, in its own units: a photo dropped on it snaps in)
    ========================================================= */
 (function(){
   "use strict";
@@ -91,6 +92,7 @@
   // Polaroid card with a light grey photo spot (no text, so nothing odd prints if it is left empty)
   const POLAROID = '<rect x="1" y="1" width="98" height="136" rx="2" fill="#fff" stroke="#D5D9E2" stroke-width="1.6"/>' +
     '<rect x="8" y="7" width="84" height="98" fill="#EEF1F6" stroke="#B9C2D0" stroke-width="1.2" stroke-dasharray="4 3"/>' + CAMERA;
+  const POLAROID_SLOT = { slot: { x: 8, y: 7, w: 84, h: 98 } };   // the grey photo spot inside the card
   const TITLE_WAVE = '<path d="M2 14C20 4 34 18 52 10S86 8 98 10" fill="none" stroke="@ink" stroke-width="2.6" stroke-linecap="round"/>';
   const TICKS = '<path d="M3 22l6-4M12 12l2-7M20 24l7 1" fill="none" stroke="@ink" stroke-width="2.6" stroke-linecap="round"/>';
   const SWISH = '<path d="M4 6C16 2 26 10 22 22" fill="none" stroke="@ink" stroke-width="2.6" stroke-linecap="round"/>';
@@ -395,7 +397,7 @@
 
     /* ---- Birthday: photo mug wrap (every part is editable) ---- */
     { id: "pastel-birthday-photo-mug", name: "Pastel Birthday Photo Mug", cat: "Birthday", desc: "Handwritten birthday wishes with a spot for your own photo and a short message.", tags: "birthday mug photo friend wish message pink hearts crown handwritten gift picture", products: ALL, added: "2026-11-11", layers: [
-      S(PHOTO_SPOT, 72.1, 46.5, 39.4, 100, 123),
+      S(PHOTO_SPOT, 72.1, 46.5, 39.4, 100, 123, { slot: { x: 1, y: 1, w: 98, h: 121 } }),
       S(TAPE, 80.3, 22.4, 11.4, 100, 24, { angle: 8 }),
       S(LINE_HEART, 80.7, 22.3, 3.4, 100, 100),
       S(PINK_HEART, 87.9, 30.3, 4.4, 100, 100, { angle: 8 }),
@@ -424,12 +426,12 @@
       S(FLOWER, 77.1, 33.7, 6.5, 100, 100, { angle: 10 }),
       S(FLOWER, 83.2, 43.4, 6.2, 100, 100, { angle: -15 }),
       S(FLOWER, 31.4, 29.5, 3.6, 100, 100),
-      S(POLAROID, 52.0, 43.5, 16.5, 100, 138, { angle: 2 }),
-      S(POLAROID, 36.6, 39.1, 14.6, 100, 138, { angle: -12 }),
-      S(POLAROID, 66.3, 40.0, 16, 100, 138, { angle: 5 }),
-      S(POLAROID, 69.7, 64.9, 17.5, 100, 138, { angle: 8 }),
-      S(POLAROID, 32.9, 60.3, 16, 100, 138, { angle: 9 }),
-      S(POLAROID, 52.7, 65.5, 17.5, 100, 138, { angle: -12 }),
+      S(POLAROID, 52.0, 43.5, 16.5, 100, 138, Object.assign({ angle: 2 }, POLAROID_SLOT)),
+      S(POLAROID, 36.6, 39.1, 14.6, 100, 138, Object.assign({ angle: -12 }, POLAROID_SLOT)),
+      S(POLAROID, 66.3, 40.0, 16, 100, 138, Object.assign({ angle: 5 }, POLAROID_SLOT)),
+      S(POLAROID, 69.7, 64.9, 17.5, 100, 138, Object.assign({ angle: 8 }, POLAROID_SLOT)),
+      S(POLAROID, 32.9, 60.3, 16, 100, 138, Object.assign({ angle: 9 }, POLAROID_SLOT)),
+      S(POLAROID, 52.7, 65.5, 17.5, 100, 138, Object.assign({ angle: -12 }, POLAROID_SLOT)),
       S(FLOWER, 24.1, 50.8, 3.9, 100, 100, { angle: 30 }),
       S(FLOWER, 79.7, 64.7, 6.2, 100, 100, { angle: 5 }),
       S(FLOWER, 43.4, 71.7, 3.6, 100, 100, { angle: -20 }),
@@ -584,7 +586,7 @@
     const inches = (typeof IMG_PRINT_WIDTH_IN !== "undefined" && IMG_PRINT_WIDTH_IN[cat]) || 10;
     const printMult = (inches * (typeof PRINT_DPI !== "undefined" ? PRINT_DPI : 300)) / Math.max(1, designCanvas.getWidth());
 
-    loadFonts(tpl.layers).then(() => Promise.all(tpl.layers.map(l => {
+    loadFonts(tpl.layers).then(() => Promise.all(tpl.layers.map((l, li) => {
       if (l.k === "t"){
         const t = new fabric.IText(l.text, {
           left: cx + (l.x - 50) * k, top: cy + (l.y - 50) * k, originX: "center", originY: "center",
@@ -618,6 +620,8 @@
         img.set({ left: cx + (l.x - 50) * k, top: cy + (l.y - 50) * k, originX: "center", originY: "center",
           scaleX: s, scaleY: s, angle: l.angle || 0, opacity: l.op || 1 });
         img.gfxVector = true;      // vector artwork: redrawn sharp at print size
+        // A frame: a photo the customer drops on it fills its photo spot (see js/photo-slots.js)
+        if (l.slot) img.gfxSlot = Object.assign({ vw: l.vbW, vh: l.vbH, key: tpl.id + "-" + li + "-" + Date.now().toString(36) }, l.slot);
         return img;
       });
     }))).then((objs) => {

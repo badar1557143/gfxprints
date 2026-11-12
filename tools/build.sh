@@ -6,7 +6,7 @@ set -e
 cd "$(dirname "$0")/.."
 ESB="${ESB:-npx --yes esbuild@0.28.2}"   # set ESB=/path/to/esbuild to use a local copy
 $ESB css/style.css --minify --outfile=css/style.min.css --log-level=warning
-for f in products main cart product customize customize-ui customize-tray customize-desktop draft wishlist shortcuts view clipart templates gallery recolor ordering bgremove upscale reviews waterfall; do
+for f in products main cart product customize customize-ui customize-tray customize-desktop draft wishlist shortcuts view clipart templates gallery recolor ordering bgremove upscale reviews waterfall photo-slots; do
   $ESB js/$f.js --minify --target=es2018 --outfile=js/$f.min.js --log-level=warning
 done
 echo "Minified files rebuilt."

@@ -1281,7 +1281,7 @@ function setupStudioControls(){
 
   const baseToObject = O.toObject;
   O.toObject = function(extra){
-    return baseToObject.call(this, ["gfxShape", "gfxId", "gfxTrim", "gfxVector", "lockMovementX", "lockMovementY", "lockScalingX", "lockScalingY", "lockRotation", "hasControls"].concat(extra || []));
+    return baseToObject.call(this, ["gfxShape", "gfxId", "gfxTrim", "gfxVector", "lockMovementX", "lockMovementY", "lockScalingX", "lockScalingY", "lockRotation", "hasControls", "gfxSlot", "gfxInSlot"].concat(extra || []));
   };
   O.transparentCorners = false;
   // Phones/tablets: tapping a selected text layer must NOT drop into on-canvas typing
@@ -1641,6 +1641,8 @@ function initDesignStudio(product){
       document.dispatchEvent(new CustomEvent("studio:edit-requested"));
     }
   });
+  // A photo dropped on a frame snaps into it. This must come before the history save below, so undo sees the snapped photo.
+  if (window.GfxSlots) window.GfxSlots.attach(designCanvas);
   designCanvas.on("object:modified", commitDesignHistory);
   designCanvas.on("text:editing:exited", commitDesignHistory);
 

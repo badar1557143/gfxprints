@@ -76,6 +76,26 @@
       '<g transform="translate(34 42) scale(.32)" fill="none" stroke="#8C97A8" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"><path d="M8 30h18l6-10h36l6 10h18v52H8z"/><circle cx="50" cy="56" r="16"/></g>';
   })();
 
+  /* Pastel Birthday Polaroid Collage: flowers, leaves, polaroid frames and doodles */
+  const FL_PETALS = [0, 72, 144, 216, 288].map(a => '<ellipse cx="50" cy="26" rx="16" ry="25" transform="rotate(' + a + ' 50 50)"/>').join("");
+  const FLOWER = '<g fill="#F9BFCB" stroke="#EE9DB1" stroke-width="2">' + FL_PETALS + '</g>' +
+    '<circle cx="50" cy="50" r="10" fill="#D6A23C" stroke="#B98427" stroke-width="1.5"/>' +
+    [0, 72, 144, 216, 288].map(a => '<circle cx="50" cy="38" r="1.8" fill="#8A5A1A" transform="rotate(' + a + ' 50 50)"/>').join("");
+  const LEAF = (x, y, a, k) => '<path transform="translate(' + x + ' ' + y + ') rotate(' + a + ') scale(' + k + ')" d="M0 0C5-8 17-8 24 0C17 8 5 8 0 0z" fill="#A9B38F" stroke="#8E9B7A" stroke-width="1.2"/>';
+  const BRANCH_RIGHT = '<path d="M8 98C14 70 26 40 52 4" stroke="#8E9B7A" stroke-width="2.4" fill="none" stroke-linecap="round"/>' +
+    LEAF(16, 74, -165, 1) + LEAF(19, 66, -25, 1) + LEAF(26, 52, -150, 1.1) + LEAF(30, 44, -35, 1.1) + LEAF(38, 30, -155, .9) + LEAF(42, 22, -40, .9) + LEAF(50, 8, -70, .8);
+  const BRANCH_LEFT = '<g transform="translate(60 0) scale(-1 1)">' + BRANCH_RIGHT + '</g>';
+  const SPRIG = '<path d="M6 36C12 24 20 14 32 6" stroke="#8E9B7A" stroke-width="2" fill="none" stroke-linecap="round"/>' +
+    LEAF(9, 30, -150, .7) + LEAF(13, 24, -30, .7) + LEAF(20, 16, -155, .6) + LEAF(25, 11, -40, .6);
+  const CAMERA = '<g transform="translate(36 42) scale(.28)" fill="none" stroke="#8C97A8" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"><path d="M8 30h18l6-10h36l6 10h18v52H8z"/><circle cx="50" cy="56" r="16"/></g>';
+  // Polaroid card with a light grey photo spot (no text, so nothing odd prints if it is left empty)
+  const POLAROID = '<rect x="1" y="1" width="98" height="136" rx="2" fill="#fff" stroke="#D5D9E2" stroke-width="1.6"/>' +
+    '<rect x="8" y="7" width="84" height="98" fill="#EEF1F6" stroke="#B9C2D0" stroke-width="1.2" stroke-dasharray="4 3"/>' + CAMERA;
+  const TITLE_WAVE = '<path d="M2 14C20 4 34 18 52 10S86 8 98 10" fill="none" stroke="@ink" stroke-width="2.6" stroke-linecap="round"/>';
+  const TICKS = '<path d="M3 22l6-4M12 12l2-7M20 24l7 1" fill="none" stroke="@ink" stroke-width="2.6" stroke-linecap="round"/>';
+  const SWISH = '<path d="M4 6C16 2 26 10 22 22" fill="none" stroke="@ink" stroke-width="2.6" stroke-linecap="round"/>';
+  const SMALL_PINK_HEART = '<path d="' + HEART_D + '" fill="' + PINK_SOFT + '" stroke="' + PINK + '" stroke-width="6" stroke-linejoin="round"/>';
+
   /* ---- Product groups a design can be printed on (names match "category" in js/products.js) ---- */
   const TEE = "T-Shirts", HOOD = "Hoodies", TOTE = "Tote Bags", MUG = "Mugs", FRAME = "Photo Frames";
   const ALL = [TEE, HOOD, TOTE, MUG, FRAME];
@@ -393,6 +413,42 @@
       S(BRUSH, 29.6, 74.3, 35.2, 100, 33),
       T("Stay Happy\nAlways", 28.2, 74.6, 4.6, F.caveat, "#15171b", { bold: true, lh: 0.94 }),
       S(LINE_HEART, 39.9, 77.3, 4.6, 100, 100, { op: 1 })
+    ] },
+
+    /* ---- Birthday: six polaroid photos with flowers (every part is editable) ---- */
+    { id: "pastel-birthday-polaroid-collage", name: "Pastel Birthday Polaroid Collage", cat: "Birthday", desc: "Six polaroid photo spots with pink flowers and a handwritten Happy Birthday title.", tags: "birthday polaroid photo collage flowers pink floral pictures memories gift six photos", products: ALL, added: "2026-11-11", layers: [
+      S(BRANCH_LEFT, 25.4, 38.8, 11.7, 60, 100),
+      S(BRANCH_RIGHT, 78.4, 42.1, 14.3, 60, 100),
+      S(FLOWER, 21.7, 32.2, 7.8, 100, 100, { angle: -10 }),
+      S(FLOWER, 18.0, 41.5, 7.8, 100, 100, { angle: 20 }),
+      S(FLOWER, 77.1, 33.7, 6.5, 100, 100, { angle: 10 }),
+      S(FLOWER, 83.2, 43.4, 6.2, 100, 100, { angle: -15 }),
+      S(FLOWER, 31.4, 29.5, 3.6, 100, 100),
+      S(POLAROID, 52.0, 43.5, 16.5, 100, 138, { angle: 2 }),
+      S(POLAROID, 36.6, 39.1, 14.6, 100, 138, { angle: -12 }),
+      S(POLAROID, 66.3, 40.0, 16, 100, 138, { angle: 5 }),
+      S(POLAROID, 69.7, 64.9, 17.5, 100, 138, { angle: 8 }),
+      S(POLAROID, 32.9, 60.3, 16, 100, 138, { angle: 9 }),
+      S(POLAROID, 52.7, 65.5, 17.5, 100, 138, { angle: -12 }),
+      S(FLOWER, 24.1, 50.8, 3.9, 100, 100, { angle: 30 }),
+      S(FLOWER, 79.7, 64.7, 6.2, 100, 100, { angle: 5 }),
+      S(FLOWER, 43.4, 71.7, 3.6, 100, 100, { angle: -20 }),
+      S(SPRIG, 21.6, 62.6, 4.7, 40, 40),
+      S(SPRIG, 77.5, 70, 5.5, 40, 40, { angle: 20 }),
+      S(SPRIG, 42.6, 68.1, 3.6, 40, 40, { angle: -10 }),
+      S(TITLE_WAVE, 30.3, 23.8, 7.8, 100, 20),
+      S(TITLE_WAVE, 70.6, 23.5, 9.1, 100, 20, { angle: 180 }),
+      S(SMALL_PINK_HEART, 24.1, 24.9, 3.1, 100, 100, { angle: -8 }),
+      S(SMALL_PINK_HEART, 76.7, 23.2, 3.6, 100, 100, { angle: 10 }),
+      S(LINE_HEART, 51, 29.1, 3.1, 100, 100),
+      S(PINK_HEART, 79.4, 27.2, 2.6, 100, 100, { angle: 14 }),
+      S(LINE_HEART, 21.4, 55.1, 2.6, 100, 100, { angle: -8 }),
+      S(LINE_HEART, 80.6, 51, 2.1, 100, 100, { angle: 8 }),
+      S(LINE_HEART, 43.2, 76.1, 1.8, 100, 100, { angle: -8 }),
+      S(TICKS, 17.7, 51.2, 2.6, 30, 30),
+      S(TICKS, 81, 57.4, 3.8, 30, 30, { angle: 180 }),
+      S(SWISH, 14.6, 47, 2.2, 30, 30),
+      T("HAPPY BIRTHDAY", 50.3, 23, 6.4, F.bebas, "@ink", { sp: 40 })
     ] }
   ];
 

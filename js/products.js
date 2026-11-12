@@ -571,6 +571,16 @@ const DESIGN_PRODUCTS = [
       metaDescription: "Handwritten birthday wishes with a spot for your own photo. Customize this birthday photo mug at GfxPrints, made on demand.",
       targetKeyword: "Birthday photo mug",
       keywords: "birthday photo mug, birthday gift mug, personalised birthday mug, photo mug Pakistan, birthday gift for friend"
+    } },
+  { id: 108, baseId: 2, templateId: "pastel-birthday-polaroid-collage", key: "polaroid", kind: "Mug", name: "Pastel Birthday Polaroid Collage Mug", image: "assets/products/design-polaroid-mug-white-left.webp",
+    info: {
+      label: "Birthday",
+      lead: "Six polaroid photo spots with pink flowers and a handwritten Happy Birthday title.",
+      description: "Six polaroid photo spots with pink flowers and a handwritten Happy Birthday title. A ready-made birthday gift mug. Add your own photos and change the title in the Design Studio. Made on demand.",
+      tags: ["birthday", "polaroid", "photo collage", "photo mug", "flowers", "gift", "mug"],
+      metaDescription: "Six polaroid photo spots with pink flowers and a Happy Birthday title. Customize this birthday collage mug at GfxPrints, made on demand.",
+      targetKeyword: "Birthday photo collage mug",
+      keywords: "birthday photo collage mug, polaroid photo mug, personalised birthday mug, photo mug Pakistan, birthday gift mug"
     } }
 ];
 

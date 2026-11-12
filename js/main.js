@@ -494,10 +494,11 @@ function renderHomepage(){
   const dsChips = document.getElementById("design-cats");
   if (dsGrid){
     const designs = getProductsByType("design");
-    const cats = [...new Set(designs.map(p => p.category))];
+    // Product categories first, then the themed ones (Birthday Gifts, Islamic & Hajj Gifts) that have designs
+    const cats = [...new Set(designs.map(p => p.category)), ...Object.values(COL).filter(n => designs.some(p => p.collections.includes(n)))];
     let active = "";
     const draw = () => {
-      const list = active ? designs.filter(p => p.category === active) : designs;
+      const list = active ? designs.filter(p => productInCategory(p, active)) : designs;
       dsGrid.innerHTML = list.map(productCardHTML).join("");
       bindWishlistButtons(dsGrid);
       observeReveal(dsGrid);
@@ -510,7 +511,7 @@ function renderHomepage(){
     };
     if (dsChips){
       dsChips.innerHTML = ["", ...cats].map(c =>
-        `<button type="button" class="cat-pill" data-cat="${c}" aria-pressed="false">${c || "All"}<span class="cat-pill-n">${c ? designs.filter(p => p.category === c).length : designs.length}</span></button>`).join("");
+        `<button type="button" class="cat-pill" data-cat="${c}" aria-pressed="false">${c || "All"}<span class="cat-pill-n">${c ? designs.filter(p => productInCategory(p, c)).length : designs.length}</span></button>`).join("");
       dsChips.addEventListener("click", (e) => {
         const b = e.target.closest(".cat-pill"); if (!b) return;
         active = b.dataset.cat || ""; draw();

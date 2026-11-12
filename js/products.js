@@ -554,15 +554,19 @@ PRODUCTS.forEach(p => {
    placed (templateId, see js/templates.js), so the customer can still change the name, colour or size.
    To add another one: make a mockup photo, add a row below. Price, sizes and print sides come from the
    blank product, so they stay in sync when you change that product's prices. */
+// Themed shop categories. A product keeps its product category (Mugs, Photo Frames...) and can also belong to one or more of these.
+// To put a product in one, add  collections: [COL.birthday]  to its row below.
+const COL = { birthday: "🎁 Birthday Gifts", islamic: "🕋 Islamic & Hajj Gifts" };
+
 const DESIGN_PRODUCTS = [
-  { id: 101, baseId: 2, templateId: "umrah-mubarak-watercolor", key: "umrah", kind: "Mug",        name: "Umrah Mubarak Watercolor Mug",        image: "assets/products/design-umrah-mug.webp" },
-  { id: 102, baseId: 6, templateId: "umrah-mubarak-watercolor", key: "umrah", kind: "Tote Bag",   name: "Umrah Mubarak Watercolor Tote Bag",   image: "assets/products/design-umrah-tote.webp" },
-  { id: 103, baseId: 4, templateId: "umrah-mubarak-watercolor", key: "umrah", kind: "Photo Frame", name: "Umrah Mubarak Watercolor Photo Frame", image: "assets/products/design-umrah-frame.webp" },
-  { id: 104, baseId: 2, templateId: "hajj-mubarak-kaaba-name",  key: "hajj",  kind: "Mug",        name: "Hajj Mubarak Mug with Name",          image: "assets/products/design-hajj-mug.webp", named: true },
-  { id: 105, baseId: 6, templateId: "hajj-mubarak-kaaba-name",  key: "hajj",  kind: "Tote Bag",   name: "Hajj Mubarak Tote Bag with Name",     image: "assets/products/design-hajj-tote.webp", named: true },
-  { id: 106, baseId: 4, templateId: "hajj-mubarak-kaaba-name",  key: "hajj",  kind: "Photo Frame", name: "Hajj Mubarak Photo Frame with Name",  image: "assets/products/design-hajj-frame.webp", named: true },
+  { id: 101, collections: [COL.islamic], baseId: 2, templateId: "umrah-mubarak-watercolor", key: "umrah", kind: "Mug",        name: "Umrah Mubarak Watercolor Mug",        image: "assets/products/design-umrah-mug.webp" },
+  { id: 102, collections: [COL.islamic], baseId: 6, templateId: "umrah-mubarak-watercolor", key: "umrah", kind: "Tote Bag",   name: "Umrah Mubarak Watercolor Tote Bag",   image: "assets/products/design-umrah-tote.webp" },
+  { id: 103, collections: [COL.islamic], baseId: 4, templateId: "umrah-mubarak-watercolor", key: "umrah", kind: "Photo Frame", name: "Umrah Mubarak Watercolor Photo Frame", image: "assets/products/design-umrah-frame.webp" },
+  { id: 104, collections: [COL.islamic], baseId: 2, templateId: "hajj-mubarak-kaaba-name",  key: "hajj",  kind: "Mug",        name: "Hajj Mubarak Mug with Name",          image: "assets/products/design-hajj-mug.webp", named: true },
+  { id: 105, collections: [COL.islamic], baseId: 6, templateId: "hajj-mubarak-kaaba-name",  key: "hajj",  kind: "Tote Bag",   name: "Hajj Mubarak Tote Bag with Name",     image: "assets/products/design-hajj-tote.webp", named: true },
+  { id: 106, collections: [COL.islamic], baseId: 4, templateId: "hajj-mubarak-kaaba-name",  key: "hajj",  kind: "Photo Frame", name: "Hajj Mubarak Photo Frame with Name",  image: "assets/products/design-hajj-frame.webp", named: true },
   // Texts for a design that is not Hajj or Umrah (the Hajj and Umrah wording is built in below)
-  { id: 107, baseId: 2, templateId: "pastel-birthday-photo-mug", key: "birthday", kind: "Mug", name: "Pastel Birthday Photo Mug", image: "assets/products/design-birthday-mug-white-left.webp",
+  { id: 107, collections: [COL.birthday], baseId: 2, templateId: "pastel-birthday-photo-mug", key: "birthday", kind: "Mug", name: "Pastel Birthday Photo Mug", image: "assets/products/design-birthday-mug-white-left.webp",
     info: {
       label: "Birthday",
       lead: "Handwritten birthday wishes with a pink crown and hearts, a spot for your own photo and a short message.",
@@ -572,7 +576,7 @@ const DESIGN_PRODUCTS = [
       targetKeyword: "Birthday photo mug",
       keywords: "birthday photo mug, birthday gift mug, personalised birthday mug, photo mug Pakistan, birthday gift for friend"
     } },
-  { id: 108, baseId: 2, templateId: "pastel-birthday-polaroid-collage", key: "polaroid", kind: "Mug", name: "Pastel Birthday Polaroid Collage Mug", image: "assets/products/design-polaroid-mug-white-left.webp",
+  { id: 108, collections: [COL.birthday], baseId: 2, templateId: "pastel-birthday-polaroid-collage", key: "polaroid", kind: "Mug", name: "Pastel Birthday Polaroid Collage Mug", image: "assets/products/design-polaroid-mug-white-left.webp",
     info: {
       label: "Birthday",
       lead: "Six polaroid photo spots with pink flowers and a handwritten Happy Birthday title.",
@@ -606,6 +610,7 @@ DESIGN_PRODUCTS.forEach(d => {
     image: d.image,
     heroImage: d.image,
     designProduct: true,
+    collections: d.collections || [],
     baseId: d.baseId,
     templateId: d.templateId,
     seo: Object.assign(seoBase, {
@@ -649,7 +654,9 @@ const PRODUCT_TYPES = {
   upload: { label: "Upload Your Design", short: "Your design", cta: "Upload Design", blurb: "Pick a product, then upload your own artwork, logo or photo, or build a design in the studio." },
   design: { label: "Ready-Made Designs", short: "Ready-made", cta: "Customize", blurb: "Finished designs on real products. Order as it is, or change the name, colours and size." }
 };
-PRODUCTS.forEach(p => { p.productType = p.designProduct ? "design" : "upload"; });
+PRODUCTS.forEach(p => { p.productType = p.designProduct ? "design" : "upload"; p.collections = p.collections || []; });
+// Is a product in a shop category? Its product category, one of its collections, or the catch-all "Gifts".
+const productInCategory = (p, c) => c === "Gifts" || p.category === c || p.collections.includes(c);
 const getProductsByType = (type) => PRODUCTS.filter(p => p.productType === type);
 
 const CATEGORIES = [
@@ -658,6 +665,8 @@ const CATEGORIES = [
   { name: "Photo Frames", desc: "Turn memories into something tangible.", image: "assets/products/photo-frame-category.webp" },
   { name: "Hoodies", desc: "Comfort with your own style.", image: "assets/products/hoodie-blue.webp" },
   { name: "Tote Bags", desc: "Carry something uniquely yours.", image: "assets/products/tote-canvas.webp" },
+  { name: COL.birthday, desc: "Birthday gifts made personal.", image: "assets/products/design-birthday-mug-white-left.webp" },
+  { name: COL.islamic, desc: "Gifts for Hajj, Umrah and Islamic occasions.", image: "assets/products/design-hajj-mug-white-left.webp" },
   { name: "Gifts", desc: "Make every occasion special.", image: "assets/products/personalized-gift-category.webp" }
 ];
 

@@ -555,9 +555,15 @@ function initShopPage(){
   // "Gifts" is a catch-all category: it lists every product in the shop.
   // Categories follow the chosen product type (a type only lists the categories it has products in)
   const typeProducts = () => shopState.type ? getProductsByType(shopState.type) : PRODUCTS;
-  let cats = [...new Set(typeProducts().map(p => p.category)), "Gifts"];
+  // Product categories first, then the themed ones (Birthday Gifts, Islamic & Hajj Gifts) that have products, then Gifts
+  const shopCatNames = () => {
+    const prods = typeProducts();
+    const themed = Object.values(COL).filter(n => prods.some(p => p.collections.includes(n)));
+    return [...new Set(prods.map(p => p.category)), ...themed, "Gifts"];
+  };
+  let cats = shopCatNames();
   function refreshCats(){
-    cats = [...new Set(typeProducts().map(p => p.category)), "Gifts"];
+    cats = shopCatNames();
     if (shopState.category){
       const keep = (Array.isArray(shopState.category) ? shopState.category : [shopState.category]).filter(c => cats.includes(c));
       shopState.category = keep.length ? keep : null;
@@ -591,7 +597,7 @@ function initShopPage(){
       ? (Array.isArray(shopState.category) ? shopState.category : [shopState.category])
       : [];
     catWrap.innerHTML = cats.map(c => {
-      const count = c === "Gifts" ? PRODUCTS.length : PRODUCTS.filter(p => p.category === c).length;
+      const count = PRODUCTS.filter(p => productInCategory(p, c)).length;
       return `
       <label class="filter-check">
         <input type="checkbox" value="${c}" ${active.includes(c) ? "checked" : ""}>
@@ -845,7 +851,7 @@ function renderShop(){
 
   if (shopState.category){
     const cats = Array.isArray(shopState.category) ? shopState.category : [shopState.category];
-    if (!cats.includes("Gifts")) list = list.filter(p => cats.includes(p.category));
+    if (!cats.includes("Gifts")) list = list.filter(p => cats.some(c => productInCategory(p, c)));
   }
   if (shopState.maxPrice){
     list = list.filter(p => p.price <= shopState.maxPrice);

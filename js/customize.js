@@ -1643,6 +1643,22 @@ function initDesignStudio(product){
   });
   // A photo dropped on a frame snaps into it. This must come before the history save below, so undo sees the snapped photo.
   if (window.GfxSlots) window.GfxSlots.attach(designCanvas);
+  // Drop a photo dragged from the Images list: it lands where the mouse is (and snaps into a frame if it is over one)
+  (function(){
+    const stage = document.getElementById("studio-stage");
+    if (!stage || stage.__gfxDrop) return;
+    stage.__gfxDrop = true;
+    const ours = (e) => e.dataTransfer && Array.prototype.indexOf.call(e.dataTransfer.types || [], "text/x-gfx-upload") >= 0;
+    stage.addEventListener("dragover", (e) => { if (ours(e)){ e.preventDefault(); e.dataTransfer.dropEffect = "copy"; } });
+    stage.addEventListener("drop", (e) => {
+      if (!ours(e)) return;
+      e.preventDefault();
+      const item = getUploadLibrary().find(i => i.id === e.dataTransfer.getData("text/x-gfx-upload"));
+      if (!item) return;
+      const pt = designCanvas.getPointer(e);
+      placeImageOnCanvas(item.dataUrl, { at: { x: pt.x, y: pt.y } });
+    });
+  })();
   designCanvas.on("object:modified", commitDesignHistory);
   designCanvas.on("text:editing:exited", commitDesignHistory);
 
@@ -1756,7 +1772,14 @@ function placeImageOnCanvas(dataUrl, opts){
     });
     // Clipart and stickers are vector artwork: they redraw sharp at any size and in the print file.
     if (opts && opts.vector) img.gfxVector = true;
+    // A plain photo goes into a frame when the design has one (see js/photo-slots.js)
+    const frame = (!(opts && opts.vector) && window.GfxSlots) ? window.GfxSlots.chooseFrame(designCanvas, opts && opts.at) : null;
+    if (opts && opts.at) img.set({ left: opts.at.x, top: opts.at.y });
     designCanvas.add(img);
+    if (frame){
+      window.GfxSlots.fillFrame(designCanvas, img, frame);
+      showToast("Photo placed in the frame. Drag another photo here to replace it");
+    }
     designCanvas.setActiveObject(img);
     designCanvas.requestRenderAll();
     refreshLayersList();
@@ -1986,7 +2009,7 @@ function renderUploadLibrary(){
   grid.innerHTML = shown.map(item => {
     const sel = upSelected.has(item.id);
     return `
-    <div class="upload-lib-item${sel ? " selected" : ""}" data-id="${item.id}" title="${escAttr(item.name)}">
+    <div class="upload-lib-item${sel ? " selected" : ""}" data-id="${item.id}" title="${escAttr(item.name)}"${upSelectMode ? "" : ' draggable="true"'}>
       <button type="button" class="upload-lib-add" aria-label="${upSelectMode ? "Select" : "Add"} ${escAttr(item.name)}">
         <img src="${item.dataUrl}" alt="" loading="lazy" decoding="async">
       </button>
@@ -2027,6 +2050,15 @@ function initUploadPanel(){
       if (e.target.closest(".up-more")){ e.stopPropagation(); upOpenMenu(itemEl, id); return; }
       if (upSelectMode){ upToggleSelect(id); return; }
       upAddToDesign(getUploadLibrary().find(i => i.id === id));
+    });
+    // Mouse: drag a photo from the list onto the design. Dropping it on a frame fills the frame.
+    grid.addEventListener("dragstart", (e) => {
+      const itemEl = e.target.closest && e.target.closest(".upload-lib-item");
+      if (!itemEl || upSelectMode || !e.dataTransfer){ e.preventDefault(); return; }
+      e.dataTransfer.setData("text/x-gfx-upload", itemEl.dataset.id);
+      e.dataTransfer.effectAllowed = "copy";
+      const im = itemEl.querySelector("img");
+      if (im && e.dataTransfer.setDragImage) e.dataTransfer.setDragImage(im, im.clientWidth / 2, im.clientHeight / 2);
     });
     // Long-press a photo to start selecting (touch devices)
     let pressTimer = null;

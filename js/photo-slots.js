@@ -4,6 +4,8 @@
    When the customer drags one of their photos and lets go on a frame, the photo is scaled to cover the
    spot, turned to match the frame, clipped to the spot and placed just above the frame.
    Dropping a photo away from every frame frees it again.
+   A photo that is added from the Images list also goes into a frame: the one it is dropped on (desktop drag),
+   the selected frame, or the next empty frame (tap).
    Only plain photos take part: clipart, stickers and the frames themselves are left alone.
    Loaded before customize.js. customize.js calls GfxSlots.attach(canvas) once the canvas exists.
    ========================================================= */
@@ -38,18 +40,47 @@
     return Math.max(sw / Math.max(1, iw), sh / Math.max(1, ih));
   }
 
-  // The frame under the middle of the dropped photo. If frames overlap, the one whose spot is nearest wins.
-  function findFrame(canvas, img){
-    const p = img.getCenterPoint();
+  // The frame under a point. If frames overlap, the one whose spot is nearest wins.
+  function findFrameAt(canvas, p, skip){
     let best = null, bestD = Infinity;
     canvas.getObjects().forEach((o) => {
-      if (o === img || !o.gfxSlot) return;
+      if (o === skip || !o.gfxSlot) return;
       const g = slotGeometry(o);
       if (!insideCard(g, p)) return;
       const d = Math.hypot(p.x - g.cx, p.y - g.cy);
       if (d < bestD){ best = { card: o, geo: g }; bestD = d; }
     });
     return best;
+  }
+  // The frame under the middle of a photo that was just dropped.
+  function findFrame(canvas, img){
+    return findFrameAt(canvas, img.getCenterPoint(), img);
+  }
+
+  // Frames with no photo in them yet, in reading order (top row first, left to right).
+  function emptyFrames(canvas){
+    const objs = canvas.getObjects();
+    const taken = {};
+    objs.forEach((o) => { if (o.gfxInSlot) taken[o.gfxInSlot] = true; });
+    return objs.filter((o) => o.gfxSlot && !taken[o.gfxSlot.key])
+      .map((o) => ({ card: o, geo: slotGeometry(o) }))
+      .sort((a, b) => {
+        const ra = Math.round(a.geo.cy / (a.geo.cardH * 0.7)), rb = Math.round(b.geo.cy / (b.geo.cardH * 0.7));
+        return ra - rb || a.geo.cx - b.geo.cx;
+      });
+  }
+
+  // Which frame should a photo that is being ADDED (not dragged on the canvas) go into?
+  //  - dropped at a point: the frame under that point
+  //  - a frame is selected: that frame
+  //  - otherwise: the next empty frame
+  // Returns null when there is no frame, or all are full (the photo is then added as a normal free photo).
+  function chooseFrame(canvas, point){
+    if (point) return findFrameAt(canvas, point, null);
+    const active = canvas.getActiveObject && canvas.getActiveObject();
+    if (active && active.gfxSlot) return { card: active, geo: slotGeometry(active) };
+    const free = emptyFrames(canvas);
+    return free.length ? free[0] : null;
   }
 
   function fillFrame(canvas, img, hit){
@@ -102,5 +133,5 @@
     });
   }
 
-  window.GfxSlots = { attach: attach, slotGeometry: slotGeometry, insideCard: insideCard, coverScale: coverScale, findFrame: findFrame, fillFrame: fillFrame, onModified: onModified };
+  window.GfxSlots = { attach: attach, slotGeometry: slotGeometry, insideCard: insideCard, coverScale: coverScale, findFrame: findFrame, findFrameAt: findFrameAt, emptyFrames: emptyFrames, chooseFrame: chooseFrame, fillFrame: fillFrame, onModified: onModified };
 })();

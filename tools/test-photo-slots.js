@@ -67,4 +67,26 @@ let p4 = obj({left:230,top:190,width:200,height:200});
 let cv2 = canvas([p4, card, cardB]); G.onModified(cv2,{target:p4,action:"drag"});
 assert(p4.gfxInSlot==="k2","nearest frame chosen (k2)");
 assert(cv2._o.indexOf(p4)===cv2._o.indexOf(cardB)+1,"photo placed right above frame k2");
+
+// 10. photos ADDED from the Images list (tap or drag from the list)
+function frame(x,y,key){ return obj({left:x,top:y,width:100,height:138,gfxVector:true,gfxSlot:Object.assign({},SLOT,{key:key})}); }
+// two rows of two frames, listed in a mixed order on purpose
+const f1=frame(100,100,"a"), f2=frame(300,100,"b"), f3=frame(100,300,"c"), f4=frame(300,300,"d");
+let cv3 = canvas([f4,f2,f3,f1]); cv3.getActiveObject=()=>null;
+assert(G.emptyFrames(cv3).map(f=>f.card.gfxSlot.key).join("")==="abcd","empty frames are in reading order (a b c d)");
+let c1 = G.chooseFrame(cv3,null); assert(c1.card===f1,"tap: first empty frame is the top-left one");
+// fill it, the next tap goes to the next empty frame
+let ph1 = obj({left:100,top:100,width:300,height:200}); cv3._o.push(ph1); G.fillFrame(cv3,ph1,c1);
+assert(G.chooseFrame(cv3,null).card===f2,"tap again: next empty frame (b)");
+// a selected frame wins, even if it already has a photo
+cv3.getActiveObject=()=>f1; assert(G.chooseFrame(cv3,null).card===f1,"selected frame is chosen first");
+cv3.getActiveObject=()=>null;
+// dropped at a point: that frame, even if not the first empty one
+assert(G.chooseFrame(cv3,{x:310,y:310}).card===f4,"drop at a point picks the frame under it (d)");
+assert(G.chooseFrame(cv3,{x:700,y:700})===null,"drop away from frames: no frame, photo stays free");
+// all frames full: tap adds a free photo
+[f2,f3,f4].forEach((f,i)=>{ const ph=obj({left:f.left,top:f.top,width:300,height:200}); cv3._o.push(ph); G.fillFrame(cv3,ph,G.chooseFrame(cv3,null)); });
+assert(G.emptyFrames(cv3).length===0 && G.chooseFrame(cv3,null)===null,"all frames full: nothing chosen, photo is added free");
+// no frames at all
+let cv4=canvas([obj({})]); cv4.getActiveObject=()=>null; assert(G.chooseFrame(cv4,null)===null,"design without frames is not affected");
 console.log(process.exitCode?"SOME TESTS FAILED":"ALL TESTS PASSED");

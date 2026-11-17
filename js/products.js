@@ -665,8 +665,8 @@ const CATEGORIES = [
   { name: "Photo Frames", desc: "Turn memories into something tangible.", image: "assets/products/photo-frame-category.webp" },
   { name: "Hoodies", desc: "Comfort with your own style.", image: "assets/products/hoodie-blue.webp" },
   { name: "Tote Bags", desc: "Carry something uniquely yours.", image: "assets/products/tote-canvas.webp" },
-  { name: COL.birthday, desc: "Birthday gifts made personal.", image: "assets/products/design-birthday-mug-white-left.webp" },
-  { name: COL.islamic, desc: "Gifts for Hajj, Umrah and Islamic occasions.", image: "assets/products/design-hajj-mug-white-left.webp" },
+  { name: COL.birthday, desc: "Birthday gifts made personal.", image: "assets/products/category-birthday-mug.webp" },
+  { name: COL.islamic, desc: "Gifts for Hajj, Umrah and Islamic occasions.", image: "assets/products/category-islamic-mug.webp" },
   { name: "Gifts", desc: "Make every occasion special.", image: "assets/products/personalized-gift-category.webp" }
 ];
 
